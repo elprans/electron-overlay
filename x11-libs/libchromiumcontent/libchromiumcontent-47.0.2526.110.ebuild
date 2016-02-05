@@ -1,30 +1,33 @@
-# Copyright 1999-2014 Gentoo Foundation
+# Copyright 1999-2016 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: $
+# $Id$
 
 EAPI="5"
-PYTHON_COMPAT=( python{2_6,2_7} )
+PYTHON_COMPAT=( python2_7 )
 
 CHROMIUM_LANGS="am ar bg bn ca cs da de el en_GB es es_LA et fa fi fil fr gu he
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt_BR pt_PT ro ru sk sl sr
 	sv sw ta te th tr uk vi zh_CN zh_TW"
 
-inherit chromium eutils flag-o-matic git-2 multilib multiprocessing pax-utils \
+inherit check-reqs chromium eutils flag-o-matic git-2 multilib multiprocessing pax-utils \
 	portability python-any-r1 toolchain-funcs versionator virtualx
+
+C_P="chromium-${PV}"
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="http://chromium.org/"
-SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/chromium-${PV}-lite.tar.xz"
-LCC_EGIT_REPO_URI="https://github.com/brightray/libchromiumcontent.git"
-LCC_EGIT_COMMIT="ef6f735cf946570a89bd6269121e1cd0911da4ab"
+SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${C_P}.tar.xz"
+LCC_EGIT_REPO_URI="https://github.com/atom/libchromiumcontent.git"
+LCC_EGIT_COMMIT="8c7f5b9adb9372130a9295b7e0fb19355f613cf9"
 LCC_EGIT_SOURCEDIR="${WORKDIR}/${P}"
 LCC_S="${LCC_EGIT_SOURCEDIR}"
 S="${WORKDIR}/chromium-${PV}"
 
-LICENSE="BSD"
+LICENSE="BSD hotwording? ( no-source-code )"
 SLOT="0"
-KEYWORDS="amd64 ~arm ~x86"
-IUSE="bindist cups custom-cflags gnome gnome-keyring kerberos neon pic pulseaudio selinux +tcmalloc"
+KEYWORDS="amd64 ~arm x86"
+IUSE="cups custom-cflags gnome gnome-keyring hidpi hotwording kerberos neon pic +proprietary-codecs pulseaudio selinux +tcmalloc widevine"
+RESTRICT="proprietary-codecs? ( bindist )"
 
 # Native Client binaries are compiled with different set of flags, bug #452066.
 QA_FLAGS_IGNORED=".*\.nexe"
@@ -36,10 +39,7 @@ QA_PRESTRIPPED=".*\.nexe"
 RDEPEND=">=app-accessibility/speech-dispatcher-0.8:=
 	app-arch/bzip2:=
 	app-arch/snappy:=
-	cups? (
-		dev-libs/libgcrypt:0=
-		>=net-print/cups-1.3.11:=
-	)
+	cups? ( >=net-print/cups-1.3.11:= )
 	>=dev-libs/elfutils-0.149
 	dev-libs/expat:=
 	dev-libs/glib:=
@@ -57,12 +57,12 @@ RDEPEND=">=app-accessibility/speech-dispatcher-0.8:=
 	media-libs/flac:=
 	media-libs/fontconfig:=
 	media-libs/freetype:=
-	>=media-video/ffmpeg-2.2.7:=
 	media-libs/harfbuzz:=[icu(+)]
 	media-libs/libexif:=
 	>=media-libs/libjpeg-turbo-1.2.0-r1:=
 	media-libs/libpng:0=
 	>=media-libs/libwebp-0.4.0:=
+	>=media-libs/libvpx-1.4.0:=[postproc]
 	media-libs/speex:=
 	pulseaudio? ( media-sound/pulseaudio:= )
 	sys-apps/dbus:=
@@ -87,8 +87,7 @@ RDEPEND=">=app-accessibility/speech-dispatcher-0.8:=
 	x11-libs/libXScrnSaver:=
 	x11-libs/libXtst:=
 	x11-libs/pango:=
-	kerberos? ( virtual/krb5 )
-	selinux? ( sec-policy/selinux-chromium )"
+	kerberos? ( virtual/krb5 )"
 DEPEND="${RDEPEND}
 	!arm? (
 		dev-lang/yasm
@@ -100,26 +99,55 @@ DEPEND="${RDEPEND}
 	sys-apps/hwids[usb(+)]
 	>=sys-devel/bison-2.4.3
 	sys-devel/flex
-	virtual/pkgconfig"
+	virtual/pkgconfig
+	widevine? ( www-plugins/chrome-binary-plugins[widevine] )"
+	# We build-dep on having widevine, because the patch
+	# below must extract the current version.
 
 # For nvidia-drivers blocker, see bug #413637 .
 RDEPEND+="
+	!=www-client/chromium-9999
+	!<www-plugins/chrome-binary-plugins-37
 	x11-misc/xdg-utils
+	virtual/opengl
 	virtual/ttf-fonts
+	selinux? ( sec-policy/selinux-chromium )
 	tcmalloc? ( !<x11-drivers/nvidia-drivers-331.20 )"
 
 # Python dependencies. The DEPEND part needs to be kept in sync
 # with python_check_deps.
 DEPEND+=" $(python_gen_any_dep '
+	dev-python/beautifulsoup:python-2[${PYTHON_USEDEP}]
+	dev-python/jinja[${PYTHON_USEDEP}]
+	dev-python/ply[${PYTHON_USEDEP}]
 	dev-python/simplejson[${PYTHON_USEDEP}]
 ')"
 python_check_deps() {
-	has_version "dev-python/simplejson[${PYTHON_USEDEP}]"
+	has_version "dev-python/beautifulsoup:python-2[${PYTHON_USEDEP}]" && \
+		has_version "dev-python/jinja[${PYTHON_USEDEP}]" && \
+		has_version "dev-python/ply[${PYTHON_USEDEP}]" && \
+		has_version "dev-python/simplejson[${PYTHON_USEDEP}]"
 }
 
 if ! has chromium_pkg_die ${EBUILD_DEATH_HOOKS}; then
 	EBUILD_DEATH_HOOKS+=" chromium_pkg_die";
 fi
+
+pkg_pretend() {
+	if [[ $(tc-getCC)$ == *gcc* ]] && \
+		[[ $(gcc-major-version)$(gcc-minor-version) -lt 48 ]]; then
+		die 'At least gcc 4.8 is required, see bugs: #535730, #525374, #518668.'
+	fi
+
+	# Check build requirements, bug #541816 .
+	CHECKREQS_DISK_BUILD="5G"
+	eshopts_push -s extglob
+	if is-flagq '-g?(gdb)?([1-9])'; then
+		CHECKREQS_DISK_BUILD="25G"
+	fi
+	eshopts_pop
+	check-reqs_pkg_pretend
+}
 
 pkg_setup() {
 	if [[ "${SLOT}" == "0" ]]; then
@@ -128,18 +156,11 @@ pkg_setup() {
 		CHROMIUM_SUFFIX="-${SLOT}"
 	fi
 	CHROMIUM_HOME="/usr/$(get_libdir)/libchromiumcontent${CHROMIUM_SUFFIX}"
-	CHROMIUM_INCLUDE="/usr/include/libchromiumcontent${CHROMIUM_SUFFIX}"
 
 	# Make sure the build system will use the right python, bug #344367.
 	python-any-r1_pkg_setup
 
 	chromium_suid_sandbox_check_kernel_config
-
-	if use bindist; then
-		elog "bindist enabled: H.264 video support will be disabled."
-	else
-		elog "bindist disabled: Resulting binaries may not be legal to re-distribute."
-	fi
 }
 
 src_unpack() {
@@ -168,13 +189,17 @@ src_prepare() {
 	#	touch out/Release/gen/sdk/toolchain/linux_x86_newlib/stamp.untar || die
 	# fi
 
+	echo "${FEATURES}"
+
 	# libcc patches
 	cd "${LCC_S}"
-	epatch "${FILESDIR}/libchromiumcontent-gentoo-build-fixes.patch"
+	#epatch "${FILESDIR}/libchromiumcontent-gentoo-build-fixes.patch"
 
 	# chromium patches
 	cd "${S}"
-	epatch "${FILESDIR}/chromium-angle-r1.patch"
+	epatch "${FILESDIR}/chromium-system-jinja-r7.patch"
+	epatch "${FILESDIR}/chromium-system-libvpx-r0.patch"
+	epatch "${FILESDIR}/chromium-hotwording-2403.patch"
 
 	_unnest_patches "${LCC_S}/patches"
 
@@ -210,46 +235,54 @@ src_prepare() {
 		'net/third_party/mozilla_security_manager' \
 		'net/third_party/nss' \
 		'third_party/WebKit' \
+		'third_party/analytics' \
 		'third_party/angle' \
+		'third_party/angle/src/third_party/compiler' \
 		'third_party/brotli' \
 		'third_party/cacheinvalidation' \
-		'third_party/cld' \
+		'third_party/cld_2' \
 		'third_party/cros_system_api' \
+		'third_party/cython/python_flags.py' \
 		'third_party/dom_distiller_js' \
+		'third_party/dom_distiller_js/dist/proto_gen/third_party/dom_distiller_js' \
 		'third_party/ffmpeg' \
 		'third_party/fips181' \
 		'third_party/flot' \
+		'third_party/gardiner_mod' \
+		'third_party/google_input_tools' \
+		'third_party/google_input_tools/third_party/closure_library' \
+		'third_party/google_input_tools/third_party/closure_library/third_party/closure' \
 		'third_party/hunspell' \
 		'third_party/iccjpeg' \
-		'third_party/icu/icu.isolate' \
-		'third_party/jinja2' \
 		'third_party/jstemplate' \
 		'third_party/khronos' \
 		'third_party/leveldatabase' \
 		'third_party/libaddressinput' \
 		'third_party/libjingle' \
 		'third_party/libphonenumber' \
+		'third_party/libsecret' \
 		'third_party/libsrtp' \
+		'third_party/libudev' \
 		'third_party/libusb' \
-		'third_party/libvpx' \
-		'third_party/libwebm' \
 		'third_party/libxml/chromium' \
 		'third_party/libXNVCtrl' \
 		'third_party/libyuv' \
 		'third_party/lss' \
 		'third_party/lzma_sdk' \
-		'third_party/markupsafe' \
 		'third_party/mesa' \
 		'third_party/modp_b64' \
+		'third_party/mojo' \
 		'third_party/mt19937ar' \
 		'third_party/npapi' \
+		'third_party/openmax_dl' \
 		'third_party/opus' \
 		'third_party/ots' \
 		'third_party/pdfium' \
+		'third_party/pdfium/third_party/base' \
+		'third_party/pdfium/third_party/bigint' \
+		'third_party/pdfium/third_party/freetype' \
 		'third_party/polymer' \
-		'third_party/ply' \
 		'third_party/protobuf' \
-		'third_party/pywebsocket' \
 		'third_party/qcms' \
 		'third_party/readability' \
 		'third_party/sfntly' \
@@ -257,16 +290,24 @@ src_prepare() {
 		'third_party/smhasher' \
 		'third_party/sqlite' \
 		'third_party/tcmalloc' \
-		'third_party/tlslite' \
 		'third_party/trace-viewer' \
+		'third_party/trace-viewer/third_party/components/polymer' \
+		'third_party/trace-viewer/third_party/d3' \
+		'third_party/trace-viewer/third_party/gl-matrix' \
+		'third_party/trace-viewer/third_party/jszip' \
+		'third_party/trace-viewer/third_party/tvcm' \
+		'third_party/trace-viewer/third_party/tvcm/third_party/beautifulsoup/polymer_soup.py' \
 		'third_party/undoview' \
 		'third_party/usrsctp' \
+		'third_party/web-animations-js' \
 		'third_party/webdriver' \
 		'third_party/webrtc' \
 		'third_party/widevine' \
 		'third_party/x86inc' \
 		'third_party/zlib/google' \
 		'url/third_party/mozilla' \
+		'v8/src/third_party/fdlibm' \
+		'v8/src/third_party/kernel' \
 		'v8/src/third_party/valgrind' \
 		--do-remove || die
 }
@@ -298,16 +339,14 @@ src_configure() {
 	# Use system-provided libraries.
 	# TODO: use_system_hunspell (upstream changes needed).
 	# TODO: use_system_libsrtp (bug #459932).
-	# TODO: use_system_libvpx (http://crbug.com/347823).
 	# TODO: use_system_libusb (http://crbug.com/266149).
 	# TODO: use_system_opus (https://code.google.com/p/webrtc/issues/detail?id=3077).
-	# TODO: use_system_protobuf (bug #503084).
+	# TODO: use_system_protobuf (bug #525560).
 	# TODO: use_system_ssl (http://crbug.com/58087).
 	# TODO: use_system_sqlite (http://crbug.com/22208).
 	myconf+="
 		-Duse_system_bzip2=1
 		-Duse_system_flac=1
-		-Duse_system_ffmpeg=1
 		-Duse_system_harfbuzz=1
 		-Duse_system_icu=1
 		-Duse_system_jsoncpp=1
@@ -315,11 +354,11 @@ src_configure() {
 		-Duse_system_libjpeg=1
 		-Duse_system_libpng=1
 		-Duse_system_libwebp=1
+		-Duse_system_libvpx=1
 		-Duse_system_libxml=1
 		-Duse_system_libxslt=1
 		-Duse_system_minizip=1
 		-Duse_system_nspr=1
-		-Duse_system_openssl=1
 		-Duse_system_re2=1
 		-Duse_system_snappy=1
 		-Duse_system_speex=1
@@ -342,6 +381,8 @@ src_configure() {
 		$(gyp_use gnome use_gconf)
 		$(gyp_use gnome-keyring use_gnome_keyring)
 		$(gyp_use gnome-keyring linux_link_gnome_keyring)
+		$(gyp_use hidpi enable_hidpi)
+		$(gyp_use hotwording enable_hotwording)
 		$(gyp_use kerberos)
 		$(gyp_use pulseaudio)
 		$(gyp_use tcmalloc use_allocator tcmalloc none)"
@@ -362,28 +403,23 @@ src_configure() {
 	myconf+="
 		-Dlogging_like_official_build=1"
 
+	if [[ $(tc-getCC) == *clang* ]]; then
+		myconf+=" -Dclang=1"
+	else
+		myconf+=" -Dclang=0"
+	fi
+
 	# Never use bundled gold binary. Disable gold linker flags for now.
+	# Do not use bundled clang.
 	myconf+="
+		-Dclang_use_chrome_plugins=0
+		-Dhost_clang=0
 		-Dlinux_use_bundled_binutils=0
 		-Dlinux_use_bundled_gold=0
 		-Dlinux_use_gold_flags=0"
 
-	# Always support proprietary codecs.
-	myconf+=" -Dproprietary_codecs=1"
-
-	# Set python version and libdir so that python_arch.sh can find libpython.
-	# Bug 492864.
-	myconf+="
-		-Dpython_ver=${EPYTHON#python}
-		-Dsystem_libdir=$(get_libdir)"
-
-	# system-ffmpeg
-	# ffmpeg_branding="Chromium"
-	# if ! use bindist; then
-	# 	# Enable H.264 support in bundled ffmpeg.
-	# 	ffmpeg_branding="Chrome"
-	# fi
-	# myconf+=" -Dffmpeg_branding=${ffmpeg_branding}"
+	ffmpeg_branding="$(usex proprietary-codecs Chrome Chromium)"
+	myconf+=" -Dproprietary_codecs=1 -Dffmpeg_branding=${ffmpeg_branding}"
 
 	# Set up Google API keys, see http://www.chromium.org/developers/how-tos/api-keys .
 	# Note: these are for Gentoo use ONLY. For your own distribution,
@@ -396,13 +432,13 @@ src_configure() {
 	local myarch="$(tc-arch)"
 	if [[ $myarch = amd64 ]] ; then
 		target_arch=x64
-		# ffmpeg_target_arch=x64
+		ffmpeg_target_arch=x64
 	elif [[ $myarch = x86 ]] ; then
 		target_arch=ia32
-		# ffmpeg_target_arch=ia32
+		ffmpeg_target_arch=ia32
 	elif [[ $myarch = arm ]] ; then
 		target_arch=arm
-		# ffmpeg_target_arch=$(usex neon arm-neon arm)
+		ffmpeg_target_arch=$(usex neon arm-neon arm)
 		# TODO: re-enable NaCl (NativeClient).
 		local CTARGET=${CTARGET:-${CHOST}}
 		if [[ $(tc-is-softfloat) == "no" ]]; then
@@ -443,6 +479,11 @@ src_configure() {
 		if use x86; then
 			filter-flags "-g*"
 		fi
+
+		# Prevent libvpx build failures. Bug 530248, 544702, 546984.
+		if [[ ${myarch} == amd64 || ${myarch} == x86 ]]; then
+			filter-flags -mno-mmx -mno-sse2 -mno-ssse3 -mno-sse4.1 -mno-avx2
+		fi
 	fi
 
 	# Make sure the build system will use the right tools, bug #340795.
@@ -458,24 +499,25 @@ src_configure() {
 	export TMPDIR="${WORKDIR}/temp"
 	mkdir -m 755 "${TMPDIR}" || die
 
-	# local build_ffmpeg_args=""
-	# if use pic && [[ "${ffmpeg_target_arch}" == "ia32" ]]; then
-	# 	build_ffmpeg_args+=" --disable-asm"
-	# fi
+	local build_ffmpeg_args=""
+	if use pic && [[ "${ffmpeg_target_arch}" == "ia32" ]]; then
+		build_ffmpeg_args+=" --disable-asm"
+	fi
 
 	# Re-configure bundled ffmpeg. See bug #491378 for example reasons.
-	# einfo "Configuring bundled ffmpeg..."
-	# pushd third_party/ffmpeg > /dev/null || die
-	# chromium/scripts/build_ffmpeg.py linux ${ffmpeg_target_arch} \
-	# 	--branding ${ffmpeg_branding} -- ${build_ffmpeg_args} || die
-	# chromium/scripts/copy_config.sh || die
-	# chromium/scripts/generate_gyp.py || die
-	# popd > /dev/null || die
+	einfo "Configuring bundled ffmpeg..."
+	pushd third_party/ffmpeg > /dev/null || die
+	chromium/scripts/build_ffmpeg.py linux ${ffmpeg_target_arch} \
+		--branding ${ffmpeg_branding} -- ${build_ffmpeg_args} || die
+	chromium/scripts/copy_config.sh || die
+	chromium/scripts/generate_gyp.py || die
+	popd > /dev/null || die
 
 	third_party/libaddressinput/chromium/tools/update-strings.py || die
 
 	einfo "Configuring Chromium..."
 	build/linux/unbundle/replace_gyp_files.py ${myconf} || die
+	myconf+=" -Dcomponent=static_library"
 	myconf+=" -Ichromiumcontent/chromiumcontent.gypi"
 	myconf+=" chromiumcontent/chromiumcontent.gyp"
 	egyp_chromium ${myconf} || die
@@ -501,15 +543,10 @@ eninja() {
 src_compile() {
 	local ninja_targets="chromiumcontent_all"
 
-	# Build mksnapshot and pax-mark it.
-	# eninja -C out/Release mksnapshot || die
-	# pax-mark m out/Release/mksnapshot
-
 	# Even though ninja autodetects number of CPUs, we respect
 	# user's options, for debugging with -j 1 or any other reason.
 	eninja -C out/Release ${ninja_targets} || die
 }
-
 
 src_install() {
 	local _INCLUDE_DIRS="
@@ -544,35 +581,16 @@ src_install() {
 		ui
 	"
 
-	local _EXTRA_INSTALL="
-		content/common/content_export.h
-		content/app/startup_helper_win.cc
-	"
+	dolib.so out/Release/lib/libchromiumcontent.so
 
-	dolib.so out/Release/libchromiumcontent.so
-	dolib.a out/Release/libchromiumviews.a
-	dolib.a out/Release/libtest_support_chromiumcontent.a
+	if [[ "${SLOT}" == "0" ]]; then
+		CHROMIUM_SUFFIX=""
+	else
+		CHROMIUM_SUFFIX="-${SLOT}"
+	fi
+	CHROMIUM_HOME="/usr/$(get_libdir)/libchromiumcontent${CHROMIUM_SUFFIX}"
+	echo ${CHROMIUM_HOME}
 
-	insinto "${CHROMIUM_HOME}"
-
-	newexe out/Release/chrome_sandbox chrome-sandbox || die
-	fperms 4755 "${CHROMIUM_HOME}/chrome-sandbox"
-
+	exeinto "${CHROMIUM_HOME}"
 	doexe out/Release/chromedriver || die
-
-	insinto "${CHROMIUM_INCLUDE}"
-
-	for hdir in ${_INCLUDE_DIRS}; do
-		doins $(find ${hdir} -name '*.h' -printf \"%P\"\\n)
-	done
-
-	cd out/Release/gen
-	for hdir in ${_GENERATED_INCLUDE_DIRS}; do
-		doins $(find ${hdir} -name '*.h' -printf \"%P\"\\n)
-	done
-	cd "${S}"
-
-	for f in ${_EXTRA_INSTALL}; do
-		doins "${f}"
-	done
 }
