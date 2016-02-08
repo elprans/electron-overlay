@@ -1,0 +1,27 @@
+From ca6e614497d1ccbf8edbf02b43c79b2651316ccd Mon Sep 17 00:00:00 2001
+From: Elvis Pranskevichus <elvis@magic.io>
+Date: Mon, 8 Feb 2016 15:14:58 -0500
+Subject: [PATCH] brightray build fixes
+
+---
+ brightray.gyp             | 3 +++
+ vendor/libchromiumcontent | 2 +-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/brightray.gyp b/brightray.gyp
+index a332a5a..d7c4969 100644
+--- a/brightray.gyp
++++ b/brightray.gyp
+@@ -9,6 +9,9 @@
+   'targets': [
+     {
+       'target_name': 'brightray',
++      'dependencies': [
++        'vendor/libchromiumcontent/vendor/chromium/src/chromiumcontent/chromiumcontent.gyp:chromiumcontent_all'
++      ],
+       'type': 'static_library',
+       'include_dirs': [
+         '.',
+-- 
+2.4.10
+
