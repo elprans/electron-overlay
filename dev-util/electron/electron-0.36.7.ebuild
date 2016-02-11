@@ -28,7 +28,7 @@ CHROMIUM_S="${LIBCC_S}/vendor/chromium/src"
 LICENSE="BSD hotwording? ( no-source-code )"
 SLOT="0"
 KEYWORDS="~amd64"
-IUSE="custom-cflags cups gnome gnome-keyring gtk3 hangouts hidpi hotwording kerberos neon pic +proprietary-codecs pulseaudio selinux +system-ffmpeg +tcmalloc widevine"
+IUSE="custom-cflags cups gnome gnome-keyring gtk3 hangouts hidpi hotwording kerberos lto neon pic +proprietary-codecs pulseaudio selinux +system-ffmpeg +tcmalloc widevine"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
 
 # Native Client binaries are compiled with different set of flags, bug #452066.
@@ -179,6 +179,10 @@ src_unpack() {
 	# this seems to be the only reasonable way to build and configure
 	# everything in a single pass.
 	rsync -a "${WORKDIR}/${CHROMIUM_P}/" "${S}/" || die
+
+	cd "${S}"
+	einfo "Installing node modules required for Electron build..."
+	npm install || die
 }
 
 _unnest_patches() {
@@ -222,6 +226,7 @@ src_prepare() {
 	epatch "${FILESDIR}/chromium-widevine-r1.patch"
 	epatch "${FILESDIR}/chromium-remove-gardiner-mod-font.patch"
 	epatch "${FILESDIR}/chromium-shared-v8.patch"
+	epatch "${FILESDIR}/chromium-lto-fixes.patch"
 
 	# libcc chromium patches
 	_unnest_patches "${LIBCC_S}/patches"
@@ -423,6 +428,7 @@ src_configure() {
 		$(gyp_use hidpi enable_hidpi)
 		$(gyp_use hotwording enable_hotwording)
 		$(gyp_use kerberos)
+		$(gyp_use lto)
 		$(gyp_use pulseaudio)
 		$(gyp_use tcmalloc use_allocator tcmalloc none)
 		$(gyp_use widevine enable_widevine)"
@@ -606,10 +612,6 @@ eninja() {
 
 src_compile() {
 	local ninja_targets="electron"
-	local brightray_vendor_dir="${BRIGHTRAY_S}/vendor"
-
-	einfo "Installing node modules required for Electron build..."
-	npm install || die
 
 	# Even though ninja autodetects number of CPUs, we respect
 	# user's options, for debugging with -j 1 or any other reason.

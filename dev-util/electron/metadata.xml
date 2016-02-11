@@ -11,6 +11,7 @@
 		<flag name="hangouts">Enable support for Google Hangouts features such as screen sharing</flag>
 		<flag name="hidpi">Enable support for high-resolution screens (high dots per inch)</flag>
 		<flag name="hotwording">Enable voice-recognition support (Ok Google)</flag>
+		<flag name="lto">Build with link time optimization enabled</flag>
 		<flag name="pic">Disable optimized assembly code that is not PIC friendly</flag>
 		<flag name="proprietary-codecs">Enable proprietary codecs like H.264, MP3</flag>
 		<flag name="system-ffmpeg">Use system ffmpeg instead of the bundled one</flag>
