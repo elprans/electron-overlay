@@ -9,8 +9,8 @@ CHROMIUM_LANGS="am ar bg bn ca cs da de el en_GB es es_LA et fa fi fil fr gu he
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt_BR pt_PT ro ru sk sl sr
 	sv sw ta te th tr uk vi zh_CN zh_TW"
 
-inherit base check-reqs chromium eutils flag-o-matic git-r3 multilib multiprocessing pax-utils \
-	portability python-any-r1 readme.gentoo toolchain-funcs versionator virtualx
+inherit check-reqs chromium eutils flag-o-matic git-r3 multilib multiprocessing pax-utils \
+	portability python-any-r1 readme.gentoo-r1 toolchain-funcs versionator virtualx
 
 LIBCC_COMMIT="ad63d8ba890bcaad2f1b7e6de148b7992f4d3af7"
 CHROMIUM_VERSION="47.0.2526.110"
@@ -27,8 +27,8 @@ CHROMIUM_S="${LIBCC_S}/vendor/chromium/src"
 
 LICENSE="BSD hotwording? ( no-source-code )"
 SLOT="0"
-KEYWORDS="amd64 ~arm x86"
-IUSE="custom-cflags cups gnome gnome-keyring gtk3 +hangouts hidpi hotwording kerberos neon pic +proprietary-codecs pulseaudio selinux +system-ffmpeg +tcmalloc widevine"
+KEYWORDS="~amd64"
+IUSE="custom-cflags cups gnome gnome-keyring gtk3 hangouts hidpi hotwording kerberos neon pic +proprietary-codecs pulseaudio selinux +system-ffmpeg +tcmalloc widevine"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
 
 # Native Client binaries are compiled with different set of flags, bug #452066.
@@ -168,14 +168,16 @@ pkg_setup() {
 }
 
 src_unpack() {
-	base_src_unpack || die
+	default_src_unpack || die
 
-	EGIT_REPO_URI=${ELECTRON_REPO_URI} \
 	EGIT_COMMIT="v${PV}" \
-	EGIT_CHECKOUT_DIR=${S} \
+	EGIT_REPO_URI=${ELECTRON_REPO_URI} \
 		git-r3_src_unpack || die
 
-	mv "${WORKDIR}/${CHROMIUM_P}" "${CHROMIUM_S}" || die
+	# Fuse chromium and electron source together, as
+	# this seems to be the only reasonable way to build and configure
+	# everything in a single pass.
+	rsync -a "${WORKDIR}/${CHROMIUM_P}/" "${S}/" || die
 }
 
 _unnest_patches() {
@@ -200,6 +202,10 @@ src_prepare() {
 	# electron patches
 	epatch "${FILESDIR}/electron-gentoo-build-fixes.patch"
 
+	# node patches
+	cd "vendor/node"
+	epatch "${FILESDIR}/node-gentoo-build-fixes.patch"
+
 	# brightray patches
 	cd "${BRIGHTRAY_S}"
 	epatch "${FILESDIR}/brightray-gentoo-build-fixes.patch"
@@ -208,18 +214,13 @@ src_prepare() {
 	cd "${LIBCC_S}"
 	epatch "${FILESDIR}/libchromiumcontent-gentoo-build-fixes.patch"
 
-	# chromiumcontent.gyp* get copied to chromium source tree,
-	# so we can use the relative paths. (DEPTH) assumptions are no
-	# longer valid in our monolithic libcc->brightray->electron build.
-	#
-	sed -i -e "s/<(DEPTH)/../g" chromiumcontent/chromiumcontent.gyp
-
 	# chromium patches
-	cd "${CHROMIUM_S}"
+	cd "${S}"
 	epatch "${FILESDIR}/chromium-system-ffmpeg-r0.patch"
 	epatch "${FILESDIR}/chromium-system-jinja-r7.patch"
 	epatch "${FILESDIR}/chromium-widevine-r1.patch"
-	epatch "${FILESDIR}/chromium_remove_gardiner_mod_font.patch"
+	epatch "${FILESDIR}/chromium-remove-gardiner-mod-font.patch"
+	epatch "${FILESDIR}/chromium-shared-v8.patch"
 
 	# libcc chromium patches
 	_unnest_patches "${LIBCC_S}/patches"
@@ -232,31 +233,14 @@ src_prepare() {
 		epatch
 
 	# build scripts
-	mkdir -p "${CHROMIUM_S}/chromiumcontent"
-	cp -a "${LIBCC_S}/chromiumcontent" "${CHROMIUM_S}/" || die
-	cp -a "${LIBCC_S}/tools/linux/" "${CHROMIUM_S}/tools/" || die
+	mkdir -p "${S}/chromiumcontent"
+	cp -a "${LIBCC_S}/chromiumcontent" "${S}/" || die
+	cp -a "${LIBCC_S}/tools/linux/" "${S}/tools/" || die
 
 	local conditional_bundled_libraries=""
 	if ! use system-ffmpeg; then
 		conditional_bundled_libraries+=" third_party/ffmpeg"
 	fi
-
-	# Chromium build system depends on the presence of tools at the
-	# root of the source directory.
-	#
-	for tool in $(find "${CHROMIUM_S}/tools" -maxdepth 1 -mindepth 1); do
-		tool="$(basename ${tool})"
-		if [ ! -e "${S}/tools/${tool}" ]; then
-			ln -s "${CHROMIUM_S}/tools/${tool}" "${S}/tools/${tool}" || die
-		fi
-	done
-	ln -s "${CHROMIUM_S}/build" "${S}/build"
-
-	"${S}/tools/update_resource_ids" \
-		"${CHROMIUM_S}/tools/gritsettings/resource_ids" \
-		"vendor/brightray/vendor/libchromiumcontent/vendor/chromium/src/"
-
-	cd "${CHROMIUM_S}"
 
 	# Remove most bundled libraries. Some are still needed.
 	build/linux/unbundle/remove_bundled_libraries.py \
@@ -572,7 +556,17 @@ src_configure() {
 		popd > /dev/null || die
 	fi
 
-	"${CHROMIUM_S}"/third_party/libaddressinput/chromium/tools/update-strings.py || die
+	third_party/libaddressinput/chromium/tools/update-strings.py || die
+
+	einfo "Configuring bundled nodejs..."
+	pushd vendor/node > /dev/null || die
+	# Make sure gyp_node does not run
+	echo '#!/usr/bin/env python' > tools/gyp_node.py
+	./configure --shared-openssl --shared-libuv --shared-http-parser \
+				--shared-zlib --without-npm --with-intl=system-icu \
+				--without-dtrace --dest-cpu=${target_arch} \
+				--prefix="" || die
+	popd > /dev/null || die
 
 	# libchromiumcontent configuration
 	myconf+=" -Dcomponent=static_library"
@@ -582,18 +576,14 @@ src_configure() {
 	myconf+=" -Dlibrary=static_library"
 	myconf+=" -Dmas_build=0"
 
-	einfo "Configuring libchromiumcontent..."
-	"${CHROMIUM_S}"/build/linux/unbundle/replace_gyp_files.py ${myconf} || die
+	einfo "Configuring electron..."
+	build/linux/unbundle/replace_gyp_files.py ${myconf} || die
 
-	# myconf+=" -Ichromiumcontent/chromiumcontent.gypi"
-	# myconf+=" chromiumcontent/chromiumcontent.gyp"
+	myconf+=" -Ivendor/node/config.gypi
+			  -Icommon.gypi
+			  atom.gyp"
 
-	myconf+=" -Icommon.gypi atom.gyp"
-
-	printf "\n{'variables':{}}" > "vendor/node/config.gypi"
-
-	EGYP_CHROMIUM_COMMAND="${CHROMIUM_S}/build/gyp_chromium" \
-		egyp_chromium ${myconf} || die
+	egyp_chromium ${myconf} || die
 }
 
 eninja() {
@@ -614,87 +604,15 @@ eninja() {
 }
 
 src_compile() {
-	local ninja_targets="chromiumcontent_all"
+	local ninja_targets="electron"
 	local brightray_vendor_dir="${BRIGHTRAY_S}/vendor"
-
-	cd "${CHROMIUM_S}"
-
-	# Even though ninja autodetects number of CPUs, we respect
-	# user's options, for debugging with -j 1 or any other reason.
-	eninja -C out/Release ${ninja_targets} || die
-
-	# Generate libchromiumcontent libs list
-	mkdir -p "${brightray_vendor_dir}/download/libchromiumcontent/" || die
-	"${LIBCC_S}"/tools/generate_filenames_gypi.py \
-		"${brightray_vendor_dir}/download/libchromiumcontent/filenames.gypi" \
-		"${CHROMIUM_S}" "${CHROMIUM_S}/out/Release" \
-		"${CHROMIUM_S}/out/Release" || die
-
-	# Now, configure and build electron
-	cd "${S}"
 
 	einfo "Installing node modules required for Electron build..."
 	npm install || die
 
-	myconf=" -Dlibchromiumcontent_component=0"
-	myconf+=" -Dlibrary=static_library"
-	myconf+=" -Dmas_build=0"
-
-	local myarch="$(tc-arch)"
-	if [[ $myarch = amd64 ]] ; then
-		target_arch=x64
-	elif [[ $myarch = x86 ]] ; then
-		target_arch=ia32
-	elif [[ $myarch = arm ]] ; then
-		target_arch=arm
-	else
-		die "Failed to determine target arch, got '$myarch'."
-	fi
-
-	myconf+=" -Dtarget_arch=${target_arch}"
-
-	if [[ $(tc-getCC) == *clang* ]]; then
-		myconf+=" -Dclang=1"
-	else
-		myconf+=" -Dclang=0"
-	fi
-
-	# Never use bundled gold binary. Disable gold linker flags for now.
-	# Do not use bundled clang.
-	myconf+="
-		-Dclang_use_chrome_plugins=0
-		-Dhost_clang=0
-		-Dlinux_use_bundled_binutils=0
-		-Dlinux_use_bundled_gold=0
-		-Dlinux_use_gold_flags=0"
-
-	# Use explicit library dependencies instead of dlopen.
-	# This makes breakages easier to detect by revdep-rebuild.
-	myconf+="
-		-Dlinux_link_gsettings=1
-		-Dlinux_link_libpci=1
-		-Dlinux_link_libspeechd=1
-		-Dlibspeechd_h_prefix=speech-dispatcher/"
-
-	# Make sure that -Werror doesn't get added to CFLAGS by the build system.
-	# Depending on GCC version the warnings are different and we don't want
-	# the build to fail because of that.
-	myconf+=" -Dwerror="
-
-	# Disable fatal linker warnings, bug 506268.
-	myconf+=" -Ddisable_fatal_linker_warnings=1"
-
-	myconf+=' -Dicu_small="false"'
-	# myconf+=" -Dicu_gyp_path=\"${ELECTRON_S}/vendor/node/tools/icu/icu-system.gyp\""
-
-	myconf+=" -Icommon.gypi atom.gyp"
-
-	printf "\n{'variables':{}}" > "vendor/node/config.gypi"
-
-	EGYP_CHROMIUM_COMMAND="${CHROMIUM_S}/build/gyp_chromium" \
-		egyp_chromium ${myconf} || die
-
-	eninja -C out/R electron || die
+	# Even though ninja autodetects number of CPUs, we respect
+	# user's options, for debugging with -j 1 or any other reason.
+	eninja -C out/R ${ninja_targets} || die
 }
 
 src_install() {
@@ -705,5 +623,22 @@ src_install() {
 	fi
 	CHROMIUM_HOME="/usr/$(get_libdir)/electron${CHROMIUM_SUFFIX}"
 
-	script/create-dist.py "${D}/${CHROMIUM_HOME}"
+	pushd out/R/locales > /dev/null || die
+	chromium_remove_language_paks
+	popd
+
+	insinto "${CHROMIUM_HOME}"
+	exeinto "${CHROMIUM_HOME}"
+	doexe out/R/electron
+	doins out/R/libv8.so
+	doins out/R/libnode.so
+	fperms +x "${CHROMIUM_HOME}"/libv8.so "${CHROMIUM_HOME}"/libnode.so
+	doins out/R/content_shell.pak
+	doins out/R/natives_blob.bin
+	doins out/R/snapshot_blob.bin
+	rm -rf out/R/resources/inspector
+	doins -r out/R/resources
+	doins -r out/R/locales
+
+	dosym "${CHROMIUM_HOME}/electron" /usr/bin/electron${CHROMIUM_SUFFIX}
 }
