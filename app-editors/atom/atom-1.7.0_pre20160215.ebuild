@@ -9,13 +9,12 @@ inherit git-r3 flag-o-matic python-any-r1 eutils
 
 DESCRIPTION="A hackable text editor for the 21st Century"
 HOMEPAGE="https://atom.io"
-MY_PV="${PV//_/-}"
 #SRC_URI="https://github.com/atom/atom/archive/v${MY_PV}.tar.gz -> atom-${PV}.tar.gz"
 EGIT_REPO_URI="https://github.com/atom/atom.git"
 EGIT_BRANCH="wl-electron-35"
 RESTRICT="mirror"
 LICENSE="MIT"
-SLOT="1"
+SLOT="0"
 KEYWORDS="~amd64"
 IUSE=""
 
@@ -26,8 +25,6 @@ DEPEND="
 	>=dev-util/apm-1.7.0
 "
 RDEPEND="${DEPEND}"
-
-S="${WORKDIR}/${PN}-${MY_PV}"
 
 pkg_setup() {
 	python-any-r1_pkg_setup
