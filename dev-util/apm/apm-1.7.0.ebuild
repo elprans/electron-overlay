@@ -59,4 +59,5 @@ src_install() {
 	dodir "${install_dir}/bin"
 	exeinto "${install_dir}/bin"
 	doexe bin/apm
+	dosym ${install_dir}/bin/apm /usr/bin/apm
 }
