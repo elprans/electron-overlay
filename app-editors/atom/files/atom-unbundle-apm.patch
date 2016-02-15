@@ -1,0 +1,86 @@
+From 391434a6a4f32ba0a198d566681e3a393ea1699a Mon Sep 17 00:00:00 2001
+From: Elvis Pranskevichus <elvis@magic.io>
+Date: Sun, 14 Feb 2016 15:06:17 -0500
+Subject: [PATCH 2/2] Unbundle apm
+
+---
+ build/package.json            | 1 -
+ build/tasks/build-task.coffee | 4 ----
+ script/bootstrap              | 7 +------
+ src/package-manager.coffee    | 8 +-------
+ 4 files changed, 2 insertions(+), 18 deletions(-)
+
+diff --git a/build/package.json b/build/package.json
+index b8087eb..1af17c8 100644
+--- a/build/package.json
++++ b/build/package.json
+@@ -30,7 +30,6 @@
+     "grunt-standard": "^1.0.2",
+     "legal-eagle": "~0.13.0",
+     "minidump": "~0.9",
+-    "npm": "^2.13.3",
+     "rcedit": "~0.3.0",
+     "request": "~2.27.0",
+     "rimraf": "~2.2.2",
+diff --git a/build/tasks/build-task.coffee b/build/tasks/build-task.coffee
+index b021ff6..e7c8f84 100644
+--- a/build/tasks/build-task.coffee
++++ b/build/tasks/build-task.coffee
+@@ -161,10 +161,6 @@ module.exports = (grunt) ->
+     cp 'src', path.join(appDir, 'src'), filter: /.+\.(cson|coffee)$/
+     cp 'static', path.join(appDir, 'static')
+ 
+-    cp path.join('apm', 'node_modules', 'atom-package-manager'), path.resolve(appDir, '..', 'new-app', 'apm'), filter: filterNodeModule
+-    if process.platform isnt 'win32'
+-      fs.symlinkSync(path.join('..', '..', 'bin', 'apm'), path.resolve(appDir, '..', 'new-app', 'apm', 'node_modules', '.bin', 'apm'))
+-
+     channel = grunt.config.get('atom.channel')
+ 
+     cp path.join('resources', 'app-icons', channel, 'png', '1024.png'), path.join(appDir, 'resources', 'atom.png')
+diff --git a/script/bootstrap b/script/bootstrap
+index 5f9241a..4e0507b 100755
+--- a/script/bootstrap
++++ b/script/bootstrap
+@@ -39,7 +39,7 @@ function bootstrap() {
+   if (!fs.existsSync(path.join(apmInstallPath, 'node_modules')))
+     fs.mkdirSync(path.join(apmInstallPath, 'node_modules'));
+ 
+-  var apmPath = path.resolve(__dirname, '..', 'apm', 'node_modules', 'atom-package-manager', 'bin', 'apm')
++  var apmPath = '/usr/bin/apm'
+   var apmFlags = process.env.JANKY_SHA1 || process.argv.indexOf('--no-color') !== -1 ? ' --no-color' : '';
+ 
+   var npmPath = path.resolve(__dirname, '..', 'build', 'node_modules', '.bin', 'npm');
+@@ -101,11 +101,6 @@ function bootstrap() {
+       options: buildInstallOptions
+     },
+     {
+-      command: apmInstallCommand,
+-      message: 'Installing apm...',
+-      options: apmInstallOptions
+-    },
+-    {
+       command: apmPath + ' clean' + apmFlags,
+       message: 'Deleting old packages...'
+     },
+diff --git a/src/package-manager.coffee b/src/package-manager.coffee
+index 1ecdc54..93c09ad 100644
+--- a/src/package-manager.coffee
++++ b/src/package-manager.coffee
+@@ -132,13 +132,7 @@ class PackageManager
+   getApmPath: ->
+     return @apmPath if @apmPath?
+ 
+-    commandName = 'apm'
+-    commandName += '.cmd' if process.platform is 'win32'
+-    apmRoot = path.join(process.resourcesPath, 'app', 'apm')
+-    @apmPath = path.join(apmRoot, 'bin', commandName)
+-    unless fs.isFileSync(@apmPath)
+-      @apmPath = path.join(apmRoot, 'node_modules', 'atom-package-manager', 'bin', commandName)
+-    @apmPath
++    @apmPath = '/usr/bin/apm'
+ 
+   # Public: Get the paths being used to look for packages.
+   #
+-- 
+2.4.10
+
