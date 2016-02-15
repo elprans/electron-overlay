@@ -1,11 +1,12 @@
-From 6df8fc485ac80dd9e93c0cbc46ed0c0aa323ad53 Mon Sep 17 00:00:00 2001
+From 50e5ab449f6e29cfa235600dbe654c20c5145987 Mon Sep 17 00:00:00 2001
 From: Elvis Pranskevichus <elvis@magic.io>
 Date: Wed, 10 Feb 2016 14:45:13 -0500
 Subject: [PATCH] Parametrize v8.gyp location
 
 ---
- node.gyp | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ node.gyp         | 5 +++--
+ tools/install.py | 3 +++
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/node.gyp b/node.gyp
 index d431210..fea5e07 100644
@@ -30,6 +31,20 @@ index d431210..fea5e07 100644
        ],
  
        'include_dirs': [
+diff --git a/tools/install.py b/tools/install.py
+index cb86c65..ee85e33 100755
+--- a/tools/install.py
++++ b/tools/install.py
+@@ -207,6 +207,9 @@ def run(args):
+   if os.environ.get('HEADERS_ONLY'):
+     if cmd == 'install': return headers(install)
+     if cmd == 'uninstall': return headers(uninstall)
++  elif os.environ.get('NPM_ONLY'):
++    if cmd == 'install': return npm_files(install)
++    if cmd == 'uninstall': return npm_files(uninstall)
+   else:
+     if cmd == 'install': return files(install)
+     if cmd == 'uninstall': return files(uninstall)
 -- 
 2.4.10
 

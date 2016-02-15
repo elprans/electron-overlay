@@ -26,7 +26,7 @@ LIBCC_S="${BRIGHTRAY_S}/vendor/libchromiumcontent"
 CHROMIUM_S="${LIBCC_S}/vendor/chromium/src"
 
 LICENSE="BSD hotwording? ( no-source-code )"
-SLOT="0"
+SLOT="0/$(get_version_component_range 2)"
 KEYWORDS="~amd64"
 IUSE="custom-cflags cups gnome gnome-keyring gtk3 hangouts hidpi hotwording kerberos lto neon pic +proprietary-codecs pulseaudio selinux +system-ffmpeg +tcmalloc widevine"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
@@ -143,8 +143,27 @@ pkg_pretend() {
 		die 'At least gcc 4.8 is required, see bugs: #535730, #525374, #518668.'
 	fi
 
+	# LTO pass requires more file descriptors
+	if use lto; then
+		local lto_n_rlimit_min="16384"
+		local maxfiles=$(ulimit -n -H)
+		if [ "${maxfiles}" -lt "${lto_n_rlimit_min}" ]; then
+			eerror ""
+			eerror "Building with USE=\"lto\" requires file descriptor" \
+				   "limit to be no less than ${lto_n_rlimit_min}."
+		    eerror "The current limit for portage is ${maxfiles}."
+			eerror "Please add the following to /etc/security/limits.conf:"
+			eerror ""
+			eerror "   root hard    nofile  ${lto_n_rlimit_min}"
+			eerror "   root soft    nofile  ${lto_n_rlimit_min}"
+			eerror ""
+			die
+		fi
+	fi
+
 	# Check build requirements, bug #541816 and bug #471810 .
 	CHECKREQS_MEMORY="3G"
+	use lto && CHECKREQS_MEMORY="5G"
 	CHECKREQS_DISK_BUILD="10G"
 	eshopts_push -s extglob
 	if is-flagq '-g?(gdb)?([1-9])'; then
@@ -155,13 +174,6 @@ pkg_pretend() {
 }
 
 pkg_setup() {
-	if [[ "${SLOT}" == "0" ]]; then
-		CHROMIUM_SUFFIX=""
-	else
-		CHROMIUM_SUFFIX="-${SLOT}"
-	fi
-	CHROMIUM_HOME="/usr/$(get_libdir)/electron${CHROMIUM_SUFFIX}"
-
 	# Make sure the build system will use the right python, bug #344367.
 	python-any-r1_pkg_setup
 
@@ -195,6 +207,24 @@ _unnest_patches() {
 	done
 }
 
+_get_install_suffix() {
+	local c=(${SLOT//\// })
+	local slot=${c[0]}
+	local suffix
+
+	if [[ "${slot}" == "0" ]]; then
+		suffix=""
+	else
+		suffix="-${slot}"
+	fi
+
+	echo -n "${suffix}"
+}
+
+_get_install_dir() {
+	echo -n "/usr/$(get_libdir)/electron$(_get_install_suffix)"
+}
+
 src_prepare() {
 	# if ! use arm; then
 	#	mkdir -p out/Release/gen/sdk/toolchain || die
@@ -210,6 +240,22 @@ src_prepare() {
 	# node patches
 	cd "vendor/node"
 	epatch "${FILESDIR}/node-gentoo-build-fixes.patch"
+	# make sure node uses the correct version of v8
+	rm -rf deps/v8 || die
+	ln -s ../../../v8 deps/ || die
+
+	# make sure we use python2.* while using gyp
+	sed -i -e "s/python/${EPYTHON}/" deps/npm/node_modules/node-gyp/gyp/gyp || die
+	sed -i -e "s/|| 'python'/|| '${EPYTHON}'/" deps/npm/node_modules/node-gyp/lib/configure.js || die
+
+	# less verbose install output (stating the same as portage, basically)
+	sed -i -e "/print/d" tools/install.py || die
+
+	# proper libdir, hat tip @ryanpcmcquen https://github.com/iojs/io.js/issues/504
+	local LIBDIR=$(get_libdir)
+	sed -i -e "s|lib/|${LIBDIR}/|g" tools/install.py || die
+	sed -i -e "s/'lib'/'${LIBDIR}'/" lib/module.js || die
+	sed -i -e "s|\"lib\"|\"${LIBDIR}\"|" deps/npm/lib/npm.js || die
 
 	# brightray patches
 	cd "${BRIGHTRAY_S}"
@@ -619,29 +665,40 @@ src_compile() {
 }
 
 src_install() {
-	if [[ "${SLOT}" == "0" ]]; then
-		CHROMIUM_SUFFIX=""
-	else
-		CHROMIUM_SUFFIX="-${SLOT}"
-	fi
-	CHROMIUM_HOME="/usr/$(get_libdir)/electron${CHROMIUM_SUFFIX}"
+	local install_dir="$(_get_install_dir)"
+	local install_suffix="$(_get_install_suffix)"
+	local LIBDIR="${ED}/usr/$(get_libdir)"
 
 	pushd out/R/locales > /dev/null || die
 	chromium_remove_language_paks
-	popd
+	popd > /dev/null || die
 
-	insinto "${CHROMIUM_HOME}"
-	exeinto "${CHROMIUM_HOME}"
+	# Install Electron
+	insinto "${install_dir}"
+	exeinto "${install_dir}"
 	doexe out/R/electron
 	doins out/R/libv8.so
 	doins out/R/libnode.so
-	fperms +x "${CHROMIUM_HOME}"/libv8.so "${CHROMIUM_HOME}"/libnode.so
+	fperms +x "${install_dir}/libv8.so" "${install_dir}/libnode.so"
 	doins out/R/content_shell.pak
 	doins out/R/natives_blob.bin
 	doins out/R/snapshot_blob.bin
 	rm -rf out/R/resources/inspector
 	doins -r out/R/resources
 	doins -r out/R/locales
+	dosym "${install_dir}/electron" "/usr/bin/electron${install_suffix}"
 
-	dosym "${CHROMIUM_HOME}/electron" /usr/bin/electron${CHROMIUM_SUFFIX}
+	# Install Node headers
+	HEADERS_ONLY=1 \
+		"${S}/vendor/node/tools/install.py" install "${ED}" "/usr" || die
+	# set up a symlink structure that npm expects..
+	dodir /usr/include/node/deps/{v8,uv}
+	dosym . /usr/include/node/src
+	for var in deps/{uv,v8}/include; do
+		dosym ../.. /usr/include/node/${var}
+	done
+
+	dodir "/usr/include/electron${install_suffix}"
+	mv "${ED}/usr/include/node" \
+	   "${ED}/usr/include/electron${install_suffix}/node" || die
 }
