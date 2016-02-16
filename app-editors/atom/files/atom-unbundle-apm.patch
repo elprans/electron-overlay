@@ -1,15 +1,43 @@
-From 391434a6a4f32ba0a198d566681e3a393ea1699a Mon Sep 17 00:00:00 2001
+From d37188fa7e3d684d700353a1dc37c693d58f87f3 Mon Sep 17 00:00:00 2001
 From: Elvis Pranskevichus <elvis@magic.io>
 Date: Sun, 14 Feb 2016 15:06:17 -0500
 Subject: [PATCH 2/2] Unbundle apm
 
 ---
+ atom.sh                       | 6 +++---
  build/package.json            | 1 -
  build/tasks/build-task.coffee | 4 ----
  script/bootstrap              | 7 +------
  src/package-manager.coffee    | 8 +-------
- 4 files changed, 2 insertions(+), 18 deletions(-)
+ 5 files changed, 5 insertions(+), 21 deletions(-)
 
+diff --git a/atom.sh b/atom.sh
+index 2a0c544..b27e957 100755
+--- a/atom.sh
++++ b/atom.sh
+@@ -89,7 +89,7 @@ elif [ $OS == 'Linux' ]; then
+   SCRIPT=$(readlink -f "$0")
+   USR_DIRECTORY=$(readlink -f $(dirname $SCRIPT)/..)
+ 
+-  ATOM_APP_PATH="{{ATOM_APP_PATH}}"
++  export ATOM_RESOURCE_PATH="{{ATOM_RESOURCE_PATH}}"
+   ATOM_PATH="{{ATOM_PATH}}"
+ 
+   ATOM_HOME="${ATOM_HOME:-$HOME/.atom}"
+@@ -100,11 +100,11 @@ elif [ $OS == 'Linux' ]; then
+   [ -x "$ATOM_PATH" ] || ATOM_PATH="$TMPDIR/atom-build/Atom/atom"
+ 
+   if [ $EXPECT_OUTPUT ]; then
+-    "$ATOM_PATH" --app="$ATOM_APP_PATH" --executed-from="$(pwd)" --pid=$$ "$@"
++    "$ATOM_PATH" --app="$ATOM_RESOURCE_PATH" --executed-from="$(pwd)" --pid=$$ "$@"
+     exit $?
+   else
+     (
+-    nohup "$ATOM_PATH" --app="$ATOM_APP_PATH" --executed-from="$(pwd)" --pid=$$ "$@" > "$ATOM_HOME/nohup.out" 2>&1
++    nohup "$ATOM_PATH" --app="$ATOM_RESOURCE_PATH" --executed-from="$(pwd)" --pid=$$ "$@" > "$ATOM_HOME/nohup.out" 2>&1
+     if [ $? -ne 0 ]; then
+       cat "$ATOM_HOME/nohup.out"
+       exit $?
 diff --git a/build/package.json b/build/package.json
 index b8087eb..1af17c8 100644
 --- a/build/package.json

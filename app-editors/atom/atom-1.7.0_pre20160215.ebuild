@@ -70,7 +70,7 @@ src_prepare() {
 		./atom.sh \
 		|| die
 
-	sed -i -e "s|{{ATOM_APP_PATH}}|${install_dir}/resources/app.asar|g" \
+	sed -i -e "s|{{ATOM_RESOURCE_PATH}}|${install_dir}/app.asar|g" \
 		./atom.sh \
 		|| die
 
@@ -97,13 +97,16 @@ src_install() {
 	local suffix="$(get_install_suffix)"
 
 	insinto "${install_dir}"
-	doins -r "${builddir}"/Atom/*
+	doins -r "${builddir}"/Atom/resources/*
+	exeinto "${install_dir}"
+	newexe "${builddir}/Atom/resources/app/atom.sh" atom
+	rm -rf "${ED}/${install_dir}/app" || die
+	rm -f "${ED}/${install_dir}/LICENSE.md" || die
 	insinto /usr/share/applications
 	newins resources/linux/Atom.desktop "atom${suffix}.desktop"
 	insinto /usr/share/pixmaps
 	newins resources/app-icons/stable/png/128.png "atom${suffix}.png"
 	insinto /usr/share/licenses/"${PN}${suffix}"
 	doins LICENSE.md
-	fperms +x "${install_dir}/resources/app/atom.sh"
-	dosym "${install_dir}/resources/app/atom.sh" "/usr/bin/atom${suffix}"
+	dosym "${install_dir}/atom" "/usr/bin/atom${suffix}"
 }
