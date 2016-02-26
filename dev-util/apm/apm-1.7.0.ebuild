@@ -20,6 +20,7 @@ DEPEND="
 	${PYTHON_DEPS}
 	>=dev-util/electron-0.36.7:=
 	>=net-libs/nodejs-5.1.0[npm]
+	gnome-base/libgnome-keyring
 "
 RDEPEND="${DEPEND}"
 
