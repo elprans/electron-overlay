@@ -53,8 +53,7 @@ src_prepare() {
 	local install_dir="$(get_install_dir)"
 
 	epatch "${FILESDIR}/${PN}-python.patch"
-	epatch "${FILESDIR}/${PN}-unbundle-electron.patch"
-	epatch "${FILESDIR}/${PN}-unbundle-apm.patch"
+	epatch "${FILESDIR}/${PN}-unbundle-electron-and-apm.patch"
 
 	sed -i  -e "/exception-reporting/d" \
 		-e "/metrics/d" package.json
