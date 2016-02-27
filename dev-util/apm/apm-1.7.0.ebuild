@@ -35,10 +35,9 @@ get_install_dir() {
 
 src_prepare() {
 	sed -i -e "/download-node/d" package.json || die
-	sed -i -e "/npm/d" package.json || die
 	local env="export NPM_CONFIG_NODEDIR=/usr/include/electron/node/"
 	sed -i -e \
-		"s|\"\$binDir/\$nodeBin\" --harmony_collections|${env}\nexec node|g" \
+		"s|\"\$binDir/\$nodeBin\" --harmony_collections|${env}\nexec /usr/bin/node|g" \
 			bin/apm || die
 }
 
