@@ -1,4 +1,4 @@
-From 50e5ab449f6e29cfa235600dbe654c20c5145987 Mon Sep 17 00:00:00 2001
+From 668a003706d57c3e7a460e2fce5d110fe9737a62 Mon Sep 17 00:00:00 2001
 From: Elvis Pranskevichus <elvis@magic.io>
 Date: Wed, 10 Feb 2016 14:45:13 -0500
 Subject: [PATCH] Parametrize v8.gyp location
@@ -46,5 +46,5 @@ index cb86c65..ee85e33 100755
      if cmd == 'install': return files(install)
      if cmd == 'uninstall': return files(uninstall)
 -- 
-2.4.10
+2.7.3
 

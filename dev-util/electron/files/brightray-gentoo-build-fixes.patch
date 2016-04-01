@@ -1,15 +1,16 @@
-From 0065d6f140bf3e32dd15c17809564461bf8e039e Mon Sep 17 00:00:00 2001
+From dd72066ffe2a5ae8ba269df1cb2b1a4a1698cb6c Mon Sep 17 00:00:00 2001
 From: Elvis Pranskevichus <elvis@magic.io>
 Date: Mon, 8 Feb 2016 15:14:58 -0500
 Subject: [PATCH] brightray build fixes
 
 ---
- brightray.gyp  |  3 +++
- brightray.gypi | 35 ++++++++---------------------------
- 2 files changed, 11 insertions(+), 27 deletions(-)
+ brightray.gyp             |  3 +++
+ brightray.gypi            | 21 ++++++++-------------
+ vendor/libchromiumcontent |  2 +-
+ 3 files changed, 12 insertions(+), 14 deletions(-)
 
 diff --git a/brightray.gyp b/brightray.gyp
-index a332a5a..1e920b1 100644
+index d7120ea..ceaa572 100644
 --- a/brightray.gyp
 +++ b/brightray.gyp
 @@ -9,6 +9,9 @@
@@ -23,10 +24,10 @@ index a332a5a..1e920b1 100644
        'include_dirs': [
          '.',
 diff --git a/brightray.gypi b/brightray.gypi
-index 4513fa9..0ca2862 100644
+index 4513fa9..95bdfa1 100644
 --- a/brightray.gypi
 +++ b/brightray.gypi
-@@ -1,9 +1,13 @@
+@@ -1,9 +1,14 @@
  {
 -  'includes': [
 -    'vendor/download/libchromiumcontent/filenames.gypi',
@@ -40,41 +41,40 @@ index 4513fa9..0ca2862 100644
 +    'libchromiumcontent_static_libraries': [],
 +    'libchromiumcontent_shared_v8_libraries': [],
 +    'libchromiumcontent_static_v8_libraries': [],
++    'pkg-config%': 'pkg-config',
      'conditions': [
        # The "libchromiumcontent_component" is defined when calling "gyp".
        ['libchromiumcontent_component', {
-@@ -254,30 +258,7 @@
-             # Turn off incremental linking to save binary size.
-             'LinkIncremental': '1',  # /INCREMENTAL:NO
-           },
--        },
--        'conditions': [
--          ['OS=="linux"', {
--            'cflags': [
+@@ -258,22 +263,12 @@
+         'conditions': [
+           ['OS=="linux"', {
+             'cflags': [
 -              '-O2',
 -              # Generate symbols, will be stripped later.
 -              '-g',
 -              # Don't emit the GCC version ident directives, they just end up
 -              # in the .comment section taking up binary size.
 -              '-fno-ident',
--              # Put data and code in their own sections, so that unused symbols
--              # can be removed at link time with --gc-sections.
--              '-fdata-sections',
--              '-ffunction-sections',
--            ],
--            'ldflags': [
+               # Put data and code in their own sections, so that unused symbols
+               # can be removed at link time with --gc-sections.
+               '-fdata-sections',
+               '-ffunction-sections',
+             ],
+             'ldflags': [
 -              # Specifically tell the linker to perform optimizations.
 -              # See http://lwn.net/Articles/192624/ .
 -              '-Wl,-O1',
 -              '-Wl,--as-needed',
--              '-Wl,--gc-sections',
--            ],
--          }],  # OS=="linux"
--        ],
-+        }
-       },  # Release_Base
-       'conditions': [
-         ['libchromiumcontent_component', {
+               '-Wl,--gc-sections',
+             ],
+           }],  # OS=="linux"
+diff --git a/vendor/libchromiumcontent b/vendor/libchromiumcontent
+index ad63d8b..cb3617d 160000
+--- a/vendor/libchromiumcontent
++++ b/vendor/libchromiumcontent
+@@ -1 +1 @@
+-Subproject commit ad63d8ba890bcaad2f1b7e6de148b7992f4d3af7
++Subproject commit cb3617d4280c529bffd45a8fe455ac1a2fd6751e
 -- 
-2.4.10
+2.7.3
 

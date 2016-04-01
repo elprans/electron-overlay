@@ -90,7 +90,10 @@ RDEPEND=">=app-accessibility/speech-dispatcher-0.8:=
 	x11-libs/libXScrnSaver:=
 	x11-libs/libXtst:=
 	x11-libs/pango:=
-	kerberos? ( virtual/krb5 )"
+	kerberos? ( virtual/krb5 )
+	>=net-libs/http-parser-2.6.2:=
+	>=dev-libs/libuv-1.8.0:=
+	>=dev-libs/openssl-1.0.2g:0=[-bindist]"
 DEPEND="${RDEPEND}
 	!arm? (
 		dev-lang/yasm
