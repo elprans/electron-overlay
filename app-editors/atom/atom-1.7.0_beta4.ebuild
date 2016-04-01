@@ -5,12 +5,12 @@
 EAPI=5
 
 PYTHON_COMPAT=( python2_7 )
-inherit git-r3 flag-o-matic python-any-r1 eutils
+inherit flag-o-matic python-any-r1 eutils
 
 DESCRIPTION="A hackable text editor for the 21st Century"
 HOMEPAGE="https://atom.io"
-#SRC_URI="https://github.com/atom/atom/archive/v${MY_PV}.tar.gz -> atom-${PV}.tar.gz"
-EGIT_REPO_URI="https://github.com/atom/atom.git"
+MY_PV="${PV//_/-}"
+SRC_URI="https://github.com/atom/atom/archive/v${MY_PV}.tar.gz -> atom-${PV}.tar.gz"
 RESTRICT="mirror"
 LICENSE="MIT"
 SLOT="0"
@@ -19,11 +19,12 @@ IUSE=""
 
 DEPEND="
 	${PYTHON_DEPS}
-	|| ( net-libs/nodejs[npm] net-libs/iojs[npm] )
-	>=dev-util/electron-0.36.7:=
-	>=dev-util/apm-1.7.0
+	dev-util/electron:0/36
+	>=dev-util/apm-1.9.2
 "
 RDEPEND="${DEPEND}"
+
+S="${WORKDIR}/${PN}-${MY_PV}"
 
 pkg_setup() {
 	python-any-r1_pkg_setup
@@ -91,13 +92,15 @@ src_compile() {
 
 src_install() {
 	local install_dir="$(get_install_dir)"
-	local builddir="${WORKDIR}/build"
+	local atom_dir=$([[ ${PV} == *"beta"* ]] && echo -n "Atom Beta"
+											 || echo -n "Atom")
+	local builddir="${WORKDIR}/build/${atom_dir}"
 	local suffix="$(get_install_suffix)"
 
 	insinto "${install_dir}"
-	doins -r "${builddir}"/Atom/resources/*
+	doins -r "${builddir}"/resources/*
 	exeinto "${install_dir}"
-	newexe "${builddir}/Atom/resources/app/atom.sh" atom
+	newexe "${builddir}/resources/app/atom.sh" atom
 	rm -rf "${ED}/${install_dir}/app" || die
 	rm -f "${ED}/${install_dir}/LICENSE.md" || die
 	insinto /usr/share/applications
