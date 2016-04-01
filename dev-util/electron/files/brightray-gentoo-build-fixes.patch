@@ -1,13 +1,12 @@
-From dd72066ffe2a5ae8ba269df1cb2b1a4a1698cb6c Mon Sep 17 00:00:00 2001
+From 5c5dc130d8d9f5d746e9bf3071868c48c0ad361b Mon Sep 17 00:00:00 2001
 From: Elvis Pranskevichus <elvis@magic.io>
 Date: Mon, 8 Feb 2016 15:14:58 -0500
 Subject: [PATCH] brightray build fixes
 
 ---
- brightray.gyp             |  3 +++
- brightray.gypi            | 21 ++++++++-------------
- vendor/libchromiumcontent |  2 +-
- 3 files changed, 12 insertions(+), 14 deletions(-)
+ brightray.gyp  |  3 +++
+ brightray.gypi | 21 ++++++++-------------
+ 2 files changed, 11 insertions(+), 13 deletions(-)
 
 diff --git a/brightray.gyp b/brightray.gyp
 index d7120ea..ceaa572 100644
@@ -68,13 +67,6 @@ index 4513fa9..95bdfa1 100644
                '-Wl,--gc-sections',
              ],
            }],  # OS=="linux"
-diff --git a/vendor/libchromiumcontent b/vendor/libchromiumcontent
-index ad63d8b..cb3617d 160000
---- a/vendor/libchromiumcontent
-+++ b/vendor/libchromiumcontent
-@@ -1 +1 @@
--Subproject commit ad63d8ba890bcaad2f1b7e6de148b7992f4d3af7
-+Subproject commit cb3617d4280c529bffd45a8fe455ac1a2fd6751e
 -- 
 2.7.3
 
