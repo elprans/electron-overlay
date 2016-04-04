@@ -1,15 +1,15 @@
-From 5c5dc130d8d9f5d746e9bf3071868c48c0ad361b Mon Sep 17 00:00:00 2001
+From c9e2e0237170884bc1069a64f2635bb1ffc1b948 Mon Sep 17 00:00:00 2001
 From: Elvis Pranskevichus <elvis@magic.io>
 Date: Mon, 8 Feb 2016 15:14:58 -0500
 Subject: [PATCH] brightray build fixes
 
 ---
- brightray.gyp  |  3 +++
+ brightray.gyp  |  5 +++--
  brightray.gypi | 21 ++++++++-------------
- 2 files changed, 11 insertions(+), 13 deletions(-)
+ 2 files changed, 11 insertions(+), 15 deletions(-)
 
 diff --git a/brightray.gyp b/brightray.gyp
-index d7120ea..ceaa572 100644
+index d7120ea..6150318 100644
 --- a/brightray.gyp
 +++ b/brightray.gyp
 @@ -9,6 +9,9 @@
@@ -22,6 +22,15 @@ index d7120ea..ceaa572 100644
        'type': 'static_library',
        'include_dirs': [
          '.',
+@@ -100,8 +103,6 @@
+             }, {
+               'link_settings': {
+                 'libraries': [
+-                  # Link with ffmpeg.
+-                  '<(libchromiumcontent_dir)/libffmpeg.so',
+                   # Following libraries are required by libchromiumcontent:
+                   '-lasound',
+                   '-lcap',
 diff --git a/brightray.gypi b/brightray.gypi
 index 4513fa9..95bdfa1 100644
 --- a/brightray.gypi
