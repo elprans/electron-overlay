@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE pkgmetadata SYSTEM "http://www.gentoo.org/dtd/metadata.dtd">
 <pkgmetadata>
-	<maintainer type="project">
-		<email>chromium@gentoo.org</email>
-		<name>Chromium in Gentoo Project</name>
+	<maintainer>
+		<email>elvis@magic.io</email>
+		<name>Elvis Pranskevichus</name>
 	</maintainer>
 	<longdescription>Electron is a cross platform application development framework based on web technologies based on Chromium</longdescription>
 	<use>
