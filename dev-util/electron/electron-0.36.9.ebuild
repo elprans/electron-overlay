@@ -128,12 +128,12 @@ DEPEND+=" $(python_gen_any_dep '
 	dev-python/simplejson[${PYTHON_USEDEP}]
 ')"
 python_check_deps() {
-	has_version "dev-python/beautifulsoup:python-2[${PYTHON_USEDEP}]" && \
-		has_version "dev-python/beautifulsoup:4[${PYTHON_USEDEP}]" && \
-		has_version "dev-python/html5lib[${PYTHON_USEDEP}]" && \
-		has_version "dev-python/jinja[${PYTHON_USEDEP}]" && \
-		has_version "dev-python/ply[${PYTHON_USEDEP}]" && \
-		has_version "dev-python/simplejson[${PYTHON_USEDEP}]"
+	has_version --host-root "dev-python/beautifulsoup:python-2[${PYTHON_USEDEP}]" &&
+	has_version --host-root "dev-python/beautifulsoup:4[${PYTHON_USEDEP}]" &&
+	has_version --host-root "dev-python/html5lib[${PYTHON_USEDEP}]" &&
+	has_version --host-root "dev-python/jinja[${PYTHON_USEDEP}]" &&
+	has_version --host-root "dev-python/ply[${PYTHON_USEDEP}]" &&
+	has_version --host-root "dev-python/simplejson[${PYTHON_USEDEP}]"
 }
 
 if ! has chromium_pkg_die ${EBUILD_DEATH_HOOKS}; then
@@ -195,7 +195,7 @@ src_unpack() {
 	# everything in a single pass.
 	rsync -a "${WORKDIR}/${CHROMIUM_P}/" "${S}/" || die
 
-	cd "${S}"
+	cd "${S}" || die
 	einfo "Installing node modules required for Electron build..."
 	npm install || die
 }
@@ -241,10 +241,10 @@ src_prepare() {
 	epatch "${FILESDIR}/electron-gentoo-build-fixes.patch"
 
 	# node patches
-	cd "vendor/node"
+	cd "vendor/node" || die
 	epatch "${FILESDIR}/node-gentoo-build-fixes.patch"
 	# make sure node uses the correct version of v8
-	rm -rf deps/v8 || die
+	rm -r deps/v8 || die
 	ln -s ../../../v8 deps/ || die
 
 	# make sure we use python2.* while using gyp
@@ -261,15 +261,15 @@ src_prepare() {
 	sed -i -e "s|\"lib\"|\"${LIBDIR}\"|" deps/npm/lib/npm.js || die
 
 	# brightray patches
-	cd "${BRIGHTRAY_S}"
+	cd "${BRIGHTRAY_S}" || die
 	epatch "${FILESDIR}/brightray-gentoo-build-fixes.patch"
 
 	# libcc patches
-	cd "${LIBCC_S}"
+	cd "${LIBCC_S}" || die
 	epatch "${FILESDIR}/libchromiumcontent-gentoo-build-fixes.patch"
 
 	# chromium patches
-	cd "${S}"
+	cd "${S}" || die
 	epatch "${FILESDIR}/chromium-system-ffmpeg-r0.patch"
 	epatch "${FILESDIR}/chromium-system-jinja-r7.patch"
 	epatch "${FILESDIR}/chromium-widevine-r1.patch"
@@ -288,7 +288,7 @@ src_prepare() {
 		epatch
 
 	# build scripts
-	mkdir -p "${S}/chromiumcontent"
+	mkdir -p "${S}/chromiumcontent" || die
 	cp -a "${LIBCC_S}/chromiumcontent" "${S}/" || die
 	cp -a "${LIBCC_S}/tools/linux/" "${S}/tools/" || die
 
@@ -617,7 +617,7 @@ src_configure() {
 	einfo "Configuring bundled nodejs..."
 	pushd vendor/node > /dev/null || die
 	# Make sure gyp_node does not run
-	echo '#!/usr/bin/env python' > tools/gyp_node.py
+	echo '#!/usr/bin/env python' > tools/gyp_node.py || die
 	./configure --shared-openssl --shared-libuv --shared-http-parser \
 				--shared-zlib --without-npm --with-intl=system-icu \
 				--without-dtrace --dest-cpu=${target_arch} \
@@ -686,7 +686,7 @@ src_install() {
 	doins out/R/content_shell.pak
 	doins out/R/natives_blob.bin
 	doins out/R/snapshot_blob.bin
-	rm -rf out/R/resources/inspector
+	rm -r out/R/resources/inspector || die
 	doins -r out/R/resources
 	doins -r out/R/locales
 	dosym "${install_dir}/electron" "/usr/bin/electron${install_suffix}"
