@@ -9,20 +9,47 @@ CHROMIUM_LANGS="am ar bg bn ca cs da de el en_GB es es_LA et fa fi fil fr gu he
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt_BR pt_PT ro ru sk sl sr
 	sv sw ta te th tr uk vi zh_CN zh_TW"
 
-inherit check-reqs chromium eutils flag-o-matic git-r3 multilib multiprocessing pax-utils \
+inherit check-reqs chromium eutils flag-o-matic multilib multiprocessing pax-utils \
 	portability python-any-r1 readme.gentoo-r1 toolchain-funcs versionator virtualx
 
+# Keep this in sync with vendor/brightray/vendor/libchromiumcontent/VERSION
 CHROMIUM_VERSION="47.0.2526.110"
+# Keep this in sync with vendor/brightray
+BRIGHTRAY_COMMIT="d06de26dff8b641d9aee4c78ee830b416710f554"
+# Keep this in sync with vendor/node
+NODE_COMMIT="a507a3c3816d6ac085ed46250c489a3d76ab8b3c"
+# Keep this in sync with vendor/native_mate
+NATIVE_MATE_COMMIT="e719eab878c264bb03188d0cd6eb9ad6882bc13a"
+# Keep this in sync with vendor/brightray/vendor/libchromiumcontent
+LIBCHROMIUMCONTENT_COMMIT="ad63d8ba890bcaad2f1b7e6de148b7992f4d3af7"
+# Keep this in sync with package.json#devDependencies
+ASAR_VERSION="0.10.0"
 
 CHROMIUM_P="chromium-${CHROMIUM_VERSION}"
+BRIGHTRAY_P="brightray-${BRIGHTRAY_COMMIT}"
+NODE_P="node-${NODE_COMMIT}"
+NATIVE_MATE_P="native-mate-${NATIVE_MATE_COMMIT}"
+LIBCHROMIUMCONTENT_P="libchromiumcontent-${LIBCHROMIUMCONTENT_COMMIT}"
+ASAR_P="asar-${ASAR_VERSION}"
 
 DESCRIPTION="Cross platform application development framework based on web technologies"
 HOMEPAGE="http://electron.atom.io/"
-SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${CHROMIUM_P}.tar.xz"
-ELECTRON_REPO_URI="https://github.com/atom/electron.git"
+SRC_URI="
+	https://commondatastorage.googleapis.com/chromium-browser-official/${CHROMIUM_P}.tar.xz
+	https://github.com/electron/electron/archive/v${PV}.tar.gz -> ${P}.tar.gz
+	https://github.com/electron/brightray/archive/${BRIGHTRAY_COMMIT}.tar.gz -> ${BRIGHTRAY_P}.tar.gz
+	https://github.com/electron/node/archive/${NODE_COMMIT}.tar.gz -> electron-${NODE_P}.tar.gz
+	https://github.com/zcbenz/native-mate/archive/${NATIVE_MATE_COMMIT}.tar.gz -> ${NATIVE_MATE_P}.tar.gz
+	https://github.com/electron/libchromiumcontent/archive/${LIBCHROMIUMCONTENT_COMMIT}.tar.gz -> ${LIBCHROMIUMCONTENT_P}.tar.gz
+	https://github.com/elprans/asar/releases/download/v${ASAR_VERSION}-gentoo/asar-build.tar.gz -> ${ASAR_P}.tar.gz
+"
+
+S="${WORKDIR}/${CHROMIUM_P}"
+ELECTRON_S="${WORKDIR}/${P}"
+NODE_S="${S}/vendor/node"
 BRIGHTRAY_S="${S}/vendor/brightray"
+NATIVE_MATE_S="${S}/vendor/native_mate"
 LIBCC_S="${BRIGHTRAY_S}/vendor/libchromiumcontent"
-CHROMIUM_S="${LIBCC_S}/vendor/chromium/src"
 
 LICENSE="BSD hotwording? ( no-source-code )"
 SLOT="0/$(get_version_component_range 2)"
@@ -123,6 +150,7 @@ DEPEND+=" $(python_gen_any_dep '
 	dev-python/beautifulsoup:4[${PYTHON_USEDEP}]
 	dev-python/html5lib[${PYTHON_USEDEP}]
 	dev-python/jinja[${PYTHON_USEDEP}]
+	dev-python/jsmin[${PYTHON_USEDEP}]
 	dev-python/ply[${PYTHON_USEDEP}]
 	dev-python/simplejson[${PYTHON_USEDEP}]
 ')"
@@ -131,6 +159,7 @@ python_check_deps() {
 	has_version --host-root "dev-python/beautifulsoup:4[${PYTHON_USEDEP}]" &&
 	has_version --host-root "dev-python/html5lib[${PYTHON_USEDEP}]" &&
 	has_version --host-root "dev-python/jinja[${PYTHON_USEDEP}]" &&
+	has_version --host-root "dev-python/jsmin[${PYTHON_USEDEP}]" &&
 	has_version --host-root "dev-python/ply[${PYTHON_USEDEP}]" &&
 	has_version --host-root "dev-python/simplejson[${PYTHON_USEDEP}]"
 }
@@ -182,21 +211,6 @@ pkg_setup() {
 	chromium_suid_sandbox_check_kernel_config
 }
 
-src_unpack() {
-	default_src_unpack || die
-
-	EGIT_COMMIT="v${PV}" \
-	EGIT_REPO_URI=${ELECTRON_REPO_URI} \
-		git-r3_src_unpack || die
-
-	# Fuse chromium and electron source together, as
-	# this seems to be the only reasonable way to configure and build
-	# everything in a single pass.
-	rsync -a "${WORKDIR}/${CHROMIUM_P}/" "${S}/" || die
-
-	cd "${S}" || die
-}
-
 _unnest_patches() {
 	local _s="${1%/}/" relpath out
 
@@ -226,19 +240,27 @@ _get_install_dir() {
 }
 
 src_prepare() {
-	# if ! use arm; then
-	#	mkdir -p out/Release/gen/sdk/toolchain || die
-	#	# Do not preserve SELinux context, bug #460892 .
-	#	cp -a --no-preserve=context /usr/$(get_libdir)/nacl-toolchain-newlib \
-	#		out/Release/gen/sdk/toolchain/linux_x86_newlib || die
-	#	touch out/Release/gen/sdk/toolchain/linux_x86_newlib/stamp.untar || die
-	# fi
+	# Merge Electron code and its submodules into the Chromium source tree
+	# so that everything can be configured and built in a single pass.
+	#
+	rsync -a --ignore-existing "${ELECTRON_S}/" "${S}/" || die
+	rm -r "${NODE_S}" &&
+		mv "${WORKDIR}/${NODE_P}" "${NODE_S}" || die
+	rm -r "${BRIGHTRAY_S}" &&
+		mv "${WORKDIR}/${BRIGHTRAY_P}" "${BRIGHTRAY_S}" || die
+	rm -r "${NATIVE_MATE_S}" &&
+		mv "${WORKDIR}/${NATIVE_MATE_P}" "${NATIVE_MATE_S}" || die
+	rm -r "${LIBCC_S}" &&
+		mv "${WORKDIR}/${LIBCHROMIUMCONTENT_P}" "${LIBCC_S}" || die
+	rm -r "${S}/vendor/breakpad" &&
+		ln -s "../breakpad" "${S}/vendor/breakpad" || die
+	ln -s "${WORKDIR}/${ASAR_P}/node_modules" "${S}/node_modules" || die
 
 	# electron patches
 	epatch "${FILESDIR}/electron-gentoo-build-fixes.patch"
 
 	# node patches
-	cd "vendor/node" || die
+	cd "${NODE_S}" || die
 	epatch "${FILESDIR}/node-gentoo-build-fixes.patch"
 	# make sure node uses the correct version of v8
 	rm -r deps/v8 || die
