@@ -12,7 +12,6 @@ CHROMIUM_LANGS="am ar bg bn ca cs da de el en_GB es es_LA et fa fi fil fr gu he
 inherit check-reqs chromium eutils flag-o-matic git-r3 multilib multiprocessing pax-utils \
 	portability python-any-r1 readme.gentoo-r1 toolchain-funcs versionator virtualx
 
-LIBCC_COMMIT="ad63d8ba890bcaad2f1b7e6de148b7992f4d3af7"
 CHROMIUM_VERSION="47.0.2526.110"
 
 CHROMIUM_P="chromium-${CHROMIUM_VERSION}"
@@ -191,13 +190,11 @@ src_unpack() {
 		git-r3_src_unpack || die
 
 	# Fuse chromium and electron source together, as
-	# this seems to be the only reasonable way to build and configure
+	# this seems to be the only reasonable way to configure and build
 	# everything in a single pass.
 	rsync -a "${WORKDIR}/${CHROMIUM_P}/" "${S}/" || die
 
 	cd "${S}" || die
-	einfo "Installing node modules required for Electron build..."
-	npm install || die
 }
 
 _unnest_patches() {
