@@ -92,8 +92,7 @@ src_compile() {
 
 src_install() {
 	local install_dir="$(get_install_dir)"
-	local atom_dir=$([[ ${PV} == *"beta"* ]] && echo -n "Atom Beta"
-											 || echo -n "Atom")
+	local atom_dir=$([[ ${PV} == *"beta"* ]] && echo -n "Atom Beta" || echo -n "Atom")
 	local builddir="${WORKDIR}/build/${atom_dir}"
 	local suffix="$(get_install_suffix)"
 
