@@ -15,7 +15,7 @@ inherit check-reqs chromium eutils flag-o-matic multilib multiprocessing pax-uti
 # Keep this in sync with vendor/brightray/vendor/libchromiumcontent/VERSION
 CHROMIUM_VERSION="47.0.2526.110"
 # Keep this in sync with vendor/brightray
-BRIGHTRAY_COMMIT="d06de26dff8b641d9aee4c78ee830b416710f554"
+BRIGHTRAY_COMMIT="9bc1d21b69ac99bed546d42035dc1205ea6b04af"
 # Keep this in sync with vendor/node
 NODE_COMMIT="a507a3c3816d6ac085ed46250c489a3d76ab8b3c"
 # Keep this in sync with vendor/native_mate
