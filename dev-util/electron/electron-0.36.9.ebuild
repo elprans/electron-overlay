@@ -51,10 +51,10 @@ BRIGHTRAY_S="${S}/vendor/brightray"
 NATIVE_MATE_S="${S}/vendor/native_mate"
 LIBCC_S="${BRIGHTRAY_S}/vendor/libchromiumcontent"
 
-LICENSE="BSD hotwording? ( no-source-code )"
+LICENSE="BSD"
 SLOT="0/$(get_version_component_range 2)"
 KEYWORDS="~amd64"
-IUSE="custom-cflags cups gnome gnome-keyring gtk3 hangouts hidpi hotwording kerberos lto neon pic +proprietary-codecs pulseaudio selinux +system-ffmpeg +tcmalloc widevine"
+IUSE="custom-cflags cups gnome gnome-keyring gtk3 hidpi kerberos lto neon pic +proprietary-codecs pulseaudio selinux +system-ffmpeg +tcmalloc"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
 
 # Native Client binaries are compiled with different set of flags, bug #452066.
@@ -140,8 +140,7 @@ RDEPEND+="
 	virtual/opengl
 	virtual/ttf-fonts
 	selinux? ( sec-policy/selinux-chromium )
-	tcmalloc? ( !<x11-drivers/nvidia-drivers-331.20 )
-	widevine? ( www-plugins/chrome-binary-plugins[widevine(-)] )"
+	tcmalloc? ( !<x11-drivers/nvidia-drivers-331.20 )"
 
 # Python dependencies. The DEPEND part needs to be kept in sync
 # with python_check_deps.
@@ -291,7 +290,7 @@ src_prepare() {
 	cd "${S}" || die
 	epatch "${FILESDIR}/chromium-system-ffmpeg-r0.patch"
 	epatch "${FILESDIR}/chromium-system-jinja-r7.patch"
-	epatch "${FILESDIR}/chromium-widevine-r1.patch"
+	epatch "${FILESDIR}/chromium-disable-widevine.patch"
 	epatch "${FILESDIR}/chromium-remove-gardiner-mod-font.patch"
 	epatch "${FILESDIR}/chromium-shared-v8.patch"
 	epatch "${FILESDIR}/chromium-lto-fixes.patch"
@@ -492,14 +491,11 @@ src_configure() {
 		$(gyp_use gnome-keyring use_gnome_keyring)
 		$(gyp_use gnome-keyring linux_link_gnome_keyring)
 		$(gyp_use gtk3)
-		$(gyp_use hangouts enable_hangout_services_extension)
 		$(gyp_use hidpi enable_hidpi)
-		$(gyp_use hotwording enable_hotwording)
 		$(gyp_use kerberos)
 		$(gyp_use lto)
 		$(gyp_use pulseaudio)
-		$(gyp_use tcmalloc use_allocator tcmalloc none)
-		$(gyp_use widevine enable_widevine)"
+		$(gyp_use tcmalloc use_allocator tcmalloc none)"
 
 	# Use explicit library dependencies instead of dlopen.
 	# This makes breakages easier to detect by revdep-rebuild.
