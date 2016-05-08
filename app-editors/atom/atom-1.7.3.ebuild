@@ -2,7 +2,7 @@
 # Distributed under the terms of the GNU General Public License v2
 # $Id$
 
-EAPI=5
+EAPI=6
 
 PYTHON_COMPAT=( python2_7 )
 inherit flag-o-matic python-any-r1 eutils rpm
@@ -207,6 +207,9 @@ src_prepare() {
 
 	rm apm/bin/node || die
 
+	sed -i -e "s|/usr/share/atom/atom|/usr/bin/atom|g" \
+		"${S}/usr/share/applications/atom.desktop" || die
+
 	cd "${S}" || die
 
 	for binmod in ${BINMODS}; do
@@ -261,6 +264,8 @@ src_prepare() {
 	ln -s "${WORKDIR}/$(package_dir node-jsonfile)" "${_s}/node_modules/jsonfile" || die
 	ln -s "${WORKDIR}/$(package_dir node-klaw)" "${_s}/node_modules/klaw" || die
 	ln -s "${WORKDIR}/$(package_dir rimraf)" "${_s}/node_modules/rimraf" || die
+
+	eapply_user
 }
 
 src_configure() {
