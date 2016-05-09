@@ -17,7 +17,7 @@ NAN_V=2.0.9
 # Keep dep versions in sync with atom/package.json
 CACHED_RUN_IN_THIS_CONTEXT_V=0.4.1
 GIT_UTILS_V=4.1.2
-NODEGIT_V=0.12.2
+NODEGIT_V=0.13.0
 NODE_NSLOG_V=3.0.0
 NODE_ONIGURUMA_V=5.1.2
 NODE_PATHWATCHER_V=6.2.4
@@ -113,7 +113,7 @@ DEPEND="
 	${PYTHON_DEPS}
 	>=net-libs/nodejs-5.9.0:=[npm]
 	>=app-text/hunspell-1.3.3:=
-	>=dev-libs/libgit2-0.23.0:=[ssh]
+	>=dev-libs/libgit2-0.24.0:=[ssh]
 	>=dev-libs/oniguruma-5.9.5:=
 	>=dev-util/ctags-5.8
 	dev-util/electron:0/36
