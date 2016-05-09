@@ -146,7 +146,7 @@ get_install_dir() {
 
 package_dir() {
 	local binmod="${1}" binmod_v
-	eval binmod_v=\${$(echo ${binmod//-/_}_V | tr '[:lower:]' '[:upper:]')}
+	eval binmod_v=\${$(tr '[:lower:]' '[:upper:]' <<< ${binmod//-/_}_V)}
 	echo -n ${binmod}-${binmod_v}
 }
 
@@ -225,15 +225,15 @@ src_prepare() {
 	# Unbundle bundled libs from modules
 
 	_s="${WORKDIR}/$(package_dir git-utils)"
-	python "${FILESDIR}/gyp-unbundle.py" \
+	${EPYTHON} "${FILESDIR}/gyp-unbundle.py" \
 		--inplace --unbundle "git;libgit2;git2" "${_s}/binding.gyp" || die
 
 	_s="${WORKDIR}/$(package_dir node-oniguruma)"
-	python "${FILESDIR}/gyp-unbundle.py" \
+	${EPYTHON} "${FILESDIR}/gyp-unbundle.py" \
 		--inplace --unbundle "onig_scanner;oniguruma;onig" "${_s}/binding.gyp" || die
 
 	_s="${WORKDIR}/$(package_dir node-spellchecker)"
-	python "${FILESDIR}/gyp-unbundle.py" \
+	${EPYTHON} "${FILESDIR}/gyp-unbundle.py" \
 		--inplace --unbundle "spellchecker;hunspell;hunspell" "${_s}/binding.gyp" || die
 
 	for binmod in ${BINMODS}; do
@@ -276,7 +276,7 @@ src_configure() {
 	node generate/scripts/generateJson.js || die
 	node generate/scripts/generateNativeCode.js || die
 
-	python "${FILESDIR}/gyp-unbundle.py" \
+	${EPYTHON} "${FILESDIR}/gyp-unbundle.py" \
 		--inplace --unbundle "nodegit;vendor/libgit2.gyp:libgit2;git2;ssh2" "${_s}/binding.gyp" || die
 
 	for binmod in ${BINMODS}; do
