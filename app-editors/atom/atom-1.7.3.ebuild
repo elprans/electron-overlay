@@ -269,7 +269,7 @@ src_prepare() {
 }
 
 src_configure() {
-	local binmod _s
+	local binmod _s nodegyp="/usr/$(get_libdir)/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js"
 
 	_s="${WORKDIR}/$(package_dir nodegit)"
 	cd "${_s}" || die
@@ -283,14 +283,14 @@ src_configure() {
 		einfo "Configuring ${binmod}..."
 		_s="${WORKDIR}/$(package_dir ${binmod})"
 		cd "${_s}" || die
-		node-gyp --nodedir=/usr/include/electron/node/ configure || die
+		"${nodegyp}" --nodedir=/usr/include/electron/node/ configure || die
 		# Unclobber MAKEFLAGS
 		sed -i -e '/MAKEFLAGS=-r/d' build/Makefile || die
 	done
 }
 
 src_compile() {
-	local binmod _s x
+	local binmod _s x nodegyp="/usr/$(get_libdir)/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js"
 
 	mkdir -p "${S}/build/modules/" || die
 
@@ -298,7 +298,7 @@ src_compile() {
 		einfo "Building ${binmod}..."
 		_s="${WORKDIR}/$(package_dir ${binmod})"
 		cd "${_s}" || die
-		node-gyp --nodedir=/usr/include/electron/node/ --verbose build || die
+		"${nodegyp}" --nodedir=/usr/include/electron/node/ --verbose build || die
 		x=${binmod##node-}
 		mkdir -p "${S}/build/modules/${x}"
 		cp build/Release/*.node "${S}/build/modules/${x}"
