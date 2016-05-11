@@ -114,6 +114,7 @@ DEPEND="
 	>=net-libs/nodejs-5.9.0:=[npm]
 	>=app-text/hunspell-1.3.3:=
 	=dev-libs/libgit2-0.23*:=[ssh]
+	>=gnome-base/libgnome-keyring-3.12:=
 	>=dev-libs/oniguruma-5.9.5:=
 	>=dev-util/ctags-5.8
 	dev-util/electron:0/36
