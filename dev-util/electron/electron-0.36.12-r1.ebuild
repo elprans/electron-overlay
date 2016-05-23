@@ -279,7 +279,7 @@ src_prepare() {
 
 	# brightray patches
 	cd "${BRIGHTRAY_S}" || die
-	epatch "${FILESDIR}/brightray-gentoo-build-fixes.patch"
+	epatch "${FILESDIR}/brightray-gentoo-build-fixes-r1.patch"
 
 	# libcc patches
 	cd "${LIBCC_S}" || die
