@@ -1,4 +1,4 @@
-From 820cb5ce8e1aa08e68fe0f2e3cbbe74972e7af84 Mon Sep 17 00:00:00 2001
+From 8ac4c53184de0873c63dd15bb85e53997c378d45 Mon Sep 17 00:00:00 2001
 From: Elvis Pranskevichus <elvis@magic.io>
 Date: Sat, 11 Jun 2016 18:27:19 -0400
 Subject: [PATCH] Add support for external V8 snapshots
@@ -8,10 +8,10 @@ Subject: [PATCH] Add support for external V8 snapshots
  1 file changed, 86 insertions(+)
 
 diff --git a/src/node.cc b/src/node.cc
-index 961abc2..4dac94b 100644
+index 85c2a49..16188cb 100644
 --- a/src/node.cc
 +++ b/src/node.cc
-@@ -4188,6 +4188,90 @@ Environment* CreateEnvironment(Isolate* isolate,
+@@ -4532,6 +4532,90 @@ Environment* CreateEnvironment(Isolate* isolate,
    return env;
  }
  
@@ -102,7 +102,7 @@ index 961abc2..4dac94b 100644
  
  // Entry point for new node instances, also called directly for the main
  // node instance.
-@@ -4301,6 +4385,8 @@ int Start(int argc, char** argv) {
+@@ -4647,6 +4731,8 @@ int Start(int argc, char** argv) {
    const char** exec_argv;
    Init(&argc, const_cast<const char**>(argv), &exec_argc, &exec_argv);
  

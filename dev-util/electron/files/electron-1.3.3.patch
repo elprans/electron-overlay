@@ -1,0 +1,231 @@
+From d22d574dd11dd6682c9b1428f1256e33dace87fc Mon Sep 17 00:00:00 2001
+From: Elvis Pranskevichus <elvis@magic.io>
+Date: Mon, 8 Feb 2016 15:16:40 -0500
+Subject: [PATCH] electron build fixes
+
+---
+ common.gypi    | 31 +++++++++++++++++++++++++------
+ electron.gyp   | 23 +++++++++--------------
+ filenames.gypi |  1 -
+ toolchain.gypi | 45 ---------------------------------------------
+ 4 files changed, 34 insertions(+), 66 deletions(-)
+
+diff --git a/common.gypi b/common.gypi
+index 2a22c95..3f362d0 100644
+--- a/common.gypi
++++ b/common.gypi
+@@ -22,13 +22,9 @@
+     'node_install_npm': 'false',
+     'node_prefix': '',
+     'node_shared': 'true',
+-    'node_shared_cares': 'false',
+-    'node_shared_http_parser': 'false',
+-    'node_shared_libuv': 'false',
+-    'node_shared_openssl': 'false',
+     'node_shared_v8': 'true',
+-    'node_shared_zlib': 'false',
+     'node_tag': '',
++    'node_module_version': '',
+     'node_use_dtrace': 'false',
+     'node_use_etw': 'false',
+     'node_use_mdb': 'false',
+@@ -36,17 +32,40 @@
+     'node_use_perfctr': 'false',
+     'node_use_v8_platform': 'false',
+     'node_use_bundled_v8': 'false',
+-    'uv_library': 'static_library',
++    'uv_library': 'shared_library',
+     'uv_parent_path': 'vendor/node/deps/uv',
+     'uv_use_dtrace': 'false',
+     'V8_BASE': '',
+     'v8_postmortem_support': 'false',
+     'v8_enable_i18n_support': 'false',
+     'v8_inspector': 'false',
++    'v8_gyp_path': '<(DEPTH)/v8/src/v8.gyp',
++    'v8_libraries': '["v8", "v8_snapshot", "v8_nosnapshot", "v8_external_snapshot", "v8_base", "v8_libbase", "v8_libplatform"]',
++    'v8_target_type': 'shared_library',
++    'v8_use_snapshot': 'true',
++    'v8_use_external_startup_data': 1,
+   },
+   # Settings to compile node under Windows.
+   'target_defaults': {
+     'target_conditions': [
++      ['_target_name in <(v8_libraries) + ["node"]', {
++        'cflags!': [
++          '-fvisibility=hidden',
++          '-fdata-sections',
++          '-ffunction-sections',
++        ],
++        'cflags_cc!': [
++          '-fvisibility-inlines-hidden'
++        ],
++      }],
++
++      ['_target_name in <(v8_libraries) + ["mksnapshot"]', {
++        'defines': [
++          'V8_SHARED',
++          'BUILDING_V8_SHARED',
++        ],
++      }],
++
+       ['_target_name in ["libuv", "http_parser", "openssl", "openssl-cli", "cares", "node", "zlib"]', {
+         'msvs_disabled_warnings': [
+           4003,  # not enough actual parameters for macro 'V'
+diff --git a/electron.gyp b/electron.gyp
+index cda2076..cde0341 100644
+--- a/electron.gyp
++++ b/electron.gyp
+@@ -164,7 +164,7 @@
+           ],
+         }, {
+           'dependencies': [
+-            'vendor/breakpad/breakpad.gyp:dump_syms#host',
++            'breakpad/breakpad.gyp:dump_syms#host',
+           ],
+         }],  # OS=="win"
+         ['OS=="linux"', {
+@@ -181,7 +181,7 @@
+                   }, {
+                     'copied_libraries': [
+                       '<(PRODUCT_DIR)/lib/libnode.so',
+-                      '<(libchromiumcontent_dir)/libffmpeg.so',
++                      '<(PRODUCT_DIR)/lib/libv8.so',
+                     ],
+                   }],
+                 ],
+@@ -189,13 +189,8 @@
+               'destination': '<(PRODUCT_DIR)',
+               'files': [
+                 '<@(copied_libraries)',
+-                '<(libchromiumcontent_dir)/locales',
+-                '<(libchromiumcontent_dir)/icudtl.dat',
+-                '<(libchromiumcontent_dir)/blink_image_resources_200_percent.pak',
+-                '<(libchromiumcontent_dir)/content_resources_200_percent.pak',
++                '<(libchromiumcontent_dir)/repack/chrome_200_percent.pak',
+                 '<(libchromiumcontent_dir)/content_shell.pak',
+-                '<(libchromiumcontent_dir)/ui_resources_200_percent.pak',
+-                '<(libchromiumcontent_dir)/views_resources_200_percent.pak',
+                 '<(libchromiumcontent_dir)/natives_blob.bin',
+                 '<(libchromiumcontent_dir)/snapshot_blob.bin',
+               ],
+@@ -230,8 +225,8 @@
+         '<@(lib_sources)',
+       ],
+       'include_dirs': [
+-        '.',
+         'chromium_src',
++        '.',
+         'vendor/brightray',
+         'vendor/native_mate',
+         # Include atom_natives.h.
+@@ -289,8 +284,8 @@
+             'vendor/node/deps/uv/uv.gyp:libuv',
+             'vendor/node/deps/zlib/zlib.gyp:zlib',
+             # Build with breakpad support.
+-            'vendor/breakpad/breakpad.gyp:breakpad_handler',
+-            'vendor/breakpad/breakpad.gyp:breakpad_sender',
++            'breakpad/breakpad.gyp:breakpad_handler',
++            'breakpad/breakpad.gyp:breakpad_sender',
+           ],
+         }],  # OS=="win"
+         ['OS=="mac" and mas_build==0', {
+@@ -328,7 +323,7 @@
+               # Make binary search for libraries under current directory, so we
+               # don't have to manually set $LD_LIBRARY_PATH:
+               # http://serverfault.com/questions/279068/cant-find-so-in-the-same-directory-as-the-executable
+-              '-rpath \$$ORIGIN',
++              '-Wl,-rpath=\$$ORIGIN/',
+               # Make native module dynamic loading work.
+               '-rdynamic',
+             ],
+@@ -339,10 +334,10 @@
+             '-Wno-reserved-user-defined-literal',
+           ],
+           'include_dirs': [
+-            'vendor/breakpad/src',
++            'breakpad/src',
+           ],
+           'dependencies': [
+-            'vendor/breakpad/breakpad.gyp:breakpad_client',
++            'breakpad/breakpad.gyp:breakpad_client',
+           ],
+         }],  # OS=="linux"
+       ],
+diff --git a/filenames.gypi b/filenames.gypi
+index 7335ae9..567e502 100644
+--- a/filenames.gypi
++++ b/filenames.gypi
+@@ -556,7 +556,6 @@
+       'chromium_src/extensions/browser/app_window/size_constraints.h',
+       'chromium_src/extensions/common/url_pattern.cc',
+       'chromium_src/extensions/common/url_pattern.h',
+-      'chromium_src/library_loaders/libspeechd_loader.cc',
+       'chromium_src/library_loaders/libspeechd.h',
+       'chromium_src/net/test/embedded_test_server/stream_listen_socket.cc',
+       'chromium_src/net/test/embedded_test_server/stream_listen_socket.h',
+diff --git a/toolchain.gypi b/toolchain.gypi
+index 1c5f8a7..8db210b 100644
+--- a/toolchain.gypi
++++ b/toolchain.gypi
+@@ -40,34 +40,6 @@
+         'mac_sdk%': '<!(python <(DEPTH)/tools/mac/find_sdk.py <(mac_sdk_min))',
+       }],
+ 
+-      ['OS=="linux"', {
+-        'variables': {
+-          # The system libdir used for this ABI.
+-          'system_libdir%': 'lib',
+-
+-          # Setting the path to sysroot.
+-          'conditions': [
+-            ['target_arch=="arm"', {
+-              # sysroot needs to be an absolute path otherwise it generates
+-              # incorrect results when passed to pkg-config
+-              'sysroot%': '<(source_root)/vendor/debian_wheezy_arm-sysroot',
+-            }],
+-            ['target_arch=="ia32"', {
+-              'sysroot%': '<(source_root)/vendor/debian_wheezy_i386-sysroot',
+-            }],
+-            ['target_arch=="x64"', {
+-              'sysroot%': '<(source_root)/vendor/debian_wheezy_amd64-sysroot',
+-            }],
+-          ],
+-        },
+-        # Copy conditionally-set variables out one scope.
+-        'sysroot%': '<(sysroot)',
+-        'system_libdir%': '<(system_libdir)',
+-
+-        # Redirect pkg-config to search from sysroot.
+-        'pkg-config%': '<(source_root)/tools/linux/pkg-config-wrapper "<(sysroot)" "<(target_arch)" "<(system_libdir)"',
+-      }],
+-
+       # Set default compiler flags depending on ARM version.
+       ['arm_version==6', {
+         'arm_arch%': 'armv6',
+@@ -136,23 +108,6 @@
+       },
+     }],
+ 
+-    # Setup sysroot environment.
+-    ['OS=="linux" and target_arch in ["arm", "ia32", "x64"]', {
+-      'target_defaults': {
+-        'target_conditions': [
+-          ['_toolset=="target"', {
+-            'cflags': [
+-              '--sysroot=<(sysroot)',
+-            ],
+-            'ldflags': [
+-              '--sysroot=<(sysroot)',
+-              '<!(<(source_root)/tools/linux/sysroot_ld_path.sh <(sysroot))',
+-            ],
+-          }]
+-        ],
+-      },
+-    }],  # sysroot
+-
+     # Setup cross-compilation on Linux.
+     ['OS=="linux"', {
+       'target_defaults': {
+-- 
+2.7.3
+
