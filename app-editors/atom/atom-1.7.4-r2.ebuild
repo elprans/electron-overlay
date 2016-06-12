@@ -119,7 +119,7 @@ DEPEND="
 	>=gnome-base/libgnome-keyring-3.12:=
 	>=dev-libs/oniguruma-5.9.5:=
 	>=dev-util/ctags-5.8
-	>=dev-util/electron-0.36.12-r2:0/36
+	>=dev-util/electron-0.36.12-r3:0/36
 "
 RDEPEND="${DEPEND}"
 
