@@ -354,7 +354,7 @@ src_compile() {
 
 	# Remove non-Linux vendored ctags binaries
 	rm "${S}/build/app/${ctags_d}/ctags-darwin" \
-	   "${S}/build/app/${ctags_d}/ctags-win32.exe"
+	   "${S}/build/app/${ctags_d}/ctags-win32.exe" || die
 
 	# Re-pack app.asar
 	# Keep unpack rules in sync with build/tasks/generate-asar-task.coffee
