@@ -11,6 +11,8 @@ DESCRIPTION="A hackable text editor for the 21st Century"
 HOMEPAGE="https://atom.io"
 MY_PV="${PV//_/-}"
 
+ELECTRON_SLOT=0.36
+
 # All binary packages depend on this
 NAN_V=2.0.9
 
@@ -54,7 +56,7 @@ NODEGIT_PROMISE_V=4.0.0
 ASAP_V=2.0.3
 OBJECT_ASSIGN_V=4.0.1
 
-ASAR_V=0.10.0
+ASAR_V=0.12.1
 
 # The x86_64 arch below is irrelevant, as we will rebuild all binary packages.
 SRC_URI="
@@ -119,7 +121,7 @@ DEPEND="
 	>=gnome-base/libgnome-keyring-3.12:=
 	>=dev-libs/oniguruma-5.9.5:=
 	>=dev-util/ctags-5.8
-	>=dev-util/electron-0.36.12-r3:0/36
+	>=dev-util/electron-0.36.12-r4:${ELECTRON_SLOT}
 "
 RDEPEND="${DEPEND}"
 
@@ -148,7 +150,11 @@ get_install_dir() {
 }
 
 get_electron_dir() {
-	echo -n "/usr/$(get_libdir)/electron"
+	echo -n "/usr/$(get_libdir)/electron-${ELECTRON_SLOT}"
+}
+
+get_electron_nodedir() {
+	echo -n "/usr/include/electron-${ELECTRON_SLOT}/node/"
 }
 
 enode_electron() {
@@ -161,7 +167,7 @@ enodegyp_atom() {
 
 	PATH="$(get_electron_dir):${PATH}" \
 		enode_electron "${nodegyp}" \
-			--nodedir=/usr/include/electron/node/ $@ || die
+			--nodedir="$(get_electron_nodedir)" $@ || die
 }
 
 easar() {
@@ -219,6 +225,10 @@ src_prepare() {
 	epatch "${FILESDIR}/${PN}-python.patch"
 	epatch "${FILESDIR}/${PN}-unbundle-electron.patch"
 
+	sed -i -e "s|{{NPM_CONFIG_NODEDIR}}|$(get_electron_nodedir)|g" \
+		./atom.sh \
+		|| die
+
 	sed -i -e "s|{{ATOM_PATH}}|$(get_electron_dir)/electron|g" \
 		./atom.sh \
 		|| die
@@ -227,7 +237,7 @@ src_prepare() {
 		./atom.sh \
 		|| die
 
-	local env="export NPM_CONFIG_NODEDIR=/usr/include/electron/node/"
+	local env="export NPM_CONFIG_NODEDIR=$(get_electron_node_dir)"
 	sed -i -e \
 		"s|\"\$binDir/\$nodeBin\" --harmony_collections|${env}\nexec $(get_electron_dir)/node|g" \
 			apm/bin/apm || die
