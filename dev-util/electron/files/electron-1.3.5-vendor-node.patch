@@ -1,13 +1,13 @@
-From bcdb13fc59c65b3a624259dc0aafffaadf3a4b01 Mon Sep 17 00:00:00 2001
+From 742d610e4936d7377dd66b8ec6213c6c0afa121f Mon Sep 17 00:00:00 2001
 From: Elvis Pranskevichus <elvis@magic.io>
 Date: Wed, 10 Feb 2016 14:45:13 -0500
 Subject: [PATCH] Build fixes
 
 ---
- lib/internal/bootstrap_node.js | 2 ++
- node.gyp                       | 3 +++
- src/node_main.cc               | 2 ++
- 3 files changed, 7 insertions(+)
+ lib/internal/bootstrap_node.js |  2 ++
+ node.gyp                       | 13 ++++++++-----
+ src/node_main.cc               |  2 ++
+ 3 files changed, 12 insertions(+), 5 deletions(-)
 
 diff --git a/lib/internal/bootstrap_node.js b/lib/internal/bootstrap_node.js
 index 3e698ed..c748f64 100644
@@ -24,7 +24,7 @@ index 3e698ed..c748f64 100644
      const _process = NativeModule.require('internal/process');
  
 diff --git a/node.gyp b/node.gyp
-index 1ad0137..3cf7393 100644
+index 1ad0137..8f24426 100644
 --- a/node.gyp
 +++ b/node.gyp
 @@ -1,6 +1,7 @@
@@ -44,6 +44,34 @@ index 1ad0137..3cf7393 100644
        ],
  
        'include_dirs': [
+@@ -254,8 +257,8 @@
+           ],
+ 
+           'dependencies': [
+-            'deps/v8/tools/gyp/v8.gyp:v8',
+-            'deps/v8/tools/gyp/v8.gyp:v8_libplatform'
++            '<(v8_gyp_path):v8',
++            '<(v8_gyp_path):v8_libplatform'
+           ],
+         }],
+         [ 'node_use_v8_platform=="true"', {
+@@ -842,13 +845,13 @@
+         }],
+         [ 'node_use_v8_platform=="true"', {
+           'dependencies': [
+-            'deps/v8/tools/gyp/v8.gyp:v8_libplatform',
++            '<(v8_gyp_path):v8_libplatform',
+           ],
+         }],
+         [ 'node_use_bundled_v8=="true"', {
+           'dependencies': [
+-            'deps/v8/tools/gyp/v8.gyp:v8',
+-            'deps/v8/tools/gyp/v8.gyp:v8_libplatform'
++            '<(v8_gyp_path):v8',
++            '<(v8_gyp_path):v8_libplatform'
+           ],
+         }],
+       ]
 diff --git a/src/node_main.cc b/src/node_main.cc
 index 02082ba..641e8db 100644
 --- a/src/node_main.cc

@@ -24,7 +24,7 @@ NATIVE_MATE_COMMIT="0df2d882ea2286e6335f206b7002037fce66c4a5"
 # Keep this in sync with vendor/brightray/vendor/libchromiumcontent
 LIBCHROMIUMCONTENT_COMMIT="60c7ec9f9bf465a8c9c7ccc3fcd2aa1cdf644bac"
 # Keep this in sync with package.json#devDependencies
-ASAR_VERSION="0.10.0"
+ASAR_VERSION="0.12.1"
 
 CHROMIUM_P="chromium-${CHROMIUM_VERSION}"
 BRIGHTRAY_P="brightray-${BRIGHTRAY_COMMIT}"
@@ -53,7 +53,7 @@ NATIVE_MATE_S="${S}/vendor/native_mate"
 LIBCC_S="${BRIGHTRAY_S}/vendor/libchromiumcontent"
 
 LICENSE="BSD"
-SLOT="0/$(get_version_component_range 2)"
+SLOT="$(get_version_component_range 1-2)"
 KEYWORDS="~amd64"
 IUSE="custom-cflags cups debug gnome gnome-keyring hidpi kerberos lto neon pic +proprietary-codecs pulseaudio selinux +system-ffmpeg +tcmalloc"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
@@ -65,9 +65,11 @@ QA_FLAGS_IGNORED=".*\.nexe"
 # right tools for it, bug #469144 .
 QA_PRESTRIPPED=".*\.nexe"
 
-RDEPEND=">=app-accessibility/speech-dispatcher-0.8:=
+RDEPEND="!<dev-util/electron-0.36.12-r4
+	>=app-accessibility/speech-dispatcher-0.8:=
 	app-arch/bzip2:=
 	app-arch/snappy:=
+	>=app-eselect/eselect-electron-1.0.0
 	cups? ( >=net-print/cups-1.3.11:= )
 	>=dev-libs/elfutils-0.149
 	dev-libs/expat:=
@@ -119,7 +121,6 @@ RDEPEND=">=app-accessibility/speech-dispatcher-0.8:=
 	x11-libs/pango:=
 	kerberos? ( virtual/krb5 )
 	>=net-libs/http-parser-2.6.2:=
-	>=dev-libs/libuv-1.8.0:=
 	>=dev-libs/openssl-1.0.2g:0=[-bindist]"
 DEPEND="${RDEPEND}
 	!arm? (
@@ -256,12 +257,12 @@ src_prepare() {
 	ln -s "${WORKDIR}/${ASAR_P}/node_modules" "${S}/node_modules" || die
 
 	# electron patches
-	epatch "${FILESDIR}/electron-fixes-r1.patch"
+	epatch "${FILESDIR}/${P}.patch"
 
 	# node patches
 	cd "${NODE_S}" || die
-	epatch "${FILESDIR}/electron-node-fixes-r1.patch"
-	epatch "${FILESDIR}/node-external-snapshots.patch"
+	epatch "${FILESDIR}/${P}-vendor-node.patch"
+	epatch "${FILESDIR}/electron-vendor-node-external-snapshots-r0.patch"
 	# make sure node uses the correct version of v8
 	rm -r deps/v8 || die
 	ln -s ../../../v8 deps/ || die
@@ -281,11 +282,11 @@ src_prepare() {
 
 	# brightray patches
 	cd "${BRIGHTRAY_S}" || die
-	epatch "${FILESDIR}/brightray-fixes-r1.patch"
+	epatch "${FILESDIR}/${P}-vendor-brightray.patch"
 
 	# libcc patches
 	cd "${LIBCC_S}" || die
-	epatch "${FILESDIR}/libchromiumcontent-fixes-r1.patch"
+	epatch "${FILESDIR}/${P}-vendor-libchromiumcontent.patch"
 
 	# chromium patches
 	cd "${S}" || die
@@ -640,7 +641,9 @@ src_configure() {
 	pushd vendor/node > /dev/null || die
 	# Make sure gyp_node does not run
 	echo '#!/usr/bin/env python' > tools/gyp_node.py || die
-	./configure --shared-openssl --shared-libuv --shared-http-parser \
+	# --shared-libuv cannot be used as electron's node fork
+	# patches uv_loop structure.
+	./configure --shared-openssl --shared-http-parser \
 				--shared-zlib --without-npm --with-intl=system-icu \
 				--without-dtrace --dest-cpu=${target_arch} \
 				--prefix="" || die
@@ -727,4 +730,12 @@ src_install() {
 	dodir "/usr/include/electron${install_suffix}"
 	mv "${ED}/usr/include/node" \
 	   "${ED}/usr/include/electron${install_suffix}/node" || die
+}
+
+pkg_postinst() {
+	eselect electron update
+}
+
+pkg_prerm() {
+	eselect electron update
 }

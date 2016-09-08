@@ -1,20 +1,21 @@
-From d22d574dd11dd6682c9b1428f1256e33dace87fc Mon Sep 17 00:00:00 2001
+From afbeac9695b63142f00f798ddeacb0c08b225708 Mon Sep 17 00:00:00 2001
 From: Elvis Pranskevichus <elvis@magic.io>
 Date: Mon, 8 Feb 2016 15:16:40 -0500
 Subject: [PATCH] electron build fixes
 
 ---
- common.gypi    | 31 +++++++++++++++++++++++++------
- electron.gyp   | 23 +++++++++--------------
- filenames.gypi |  1 -
- toolchain.gypi | 45 ---------------------------------------------
- 4 files changed, 34 insertions(+), 66 deletions(-)
+ common.gypi      | 50 ++++++++++++++++++++++++++++++++++++++------
+ electron.gyp     | 63 ++++++++++++++++++++++++++++++++++++++++++--------------
+ filenames.gypi   |  1 -
+ toolchain.gypi   | 45 ----------------------------------------
+ tools/js2asar.py | 13 ++++++------
+ 5 files changed, 99 insertions(+), 73 deletions(-)
 
 diff --git a/common.gypi b/common.gypi
-index 2a22c95..3f362d0 100644
+index 52eba31..d6df284 100644
 --- a/common.gypi
 +++ b/common.gypi
-@@ -22,13 +22,9 @@
+@@ -22,19 +22,15 @@
      'node_install_npm': 'false',
      'node_prefix': '',
      'node_shared': 'true',
@@ -29,15 +30,14 @@ index 2a22c95..3f362d0 100644
      'node_use_dtrace': 'false',
      'node_use_etw': 'false',
      'node_use_mdb': 'false',
-@@ -36,17 +32,40 @@
+     'node_use_openssl': 'true',
      'node_use_perfctr': 'false',
-     'node_use_v8_platform': 'false',
+-    'node_use_v8_platform': 'false',
++    'node_use_v8_platform': 'true',
      'node_use_bundled_v8': 'false',
--    'uv_library': 'static_library',
-+    'uv_library': 'shared_library',
+     'uv_library': 'static_library',
      'uv_parent_path': 'vendor/node/deps/uv',
-     'uv_use_dtrace': 'false',
-     'V8_BASE': '',
+@@ -43,10 +39,37 @@
      'v8_postmortem_support': 'false',
      'v8_enable_i18n_support': 'false',
      'v8_inspector': 'false',
@@ -68,14 +68,48 @@ index 2a22c95..3f362d0 100644
 +        ],
 +      }],
 +
++      ['_target_name in ["icuuc", "icui18n"]', {
++        'cflags_cc!': ['-fno-rtti']
++      }],
++
        ['_target_name in ["libuv", "http_parser", "openssl", "openssl-cli", "cares", "node", "zlib"]', {
          'msvs_disabled_warnings': [
            4003,  # not enough actual parameters for macro 'V'
+@@ -253,6 +276,21 @@
+           }],  # OS=="win"
+         ],
+       }],
++      ['_target_name=="shell_runner_host_lib"', {
++        'conditions': [
++          ['icu_use_data_file_flag==1', {
++            'defines': ['ICU_UTIL_DATA_IMPL=ICU_UTIL_DATA_FILE'],
++          }, { # else icu_use_data_file_flag !=1
++            'conditions': [
++              ['OS=="win"', {
++                'defines': ['ICU_UTIL_DATA_IMPL=ICU_UTIL_DATA_SHARED'],
++              }, {
++                'defines': ['ICU_UTIL_DATA_IMPL=ICU_UTIL_DATA_STATIC'],
++              }],
++            ],
++          }],
++        ],
++      }],
+     ],
+     'msvs_cygwin_shell': 0, # Strangely setting it to 1 would make building under cygwin fail.
+     'msvs_disabled_warnings': [
 diff --git a/electron.gyp b/electron.gyp
-index cda2076..cde0341 100644
+index eb671fd..7253b37 100644
 --- a/electron.gyp
 +++ b/electron.gyp
-@@ -164,7 +164,7 @@
+@@ -30,6 +30,7 @@
+       'dependencies': [
+         'js2asar',
+         'app2asar',
++        'nodebin',
+         '<(project_name)_lib',
+       ],
+       'sources': [
+@@ -164,7 +165,7 @@
            ],
          }, {
            'dependencies': [
@@ -84,7 +118,7 @@ index cda2076..cde0341 100644
            ],
          }],  # OS=="win"
          ['OS=="linux"', {
-@@ -181,7 +181,7 @@
+@@ -181,7 +182,7 @@
                    }, {
                      'copied_libraries': [
                        '<(PRODUCT_DIR)/lib/libnode.so',
@@ -93,7 +127,7 @@ index cda2076..cde0341 100644
                      ],
                    }],
                  ],
-@@ -189,13 +189,8 @@
+@@ -189,13 +190,8 @@
                'destination': '<(PRODUCT_DIR)',
                'files': [
                  '<@(copied_libraries)',
@@ -108,7 +142,7 @@ index cda2076..cde0341 100644
                  '<(libchromiumcontent_dir)/natives_blob.bin',
                  '<(libchromiumcontent_dir)/snapshot_blob.bin',
                ],
-@@ -230,8 +225,8 @@
+@@ -230,15 +226,14 @@
          '<@(lib_sources)',
        ],
        'include_dirs': [
@@ -118,6 +152,13 @@ index cda2076..cde0341 100644
          'vendor/brightray',
          'vendor/native_mate',
          # Include atom_natives.h.
+         '<(SHARED_INTERMEDIATE_DIR)',
+         # Include directories for uv and node.
+         'vendor/node/src',
+-        'vendor/node/deps/http_parser',
+         'vendor/node/deps/uv/include',
+         # The `node.h` is using `#include"v8.h"`.
+         '<(libchromiumcontent_src_dir)/v8/include',
 @@ -289,8 +284,8 @@
              'vendor/node/deps/uv/uv.gyp:libuv',
              'vendor/node/deps/zlib/zlib.gyp:zlib',
@@ -151,11 +192,84 @@ index cda2076..cde0341 100644
            ],
          }],  # OS=="linux"
        ],
+@@ -350,6 +345,9 @@
+     {
+       'target_name': 'js2asar',
+       'type': 'none',
++      'dependencies': [
++        'nodebin'
++      ],
+       'actions': [
+         {
+           'action_name': 'js2asar',
+@@ -371,6 +369,7 @@
+           'action': [
+             'python',
+             'tools/js2asar.py',
++            '<(PRODUCT_DIR)/nodebin',
+             '<@(_outputs)',
+             'lib',
+             '<@(_inputs)',
+@@ -381,6 +380,9 @@
+     {
+       'target_name': 'app2asar',
+       'type': 'none',
++      'dependencies': [
++        'nodebin'
++      ],
+       'actions': [
+         {
+           'action_name': 'app2asar',
+@@ -402,6 +404,7 @@
+           'action': [
+             'python',
+             'tools/js2asar.py',
++            '<(PRODUCT_DIR)/nodebin',
+             '<@(_outputs)',
+             'default_app',
+             '<@(_inputs)',
+@@ -430,6 +433,36 @@
+         }
+       ],
+     },  # target atom_js2c
++    {
++      'target_name': 'nodebin',
++      'type': 'executable',
++      'sources': [
++        'vendor/node/src/node_main.cc',
++      ],
++      'dependencies': [
++        'vendor/node/node.gyp:node',
++      ],
++      'include_dirs': [
++        '.',
++        'vendor/native_mate',
++        # Include atom_natives.h.
++        '<(SHARED_INTERMEDIATE_DIR)',
++        # Include directories for uv and node.
++        'vendor/node/src',
++        'vendor/node/deps/uv/include',
++        # The `node.h` is using `#include"v8.h"`.
++        '<(libchromiumcontent_src_dir)/v8/include',
++        # The `node.h` is using `#include"ares.h"`.
++        'vendor/node/deps/cares/include',
++      ],
++      'link_settings': {
++        'ldflags': [
++          '-Wl,-rpath=\$$ORIGIN/',
++          # Make native module dynamic loading work.
++          '-rdynamic',
++        ],
++      },
++    },  # target nodebin
+   ],
+   'conditions': [
+     ['OS=="mac"', {
 diff --git a/filenames.gypi b/filenames.gypi
-index 7335ae9..567e502 100644
+index 9e20582..c7960a9 100644
 --- a/filenames.gypi
 +++ b/filenames.gypi
-@@ -556,7 +556,6 @@
+@@ -558,7 +558,6 @@
        'chromium_src/extensions/browser/app_window/size_constraints.h',
        'chromium_src/extensions/common/url_pattern.cc',
        'chromium_src/extensions/common/url_pattern.h',
@@ -226,6 +340,43 @@ index 1c5f8a7..8db210b 100644
      # Setup cross-compilation on Linux.
      ['OS=="linux"', {
        'target_defaults': {
+diff --git a/tools/js2asar.py b/tools/js2asar.py
+index adad175..ca76868 100755
+--- a/tools/js2asar.py
++++ b/tools/js2asar.py
+@@ -11,13 +11,14 @@ SOURCE_ROOT = os.path.dirname(os.path.dirname(__file__))
+ 
+ 
+ def main():
+-  archive = sys.argv[1]
+-  folder_name = sys.argv[2]
+-  source_files = sys.argv[3:]
++  node = sys.argv[1]
++  archive = sys.argv[2]
++  folder_name = sys.argv[3]
++  source_files = sys.argv[4:]
+ 
+   output_dir = tempfile.mkdtemp()
+   copy_files(source_files, output_dir)
+-  call_asar(archive, os.path.join(output_dir, folder_name))
++  call_asar(node, archive, os.path.join(output_dir, folder_name))
+   shutil.rmtree(output_dir)
+ 
+ 
+@@ -28,11 +29,11 @@ def copy_files(source_files, output_dir):
+     shutil.copy2(source_file, output_path)
+ 
+ 
+-def call_asar(archive, output_dir):
++def call_asar(node, archive, output_dir):
+   asar = os.path.join(SOURCE_ROOT, 'node_modules', '.bin', 'asar')
+   if sys.platform in ['win32', 'cygwin']:
+     asar += '.cmd'
+-  subprocess.check_call([asar, 'pack', output_dir, archive])
++  subprocess.check_call([node, asar, 'pack', output_dir, archive])
+ 
+ 
+ def safe_mkdir(path):
 -- 
 2.7.3
 
