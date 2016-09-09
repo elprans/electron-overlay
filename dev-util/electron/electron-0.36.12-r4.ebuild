@@ -678,11 +678,17 @@ eninja() {
 }
 
 src_compile() {
-	local ninja_targets="electron"
+	local ninja_targets="electron" compile_target="out/R"
+
+	eninja -C ${compile_target} mksnapshot || die
+	pax-mark -m ${compile_target}/mksnapshot
+
+	eninja -C ${compile_target} nodebin || die
+	pax-mark -m ${compile_target}/nodebin
 
 	# Even though ninja autodetects number of CPUs, we respect
 	# user's options, for debugging with -j 1 or any other reason.
-	eninja -C out/R ${ninja_targets} || die
+	eninja -C ${compile_target} ${ninja_targets} || die
 }
 
 src_install() {
