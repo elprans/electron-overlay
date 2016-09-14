@@ -302,7 +302,7 @@ src_prepare() {
 	epatch "${FILESDIR}/chromium-linker-warnings-r0.patch"
 	epatch "${FILESDIR}/chromium-ffmpeg-license-r0.patch"
 	epatch "${FILESDIR}/chromium-shared-v8-r1.patch"
-	epatch "${FILESDIR}/chromium-lto-fixes.patch"
+	epatch "${FILESDIR}/chromium-lto-fixes-r1.patch"
 
 	# libcc chromium patches
 	_unnest_patches "${LIBCC_S}/patches"

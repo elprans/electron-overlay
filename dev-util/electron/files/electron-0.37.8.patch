@@ -1,86 +1,16 @@
-From f2f965d33c7b8c78111ff6ded7cd38b5f5085e6e Mon Sep 17 00:00:00 2001
+From 1ede0b90917a6ce3091e4057bce67611bfe33e28 Mon Sep 17 00:00:00 2001
 From: Elvis Pranskevichus <elvis@magic.io>
 Date: Mon, 8 Feb 2016 15:16:40 -0500
 Subject: [PATCH] electron build fixes
 
 ---
- atom/app/uv_task_runner.h        |  2 +-
- atom/browser/node_debugger.h     |  2 +-
- atom/common/api/atom_bindings.h  |  2 +-
- atom/common/atom_command_line.cc |  2 +-
- atom/common/node_bindings.h      |  2 +-
- common.gypi                      | 30 +++++++++++++++----
- electron.gyp                     | 64 +++++++++++++++++++++++++++++++---------
- filenames.gypi                   |  1 -
- toolchain.gypi                   | 45 ----------------------------
- tools/js2asar.py                 | 13 ++++----
- 10 files changed, 86 insertions(+), 77 deletions(-)
+ common.gypi      | 30 +++++++++++++++++++++------
+ electron.gyp     | 62 +++++++++++++++++++++++++++++++++++++++++++++-----------
+ filenames.gypi   |  1 -
+ toolchain.gypi   | 45 ----------------------------------------
+ tools/js2asar.py | 13 ++++++------
+ 5 files changed, 81 insertions(+), 70 deletions(-)
 
-diff --git a/atom/app/uv_task_runner.h b/atom/app/uv_task_runner.h
-index c730276..eef200a 100644
---- a/atom/app/uv_task_runner.h
-+++ b/atom/app/uv_task_runner.h
-@@ -9,7 +9,7 @@
- 
- #include "base/callback.h"
- #include "base/single_thread_task_runner.h"
--#include "vendor/node/deps/uv/include/uv.h"
-+#include "uv.h"
- 
- namespace atom {
- 
-diff --git a/atom/browser/node_debugger.h b/atom/browser/node_debugger.h
-index aedf7b2..2116501 100644
---- a/atom/browser/node_debugger.h
-+++ b/atom/browser/node_debugger.h
-@@ -12,7 +12,7 @@
- #include "base/threading/thread.h"
- #include "net/test/embedded_test_server/stream_listen_socket.h"
- #include "v8/include/v8-debug.h"
--#include "vendor/node/deps/uv/include/uv.h"
-+#include "uv.h"
- 
- namespace atom {
- 
-diff --git a/atom/common/api/atom_bindings.h b/atom/common/api/atom_bindings.h
-index 9460145..7246a88 100644
---- a/atom/common/api/atom_bindings.h
-+++ b/atom/common/api/atom_bindings.h
-@@ -10,7 +10,7 @@
- #include "base/macros.h"
- #include "base/strings/string16.h"
- #include "v8/include/v8.h"
--#include "vendor/node/deps/uv/include/uv.h"
-+#include "uv.h"
- 
- namespace node {
- class Environment;
-diff --git a/atom/common/atom_command_line.cc b/atom/common/atom_command_line.cc
-index 2ac6238..2ae16e2 100644
---- a/atom/common/atom_command_line.cc
-+++ b/atom/common/atom_command_line.cc
-@@ -5,7 +5,7 @@
- #include "atom/common/atom_command_line.h"
- 
- #include "base/command_line.h"
--#include "node/deps/uv/include/uv.h"
-+#include "uv.h"
- 
- namespace atom {
- 
-diff --git a/atom/common/node_bindings.h b/atom/common/node_bindings.h
-index 16d512d..7ca19fc 100644
---- a/atom/common/node_bindings.h
-+++ b/atom/common/node_bindings.h
-@@ -8,7 +8,7 @@
- #include "base/macros.h"
- #include "base/memory/weak_ptr.h"
- #include "v8/include/v8.h"
--#include "vendor/node/deps/uv/include/uv.h"
-+#include "uv.h"
- 
- namespace base {
- class MessageLoop;
 diff --git a/common.gypi b/common.gypi
 index 1088beb..f8b9f7e 100644
 --- a/common.gypi
@@ -135,7 +65,7 @@ index 1088beb..f8b9f7e 100644
          'msvs_disabled_warnings': [
            4003,  # not enough actual parameters for macro 'V'
 diff --git a/electron.gyp b/electron.gyp
-index 66ff2fd..80dc2ee 100644
+index 66ff2fd..e0e782c 100644
 --- a/electron.gyp
 +++ b/electron.gyp
 @@ -30,6 +30,7 @@
@@ -183,7 +113,7 @@ index 66ff2fd..80dc2ee 100644
          'ENABLE_PLUGINS',
          'ENABLE_PEPPER_CDMS',
          'USE_PROPRIETARY_CODECS',
-@@ -224,20 +224,17 @@
+@@ -224,15 +224,14 @@
          '<@(lib_sources)',
        ],
        'include_dirs': [
@@ -200,12 +130,7 @@ index 66ff2fd..80dc2ee 100644
          'vendor/node/deps/uv/include',
          # The `node.h` is using `#include"v8.h"`.
          '<(libchromiumcontent_src_dir)/v8/include',
--        # The `node.h` is using `#include"ares.h"`.
--        'vendor/node/deps/cares/include',
-         # The `third_party/WebKit/Source/platform/weborigin/SchemeRegistry.h` is using `platform/PlatformExport.h`.
-         '<(libchromiumcontent_src_dir)/third_party/WebKit/Source',
-         # The 'third_party/libyuv/include/libyuv/scale_argb.h' is using 'libyuv/basic_types.h'.
-@@ -283,8 +280,8 @@
+@@ -283,8 +282,8 @@
              'vendor/node/deps/uv/uv.gyp:libuv',
              'vendor/node/deps/zlib/zlib.gyp:zlib',
              # Build with breakpad support.
@@ -216,7 +141,7 @@ index 66ff2fd..80dc2ee 100644
            ],
          }],  # OS=="win"
          ['OS=="mac" and mas_build==0', {
-@@ -318,7 +315,7 @@
+@@ -318,7 +317,7 @@
                # Make binary search for libraries under current directory, so we
                # don't have to manually set $LD_LIBRARY_PATH:
                # http://serverfault.com/questions/279068/cant-find-so-in-the-same-directory-as-the-executable
@@ -225,7 +150,7 @@ index 66ff2fd..80dc2ee 100644
                # Make native module dynamic loading work.
                '-rdynamic',
              ],
-@@ -329,10 +326,10 @@
+@@ -329,10 +328,10 @@
              '-Wno-reserved-user-defined-literal',
            ],
            'include_dirs': [
@@ -238,7 +163,7 @@ index 66ff2fd..80dc2ee 100644
            ],
          }],  # OS=="linux"
        ],
-@@ -340,6 +337,9 @@
+@@ -340,6 +339,9 @@
      {
        'target_name': 'js2asar',
        'type': 'none',
@@ -248,7 +173,7 @@ index 66ff2fd..80dc2ee 100644
        'actions': [
          {
            'action_name': 'js2asar',
-@@ -361,6 +361,7 @@
+@@ -361,6 +363,7 @@
            'action': [
              'python',
              'tools/js2asar.py',
@@ -256,7 +181,7 @@ index 66ff2fd..80dc2ee 100644
              '<@(_outputs)',
              'lib',
              '<@(_inputs)',
-@@ -371,6 +372,9 @@
+@@ -371,6 +374,9 @@
      {
        'target_name': 'app2asar',
        'type': 'none',
@@ -266,7 +191,7 @@ index 66ff2fd..80dc2ee 100644
        'actions': [
          {
            'action_name': 'app2asar',
-@@ -392,6 +396,7 @@
+@@ -392,6 +398,7 @@
            'action': [
              'python',
              'tools/js2asar.py',
@@ -274,7 +199,7 @@ index 66ff2fd..80dc2ee 100644
              '<@(_outputs)',
              'default_app',
              '<@(_inputs)',
-@@ -420,6 +425,37 @@
+@@ -420,6 +427,37 @@
          }
        ],
      },  # target atom_js2c
