@@ -1,21 +1,31 @@
-From afbeac9695b63142f00f798ddeacb0c08b225708 Mon Sep 17 00:00:00 2001
+From d6b2c31fe1b21d171ecedcd2a198bd5b8347bd98 Mon Sep 17 00:00:00 2001
 From: Elvis Pranskevichus <elvis@magic.io>
 Date: Mon, 8 Feb 2016 15:16:40 -0500
 Subject: [PATCH] electron build fixes
 
 ---
- common.gypi      | 50 ++++++++++++++++++++++++++++++++++++++------
- electron.gyp     | 63 ++++++++++++++++++++++++++++++++++++++++++--------------
- filenames.gypi   |  1 -
- toolchain.gypi   | 45 ----------------------------------------
- tools/js2asar.py | 13 ++++++------
- 5 files changed, 99 insertions(+), 73 deletions(-)
+ common.gypi               | 52 ++++++++++++++++++++++++++++++++------
+ electron.gyp              | 63 ++++++++++++++++++++++++++++++++++++-----------
+ filenames.gypi            |  1 -
+ toolchain.gypi            | 47 +----------------------------------
+ tools/atom_source_root.py |  5 ++++
+ tools/get-endianness.py   |  4 +++
+ tools/js2asar.py          | 13 +++++-----
+ 7 files changed, 110 insertions(+), 75 deletions(-)
+ create mode 100644 tools/atom_source_root.py
+ create mode 100644 tools/get-endianness.py
 
 diff --git a/common.gypi b/common.gypi
-index 52eba31..d6df284 100644
+index 52eba31..55f061a 100644
 --- a/common.gypi
 +++ b/common.gypi
-@@ -22,19 +22,15 @@
+@@ -17,24 +17,20 @@
+     'use_openssl_def': 0,
+     'OPENSSL_PRODUCT': 'libopenssl.a',
+     'node_release_urlbase': 'https://atom.io/download/atom-shell',
+-    'node_byteorder': '<!(node <(DEPTH)/tools/get-endianness.js)',
++    'node_byteorder': '<!(python <(DEPTH)/tools/get-endianness.py)',
+     'node_target_type': 'shared_library',
      'node_install_npm': 'false',
      'node_prefix': '',
      'node_shared': 'true',
@@ -278,9 +288,18 @@ index 9e20582..c7960a9 100644
        'chromium_src/net/test/embedded_test_server/stream_listen_socket.cc',
        'chromium_src/net/test/embedded_test_server/stream_listen_socket.h',
 diff --git a/toolchain.gypi b/toolchain.gypi
-index 1c5f8a7..8db210b 100644
+index 1c5f8a7..2af11f5 100644
 --- a/toolchain.gypi
 +++ b/toolchain.gypi
+@@ -16,7 +16,7 @@
+       'arm_neon%': 1,
+ 
+       # Abosulte path to source root.
+-      'source_root%': '<!(node <(DEPTH)/tools/atom_source_root.js)',
++      'source_root%': '<!(python <(DEPTH)/tools/atom_source_root.py)',
+     },
+ 
+     # Copy conditionally-set variables out one scope.
 @@ -40,34 +40,6 @@
          'mac_sdk%': '<!(python <(DEPTH)/tools/mac/find_sdk.py <(mac_sdk_min))',
        }],
@@ -340,6 +359,27 @@ index 1c5f8a7..8db210b 100644
      # Setup cross-compilation on Linux.
      ['OS=="linux"', {
        'target_defaults': {
+diff --git a/tools/atom_source_root.py b/tools/atom_source_root.py
+new file mode 100644
+index 0000000..316e997
+--- /dev/null
++++ b/tools/atom_source_root.py
+@@ -0,0 +1,5 @@
++#!/usr/bin/env python
++
++import os.path
++
++print(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
+diff --git a/tools/get-endianness.py b/tools/get-endianness.py
+new file mode 100644
+index 0000000..3150793
+--- /dev/null
++++ b/tools/get-endianness.py
+@@ -0,0 +1,4 @@
++#!/usr/bin/env python
++
++import sys
++print(sys.byteorder)
 diff --git a/tools/js2asar.py b/tools/js2asar.py
 index adad175..ca76868 100755
 --- a/tools/js2asar.py
