@@ -727,7 +727,6 @@ src_install() {
 	insinto "${install_dir}"
 	exeinto "${install_dir}"
 	newexe out/R/nodebin node
-	doexe out/R/electron
 	doins out/R/libv8.so
 	doins out/R/libnode.so
 	fperms +x "${install_dir}/libv8.so" "${install_dir}/libnode.so"
@@ -739,7 +738,8 @@ src_install() {
 	doins -r out/R/locales
 	dosym "${install_dir}/electron" "/usr/bin/electron${install_suffix}"
 
-	pax-mark -rm "${install_dir}/electron"
+	pax-mark -rm out/R/electron
+	doexe out/R/electron
 
 	# Install Node headers
 	HEADERS_ONLY=1 \
