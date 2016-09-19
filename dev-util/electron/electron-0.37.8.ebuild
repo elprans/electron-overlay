@@ -723,7 +723,7 @@ src_install() {
 	doins -r out/R/locales
 	dosym "${install_dir}/electron" "/usr/bin/electron${install_suffix}"
 
-	pax-mark -rm "${install_dir}/electron"
+	pax-mark -rm "${ED}/${install_dir}/electron"
 
 	# Install Node headers
 	HEADERS_ONLY=1 \
