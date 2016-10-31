@@ -5,7 +5,7 @@
 EAPI=6
 
 PYTHON_COMPAT=( python2_7 )
-inherit flag-o-matic python-any-r1 eutils multiprocessing rpm
+inherit flag-o-matic python-any-r1 multiprocessing rpm
 
 DESCRIPTION="A hackable text editor for the 21st Century"
 HOMEPAGE="https://atom.io"
@@ -191,8 +191,8 @@ src_prepare() {
 	local patch binmod _s nan_s="${WORKDIR}/nan-${NAN_V}"
 
 	cd "${S}/usr/share/atom/resources/app" || die
-	epatch "${FILESDIR}/${PN}-python.patch"
-	epatch "${FILESDIR}/${PN}-unbundle-electron.patch"
+	eapply "${FILESDIR}/${PN}-python.patch"
+	eapply "${FILESDIR}/${PN}-unbundle-electron.patch"
 
 	sed -i -e "s|{{NPM_CONFIG_NODEDIR}}|$(get_electron_nodedir)|g" \
 		./atom.sh \
@@ -227,7 +227,7 @@ src_prepare() {
 		cd "${_s}" || die
 		if _have_patches_for "${binmod}"; then
 			for patch in "${FILESDIR}"/${binmod}-*.patch; do
-				epatch "${patch}"
+				eapply "${patch}"
 			done
 		fi
 	done
@@ -260,7 +260,7 @@ src_prepare() {
 
 	cd "${S}" || die
 
-	epatch "${FILESDIR}/atom-apm-path.patch"
+	eapply "${FILESDIR}/atom-apm-path.patch"
 
 	sed -i -e "s|{{ATOM_SUFFIX}}|${suffix}|g" \
 		"${S}/build/app/src/config-schema.js" || die
