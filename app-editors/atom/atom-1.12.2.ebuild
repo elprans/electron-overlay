@@ -85,7 +85,6 @@ KEYWORDS="~amd64"
 IUSE=""
 
 DEPEND="
-	!dev-util/apm
 	${PYTHON_DEPS}
 	>=app-text/hunspell-1.3.3:=
 	>=dev-libs/libgit2-0.23:=[ssh]
@@ -300,8 +299,8 @@ src_compile() {
 		cd "${_s}" || die
 		enodegyp_atom ${gypopts} build
 		x=${binmod##node-}
-		mkdir -p "${S}/build/modules/${x}"
-		cp build/Release/*.node "${S}/build/modules/${x}"
+		mkdir -p "${S}/build/modules/${x}" || die
+		cp build/Release/*.node "${S}/build/modules/${x}" || die
 	done
 
 	# Put compiled binary modules in place
@@ -324,7 +323,8 @@ _fix_binmods() {
 	local _dir="${2}" _prefix="${1}" path relpath modpath mod depth link f d
 	local cruft
 
-	find "${_prefix}/${_dir}" -name '*.node' -print | while IFS= read -r path; do
+	(find "${_prefix}/${_dir}" -name '*.node' -print || die) \
+	| while IFS= read -r path; do
 		f=$(basename "${path}")
 		d=$(dirname "${path}")
 	    relpath=${path#${_prefix}}
@@ -337,7 +337,7 @@ _fix_binmods() {
 		# must copy here as symlinks will cause the module loading to fail
 		cp -f "${S}/build/modules/${mod}/${f}" "${path}" || die
 		cruft=$(find "${d}" -name '*.a' -print)
-		if [ -n "${cruft}" ]; then
+		if [[ -n "${cruft}" ]]; then
 			rm ${cruft} || die
 		fi
 	done
