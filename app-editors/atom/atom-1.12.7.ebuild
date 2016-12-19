@@ -34,7 +34,7 @@ MARKER_INDEX_V=4.0.1
 NODE_KEYTAR_V=3.0.2
 
 # atom-keymap dependency
-KEYBOARD_LAYOUT_V=2.0.1
+KEYBOARD_LAYOUT_V=2.0.7
 
 # symbols-view dependency
 NODE_CTAGS_V=3.0.0
@@ -262,6 +262,7 @@ src_prepare() {
 
 	eapply "${FILESDIR}/atom-apm-path.patch"
 	eapply "${FILESDIR}/atom-license-path.patch"
+	eapply "${FILESDIR}/atom-fix-app-restart.patch"
 
 	sed -i -e "s|{{ATOM_SUFFIX}}|${suffix}|g" \
 		"${S}/build/app/src/config-schema.js" || die
