@@ -150,18 +150,14 @@ DEPEND+=" $(python_gen_any_dep '
 	dev-python/beautifulsoup:python-2[${PYTHON_USEDEP}]
 	dev-python/beautifulsoup:4[${PYTHON_USEDEP}]
 	dev-python/html5lib[${PYTHON_USEDEP}]
-	dev-python/jinja[${PYTHON_USEDEP}]
 	dev-python/jsmin[${PYTHON_USEDEP}]
-	dev-python/ply[${PYTHON_USEDEP}]
 	dev-python/simplejson[${PYTHON_USEDEP}]
 ')"
 python_check_deps() {
 	has_version --host-root "dev-python/beautifulsoup:python-2[${PYTHON_USEDEP}]" &&
 	has_version --host-root ">=dev-python/beautifulsoup-4.3.2:4[${PYTHON_USEDEP}]" &&
 	has_version --host-root "dev-python/html5lib[${PYTHON_USEDEP}]" &&
-	has_version --host-root "dev-python/jinja[${PYTHON_USEDEP}]" &&
 	has_version --host-root "dev-python/jsmin[${PYTHON_USEDEP}]" &&
-	has_version --host-root "dev-python/ply[${PYTHON_USEDEP}]" &&
 	has_version --host-root "dev-python/simplejson[${PYTHON_USEDEP}]"
 }
 
@@ -292,7 +288,6 @@ src_prepare() {
 	# chromium patches
 	cd "${S}" || die
 	epatch "${FILESDIR}/chromium-system-ffmpeg-r2.patch"
-	epatch "${FILESDIR}/chromium-system-jinja-r9.patch"
 	epatch "${FILESDIR}/chromium-disable-widevine.patch"
 	epatch "${FILESDIR}/chromium-last-commit-position-r0.patch"
 	epatch "${FILESDIR}/chromium-snapshot-toolchain-r1.patch"
@@ -304,7 +299,7 @@ src_prepare() {
 	epatch "${FILESDIR}/chromium-shared-v8-r1.patch"
 	epatch "${FILESDIR}/chromium-lto-fixes-r1.patch"
 	epatch "${FILESDIR}/chromium-icu-58-r1.patch"
-
+	epatch "${FILESDIR}/chromium-cups-fix.patch"
 	# libcc chromium patches
 	_unnest_patches "${LIBCC_S}/patches"
 
@@ -374,6 +369,7 @@ src_prepare() {
 		'third_party/google_input_tools/third_party/closure_library/third_party/closure' \
 		'third_party/hunspell' \
 		'third_party/iccjpeg' \
+		'third_party/jinja2' \
 		'third_party/jstemplate' \
 		'third_party/khronos' \
 		'third_party/leveldatabase' \
@@ -394,6 +390,7 @@ src_prepare() {
 		'third_party/libyuv' \
 		'third_party/lss' \
 		'third_party/lzma_sdk' \
+		'third_party/markupsafe' \
 		'third_party/mesa' \
 		'third_party/modp_b64' \
 		'third_party/mt19937ar' \
@@ -412,6 +409,7 @@ src_prepare() {
 		'third_party/pdfium/third_party/libpng16' \
 		'third_party/pdfium/third_party/libtiff' \
 		'third_party/pdfium/third_party/zlib_v128' \
+		'third_party/ply' \
 		'third_party/polymer' \
 		'third_party/protobuf' \
 		'third_party/protobuf/third_party/six' \
