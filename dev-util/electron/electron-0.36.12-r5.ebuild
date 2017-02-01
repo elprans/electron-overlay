@@ -1,4 +1,4 @@
-# Copyright 1999-2016 Gentoo Foundation
+# Copyright 1999-2017 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Id$
 
@@ -296,6 +296,7 @@ src_prepare() {
 	epatch "${FILESDIR}/chromium-remove-gardiner-mod-font.patch"
 	epatch "${FILESDIR}/chromium-shared-v8.patch"
 	epatch "${FILESDIR}/chromium-lto-fixes.patch"
+	epatch "${FILESDIR}/chromium-cups-fix.patch"
 
 	# libcc chromium patches
 	_unnest_patches "${LIBCC_S}/patches"
