@@ -1,11 +1,11 @@
-# Copyright 1999-2016 Gentoo Foundation
+# Copyright 1999-2017 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Id$
 
 EAPI=6
 
 PYTHON_COMPAT=( python2_7 )
-inherit flag-o-matic python-any-r1 multiprocessing rpm
+inherit python-any-r1 multiprocessing rpm
 
 DESCRIPTION="A hackable text editor for the 21st Century"
 HOMEPAGE="https://atom.io"
@@ -93,7 +93,10 @@ DEPEND="
 	>=dev-util/ctags-5.8
 	>=dev-util/electron-1.3.5:${ELECTRON_SLOT}
 "
-RDEPEND="${DEPEND}"
+RDEPEND="
+	${DEPEND}
+	!sys-apps/apmd
+"
 
 S="${WORKDIR}/${PN}-${MY_PV}"
 
@@ -147,9 +150,9 @@ easar() {
 }
 
 package_dir() {
-	local binmod="${1}" binmod_v
-	eval binmod_v=\${$(tr '[:lower:]' '[:upper:]' <<< ${binmod//-/_}_V)}
-	echo -n ${binmod}-${binmod_v}
+	local binmod="${1//-/_}"
+	local binmod_v="${binmod^^}_V"
+	echo -n ${1}-${!binmod_v}
 }
 
 _unpack_npm_package() {
