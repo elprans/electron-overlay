@@ -25,6 +25,7 @@ NATIVE_MATE_COMMIT="b5e5de626c6a57e44c7e6448d8bbaaac475d493c"
 LIBCHROMIUMCONTENT_COMMIT="97e32dafa4a1112f14eef61a663cf39a03ed4c97"
 # Keep this in sync with package.json#devDependencies
 ASAR_VERSION="0.12.1"
+BROWSERIFY_VERSION="14.0.0"
 
 CHROMIUM_P="chromium-${CHROMIUM_VERSION}"
 BRIGHTRAY_P="brightray-${BRIGHTRAY_COMMIT}"
@@ -32,6 +33,7 @@ NODE_P="node-${NODE_COMMIT}"
 NATIVE_MATE_P="native-mate-${NATIVE_MATE_COMMIT}"
 LIBCHROMIUMCONTENT_P="libchromiumcontent-${LIBCHROMIUMCONTENT_COMMIT}"
 ASAR_P="asar-${ASAR_VERSION}"
+BROWSERIFY_P="browserify-${BROWSERIFY_VERSION}"
 
 DESCRIPTION="Cross platform application development framework based on web technologies"
 HOMEPAGE="http://electron.atom.io/"
@@ -43,6 +45,7 @@ SRC_URI="
 	https://github.com/zcbenz/native-mate/archive/${NATIVE_MATE_COMMIT}.tar.gz -> ${NATIVE_MATE_P}.tar.gz
 	https://github.com/electron/libchromiumcontent/archive/${LIBCHROMIUMCONTENT_COMMIT}.tar.gz -> ${LIBCHROMIUMCONTENT_P}.tar.gz
 	https://github.com/elprans/asar/releases/download/v${ASAR_VERSION}-gentoo/asar-build.tar.gz -> ${ASAR_P}.tar.gz
+	https://github.com/elprans/node-browserify/releases/download/${BROWSERIFY_VERSION}-gentoo/browserify-build.tar.gz -> ${BROWSERIFY_P}.tar.gz
 "
 
 S="${WORKDIR}/${CHROMIUM_P}"
@@ -133,8 +136,7 @@ DEPEND="${RDEPEND}
 	sys-apps/hwids[usb(+)]
 	>=sys-devel/bison-2.4.3
 	sys-devel/flex
-	virtual/pkgconfig
-	>=net-libs/nodejs-4.6.0[npm]"
+	virtual/pkgconfig"
 
 # For nvidia-drivers blocker, see bug #413637 .
 RDEPEND+="
@@ -256,6 +258,8 @@ src_prepare() {
 	rm -r "${S}/vendor/breakpad" &&
 		ln -s "../breakpad" "${S}/vendor/breakpad" || die
 	ln -s "${WORKDIR}/${ASAR_P}/node_modules" "${S}/node_modules" || die
+	ln -s "${WORKDIR}/${BROWSERIFY_P}/node_modules" \
+        "${S}/node_modules_browserify" || die
 
 	# electron patches
 	epatch "${FILESDIR}/${P}.patch"
