@@ -1,3 +1,43 @@
+From ce12dc362bbb52bcbf95379795d8cc2ceac6a368 Mon Sep 17 00:00:00 2001
+From: Elvis Pranskevichus <elvis@magic.io>
+Date: Wed, 10 Feb 2016 14:45:13 -0500
+Subject: [PATCH] Build fixes
+
+---
+ .../v8_inspector/platform/v8_inspector/v8_inspector.gyp     | 11 -----------
+ lib/internal/bootstrap_node.js                              |  2 ++
+ node.gyp                                                    | 13 ++++++++-----
+ src/node_main.cc                                            |  2 ++
+ 4 files changed, 12 insertions(+), 16 deletions(-)
+
+diff --git a/deps/v8_inspector/third_party/v8_inspector/platform/v8_inspector/v8_inspector.gyp b/deps/v8_inspector/third_party/v8_inspector/platform/v8_inspector/v8_inspector.gyp
+index ebfc91a66..214dbc78f 100644
+--- a/deps/v8_inspector/third_party/v8_inspector/platform/v8_inspector/v8_inspector.gyp
++++ b/deps/v8_inspector/third_party/v8_inspector/platform/v8_inspector/v8_inspector.gyp
+@@ -53,21 +53,10 @@
+       'type': 'none',
+       'dependencies': ['protocol_version'],
+       'variables': {
+-        'conditions': [
+-          ['debug_devtools=="node"', {
+-              # Node build
+-              'jinja_module_files': [
+-                '../../../jinja2/jinja2/__init__.py',
+-                '../../../markupsafe/markupsafe/__init__.py',  # jinja2 dep
+-              ],
+-            }, {
+               'jinja_module_files': [
+                 '<(DEPTH)/third_party/jinja2/__init__.py',
+                 '<(DEPTH)/third_party/markupsafe/__init__.py',  # jinja2 dep
+               ],
+-            }
+-          ],
+-        ],
+       },
+       'actions': [
+         {
+diff --git a/lib/internal/bootstrap_node.js b/lib/internal/bootstrap_node.js
+index 9505c7b8a..27d7b9da9 100644
 --- a/lib/internal/bootstrap_node.js
 +++ b/lib/internal/bootstrap_node.js
 @@ -50,7 +50,9 @@
@@ -10,6 +50,8 @@
  
      const _process = NativeModule.require('internal/process');
  
+diff --git a/node.gyp b/node.gyp
+index a6f7e6e5b..5b95c5778 100644
 --- a/node.gyp
 +++ b/node.gyp
 @@ -1,6 +1,7 @@
@@ -57,9 +99,11 @@
            ],
          }],
        ]
+diff --git a/src/node_main.cc b/src/node_main.cc
+index bde397562..5b5a6dd99 100644
 --- a/src/node_main.cc
 +++ b/src/node_main.cc
-@@ -49,11 +49,13 @@
+@@ -49,11 +49,13 @@ int wmain(int argc, wchar_t *wargv[]) {
  }
  #else
  // UNIX
@@ -73,3 +117,5 @@
    return node::Start(argc, argv);
  }
  #endif
+-- 
+2.11.0
