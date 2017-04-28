@@ -5,7 +5,7 @@
 EAPI=6
 
 PYTHON_COMPAT=( python2_7 )
-inherit python-any-r1 multiprocessing rpm
+inherit python-single-r1 multiprocessing rpm
 
 DESCRIPTION="A hackable text editor for the 21st Century"
 HOMEPAGE="https://atom.io"
@@ -22,10 +22,10 @@ CACHED_RUN_IN_THIS_CONTEXT_V=0.4.1
 GIT_UTILS_V=4.1.2
 NODE_NSLOG_V=3.0.0
 NODE_ONIGURUMA_V=6.1.0
-NODE_PATHWATCHER_V=6.8.0
+NODE_PATHWATCHER_V=6.9.0
 NODE_RUNAS_V=3.1.1
 SCROLLBAR_STYLE_V=3.2.0
-SPELL_CHECK_V=0.70.2
+SPELL_CHECK_V=0.71.3
 
 # text-buffer dependencies
 SUPERSTRING_V=1.1.0
@@ -83,6 +83,7 @@ LICENSE="MIT"
 SLOT="0"
 KEYWORDS="~amd64"
 IUSE=""
+REQUIRED_USE="${PYTHON_REQUIRED_USE}"
 
 DEPEND="
 	${PYTHON_DEPS}
@@ -101,7 +102,7 @@ RDEPEND="
 S="${WORKDIR}/${PN}-${MY_PV}"
 
 pkg_setup() {
-	python-any-r1_pkg_setup
+	python-single-r1_pkg_setup
 }
 
 get_install_suffix() {
