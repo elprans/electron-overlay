@@ -276,9 +276,6 @@ src_prepare() {
 	sed -i -e "s|{{ATOM_SUFFIX}}|${suffix}|g" \
 		"${S}/build/app/src/config-schema.js" || die
 
-	rm -r "${S}/usr/share/atom/resources/app/apm/node_modules/git-utils/build" || die
-	rm -r "${S}/usr/share/atom/resources/app/apm/node_modules/git-utils/deps" || die
-
 	eapply_user
 }
 
