@@ -1,23 +1,25 @@
-From 40aa8a1e3167651eccf33c8ac1291a738099982c Mon Sep 17 00:00:00 2001
+From b756fa976480791c76e9338a16ee2b0a29265b93 Mon Sep 17 00:00:00 2001
 From: Elvis Pranskevichus <elvis@magic.io>
 Date: Mon, 8 Feb 2016 15:16:40 -0500
 Subject: [PATCH] electron build fixes
 
 ---
- common.gypi               | 41 ++++++++++++++++++++++-----
- electron.gyp              | 70 +++++++++++++++++++++++++++++++++++++----------
- toolchain.gypi            | 47 +------------------------------
+ common.gypi               | 43 ++++++++++++++++++++++-----
+ electron.gyp              | 74 +++++++++++++++++++++++++++++++++++----------
+ toolchain.gypi            | 76 +++++++++++++++++++----------------------------
+ tools/ar-flags.py         | 15 ++++++++++
  tools/atom_source_root.py |  5 ++++
- tools/browserify.py       | 24 ++++++++++++++++
+ tools/browserify.py       | 24 +++++++++++++++
  tools/get-endianness.py   |  4 +++
- tools/js2asar.py          | 13 +++++----
- 7 files changed, 130 insertions(+), 74 deletions(-)
+ tools/js2asar.py          | 13 ++++----
+ 8 files changed, 179 insertions(+), 75 deletions(-)
+ create mode 100644 tools/ar-flags.py
  create mode 100644 tools/atom_source_root.py
  create mode 100644 tools/browserify.py
  create mode 100644 tools/get-endianness.py
 
 diff --git a/common.gypi b/common.gypi
-index 7c1bf366a..28bd35acb 100644
+index 7c1bf366a..c441ae04b 100644
 --- a/common.gypi
 +++ b/common.gypi
 @@ -2,6 +2,7 @@
@@ -28,11 +30,13 @@ index 7c1bf366a..28bd35acb 100644
    ],
    'variables': {
      # Tell crashpad to build as external project.
-@@ -17,25 +18,22 @@
+@@ -16,26 +17,23 @@
+     'openssl_no_asm': 1,
      'use_openssl_def': 0,
      'OPENSSL_PRODUCT': 'libopenssl.a',
-     'node_release_urlbase': 'https://atom.io/download/atom-shell',
+-    'node_release_urlbase': 'https://atom.io/download/atom-shell',
 -    'node_byteorder': '<!(node <(DEPTH)/tools/get-endianness.js)',
++    'node_release_urlbase': 'https://atom.io/download/electron',
 +    'node_byteorder': '<!(python <(DEPTH)/tools/get-endianness.py)',
      'node_target_type': 'shared_library',
 +    'node_module_version': '',
@@ -113,18 +117,10 @@ index 7c1bf366a..28bd35acb 100644
      'msvs_cygwin_shell': 0, # Strangely setting it to 1 would make building under cygwin fail.
      'msvs_disabled_warnings': [
 diff --git a/electron.gyp b/electron.gyp
-index b415525b1..f2a520f04 100644
+index b415525b1..4d0185561 100644
 --- a/electron.gyp
 +++ b/electron.gyp
-@@ -31,6 +31,7 @@
-       'dependencies': [
-         'js2asar',
-         'app2asar',
-+        'nodebin',
-         '<(project_name)_lib',
-       ],
-       'sources': [
-@@ -191,7 +192,7 @@
+@@ -191,7 +191,7 @@
                    }, {
                      'copied_libraries': [
                        '<(PRODUCT_DIR)/lib/libnode.so',
@@ -133,7 +129,7 @@ index b415525b1..f2a520f04 100644
                      ],
                    }],
                  ],
-@@ -200,7 +201,6 @@
+@@ -200,7 +200,6 @@
                'files': [
                  '<@(copied_libraries)',
                  '<(libchromiumcontent_dir)/locales',
@@ -141,7 +137,7 @@ index b415525b1..f2a520f04 100644
                  '<(libchromiumcontent_dir)/blink_image_resources_200_percent.pak',
                  '<(libchromiumcontent_dir)/content_resources_200_percent.pak',
                  '<(libchromiumcontent_dir)/content_shell.pak',
-@@ -245,15 +245,17 @@
+@@ -245,15 +244,17 @@
          '<@(lib_sources)',
        ],
        'include_dirs': [
@@ -161,7 +157,7 @@ index b415525b1..f2a520f04 100644
          'vendor/node/deps/uv/include',
          # The `node.h` is using `#include"v8.h"`.
          '<(libchromiumcontent_src_dir)/v8/include',
-@@ -342,11 +344,12 @@
+@@ -342,11 +343,12 @@
              '<@(lib_sources_nss)',
            ],
            'link_settings': {
@@ -175,7 +171,7 @@ index b415525b1..f2a520f04 100644
                # Make native module dynamic loading work.
                '-rdynamic',
              ],
-@@ -368,6 +371,9 @@
+@@ -368,6 +370,9 @@
      {
        'target_name': 'js2asar',
        'type': 'none',
@@ -185,7 +181,7 @@ index b415525b1..f2a520f04 100644
        'actions': [
          {
            'action_name': 'js2asar',
-@@ -389,6 +395,7 @@
+@@ -389,6 +394,7 @@
            'action': [
              'python',
              'tools/js2asar.py',
@@ -193,7 +189,7 @@ index b415525b1..f2a520f04 100644
              '<@(_outputs)',
              'lib',
              '<@(_inputs)',
-@@ -399,6 +406,9 @@
+@@ -399,6 +405,9 @@
      {
        'target_name': 'app2asar',
        'type': 'none',
@@ -203,7 +199,7 @@ index b415525b1..f2a520f04 100644
        'actions': [
          {
            'action_name': 'app2asar',
-@@ -420,6 +430,7 @@
+@@ -420,6 +429,7 @@
            'action': [
              'python',
              'tools/js2asar.py',
@@ -211,7 +207,7 @@ index b415525b1..f2a520f04 100644
              '<@(_outputs)',
              'default_app',
              '<@(_inputs)',
-@@ -445,6 +456,7 @@
+@@ -445,6 +455,7 @@
        'dependencies': [
          # depend on this target to ensure the '<(js2c_input_dir)' is created
          'atom_js2c_copy',
@@ -219,7 +215,7 @@ index b415525b1..f2a520f04 100644
        ],
        'variables': {
          'sandbox_args': [
-@@ -474,11 +486,9 @@
+@@ -474,11 +485,9 @@
              '<(js2c_input_dir)/preload_bundle.js',
            ],
            'action': [
@@ -234,7 +230,7 @@ index b415525b1..f2a520f04 100644
              '<@(sandbox_args)',
              '-o',
              '<@(_outputs)',
-@@ -493,12 +503,11 @@
+@@ -493,12 +502,11 @@
              '<(js2c_input_dir)/isolated_bundle.js',
            ],
            'action': [
@@ -251,13 +247,16 @@ index b415525b1..f2a520f04 100644
              '-o',
              '<@(_outputs)',
            ],
-@@ -533,6 +542,37 @@
+@@ -533,6 +541,42 @@
          }
        ],
      },  # target atom_js2c
 +    {
 +      'target_name': 'nodebin',
 +      'type': 'executable',
++      'defines': [
++        'ELECTRON_NODE_BUILD_NO_ASAR'
++      ],
 +      'sources': [
 +        'vendor/node/src/node_main.cc',
 +      ],
@@ -273,12 +272,14 @@ index b415525b1..f2a520f04 100644
 +        # Include directories for uv and node.
 +        'vendor/node/src',
 +        'vendor/node/deps/uv/include',
++        '<(libchromiumcontent_src_dir)',
 +        # The `node.h` is using `#include"v8.h"`.
 +        '<(libchromiumcontent_src_dir)/v8/include',
 +        # The `node.h` is using `#include"ares.h"`.
 +        'vendor/node/deps/cares/include',
 +      ],
 +      'link_settings': {
++        'libraries': [ '<@(libchromiumcontent_v8_libraries)' ],
 +        'ldflags': [
 +          '-Wl,-rpath=\$$ORIGIN/',
 +          # Make native module dynamic loading work.
@@ -290,7 +291,7 @@ index b415525b1..f2a520f04 100644
    'conditions': [
      ['OS=="mac"', {
 diff --git a/toolchain.gypi b/toolchain.gypi
-index 1c5f8a713..2af11f56b 100644
+index 1c5f8a713..c20ed1a0f 100644
 --- a/toolchain.gypi
 +++ b/toolchain.gypi
 @@ -16,7 +16,7 @@
@@ -361,6 +362,63 @@ index 1c5f8a713..2af11f56b 100644
      # Setup cross-compilation on Linux.
      ['OS=="linux"', {
        'target_defaults': {
+@@ -179,6 +134,35 @@
+             'ldflags': [
+               '-m64',
+             ],
++            'conditions': [
++              ['use_lto==1 and clang==0', {
++                'cflags': [
++                  '-fno-fat-lto-objects',
++                  '-fuse-linker-plugin',
++                  '-flto=4',
++                  '--param=lto-partitions=1',
++                ],
++                'ldflags': [
++                  '-fno-fat-lto-objects',
++                  '-fuse-linker-plugin',
++                  '-flto=4',
++                  '--param=lto-partitions=1',
++                ],
++                'arflags': [
++                  '<!@(python <(DEPTH)/tools/ar-flags.py)',
++                ]
++              }],
++              ['use_lto==1 and clang==1', {
++                'cflags': [
++                  '-flto',
++                  '-fwhole-program-vtables'
++                ],
++                'ldflags': [
++                  '-flto',
++                  '-fwhole-program-vtables'
++                ],
++              }],
++            ],
+           }],  # target_arch=="x64" and _toolset=="target"
+           ['target_arch=="arm" and _toolset=="target"', {
+             'conditions': [
+diff --git a/tools/ar-flags.py b/tools/ar-flags.py
+new file mode 100644
+index 000000000..80b338a6e
+--- /dev/null
++++ b/tools/ar-flags.py
+@@ -0,0 +1,15 @@
++#!/usr/bin/env python
++
++import os
++import subprocess
++
++if __name__ == '__main__':
++    cc = os.environ.get('CC', '/usr/bin/cc')
++    gcc_version = subprocess.check_output(
++        [cc, '-dumpversion'], universal_newlines=True).strip(' \n')
++
++    lto_plugin = os.path.join(
++        '/usr/libexec/gcc/x86_64-pc-linux-gnu/', gcc_version,
++        'liblto_plugin.so')
++
++    print('--plugin={}'.format(lto_plugin))
 diff --git a/tools/atom_source_root.py b/tools/atom_source_root.py
 new file mode 100644
 index 000000000..316e99701
@@ -450,5 +508,5 @@ index adad1751e..ca7686893 100755
  
  def safe_mkdir(path):
 -- 
-2.13.3
+2.14.1
 
