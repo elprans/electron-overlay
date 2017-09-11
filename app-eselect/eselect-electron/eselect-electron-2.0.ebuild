@@ -1,8 +1,7 @@
 # Copyright 1999-2017 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Id$
 
-EAPI="5"
+EAPI=6
 
 DESCRIPTION="Utility to select the default Electron slot"
 HOMEPAGE="https://www.gentoo.org/"
@@ -17,7 +16,7 @@ RDEPEND="app-admin/eselect"
 src_install() {
 	insinto /usr/share/eselect/modules
 	doins electron.eselect
-	dosym /usr/bin/eselect /usr/bin/electron-config
+	dosym eselect /usr/bin/electron-config
 }
 
 pkg_postinst() {
