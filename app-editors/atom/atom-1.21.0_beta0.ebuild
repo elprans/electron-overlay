@@ -23,7 +23,7 @@ NAN_V=2.6.2
 
 CACHED_RUN_IN_THIS_CONTEXT_V=0.4.1
 CTAGS_V=3.0.0
-FS_ADMIN_V=0.1.5
+FS_ADMIN_V=0.1.6
 GIT_UTILS_V=5.0.0
 KEYBOARD_LAYOUT_V=2.0.13
 KEYTAR_V=4.0.4
@@ -43,7 +43,7 @@ SRC_URI="
 	https://github.com/nodejs/nan/archive/v${NAN_V}.tar.gz -> nodejs-nan-${NAN_V}.tar.gz
 	https://registry.npmjs.org/cached-run-in-this-context/-/cached-run-in-this-context-0.4.1.tgz -> atomdep-cached-run-in-this-context-0.4.1.tar.gz
 	https://registry.npmjs.org/ctags/-/ctags-3.0.0.tgz -> atomdep-ctags-3.0.0.tar.gz
-	https://registry.npmjs.org/fs-admin/-/fs-admin-0.1.5.tgz -> atomdep-fs-admin-0.1.5.tar.gz
+	https://registry.npmjs.org/fs-admin/-/fs-admin-0.1.6.tgz -> atomdep-fs-admin-0.1.6.tar.gz
 	https://registry.npmjs.org/git-utils/-/git-utils-5.0.0.tgz -> atomdep-git-utils-5.0.0.tar.gz
 	https://registry.npmjs.org/keyboard-layout/-/keyboard-layout-2.0.13.tgz -> atomdep-keyboard-layout-2.0.13.tar.gz
 	https://registry.npmjs.org/keytar/-/keytar-4.0.4.tgz -> atomdep-keytar-4.0.4.tar.gz
@@ -56,7 +56,7 @@ SRC_URI="
 	https://registry.npmjs.org/superstring/-/superstring-2.0.17.tgz -> atomdep-superstring-2.0.17.tar.gz
 "
 
-BINMODS="
+BINMODS=(
 	cached-run-in-this-context
 	ctags
 	fs-admin
@@ -70,7 +70,7 @@ BINMODS="
 	scrollbar-style
 	spellchecker
 	superstring
-"
+)
 
 LICENSE="MIT"
 if [[ "${PV}" == *beta* ]]; then
@@ -82,7 +82,6 @@ KEYWORDS="~amd64"
 IUSE=""
 REQUIRED_USE="${PYTHON_REQUIRED_USE}"
 
-# We require >=sandbox-2.11 with USE="test" due to http://crbug.com/586444
 DEPEND="
 	${PYTHON_DEPS}
 	>=app-text/hunspell-1.3.3:=
@@ -134,7 +133,13 @@ src_prepare() {
 
 	# Add source files omitted from the upstream binary distribution,
 	# and which we want to include in ours.
-	cp -a -t "${BUILD_DIR}/app" "${S}/spec" ||  die
+	cp -a -t "${BUILD_DIR}/app" "${S}/spec" || die
+
+	# Unpack app.asar
+	if [ -e "${BIN_S}/$(get_atom_rpmdir)/resources/app.asar" ]; then
+		easar extract "${BIN_S}/$(get_atom_rpmdir)/resources/app.asar" \
+			"${BUILD_DIR}/app"
+	fi
 
 	cd "${BUILD_DIR}/app" || die
 
@@ -176,7 +181,7 @@ src_prepare() {
 	sed -i -e "s|/$(get_atom_rpmdir)/atom|/usr/bin/atom${suffix}|g" \
 		"${BIN_S}/usr/share/applications/$(get_atom_appname).desktop" || die
 
-	for binmod in ${BINMODS}; do
+	for binmod in ${BINMODS[@]}; do
 		_s="${WORKDIR}/$(package_dir ${binmod})"
 		cd "${_s}" || die
 		if _have_patches_for "${binmod}"; then
@@ -212,7 +217,7 @@ src_prepare() {
 			-DPCRE2_CODE_UNIT_WIDTH=16" \
 		"${_s}/binding.gyp" || die
 
-	for binmod in ${BINMODS}; do
+	for binmod in ${BINMODS[@]}; do
 		_s="${WORKDIR}/$(package_dir ${binmod})"
 		mkdir -p "${_s}/node_modules" || die
 		ln -s "${nan_s}" "${_s}/node_modules/nan" || die
@@ -227,7 +232,7 @@ src_prepare() {
 src_configure() {
 	local binmod
 
-	for binmod in ${BINMODS}; do
+	for binmod in ${BINMODS[@]}; do
 		einfo "Configuring ${binmod}..."
 		cd "${WORKDIR}/$(package_dir ${binmod})" || die
 		enodegyp_atom configure
@@ -252,7 +257,7 @@ src_compile() {
 
 	mkdir -p "${BUILD_DIR}/modules/" || die
 
-	for binmod in ${BINMODS}; do
+	for binmod in ${BINMODS[@]}; do
 		einfo "Building ${binmod}..."
 		cd "${WORKDIR}/$(package_dir ${binmod})" || die
 		enodegyp_atom ${gypopts} build
@@ -439,6 +444,21 @@ _unpack() {
 	fi
 }
 
+# Check if the binary node module is actually a valid dependency.
+# Sometimes the upstream removes a dependency from package.json but
+# forgets to remove the module from node_modules.
+_is_valid_binmod() {
+	local mod
+
+	for mod in "${BINMODS[@]}"; do
+		if [[ "${mod}" == "${1}" ]]; then
+			return 0
+		fi
+	done
+
+	return 1
+}
+
 # Replace binary node modules with the newly compiled versions thereof.
 _fix_binmods() {
 	local _dir="${2}"
@@ -461,6 +481,8 @@ _fix_binmods() {
 		modpath=$(dirname ${relpath})
 		modpath=${modpath%build/Release}
 		mod=$(basename ${modpath})
+
+		_is_valid_binmod "${mod}" || continue
 
 		# must copy here as symlinks will cause the module loading to fail
 		cp -f "${BUILD_DIR}/modules/${mod}/${f}" "${path}" || die
