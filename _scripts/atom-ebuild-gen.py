@@ -96,7 +96,7 @@ def main():
     template = args.template
     if not template:
         template = os.path.join(os.path.dirname(__file__),
-                                'atom.ebuild.template')
+                                'atom.template.ebuild')
 
     output = generate_ebuild(deps, template)
 
