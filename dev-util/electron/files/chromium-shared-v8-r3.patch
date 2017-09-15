@@ -1,0 +1,92 @@
+From c8178b56263b9c34c90a99cd75c03378b0ff6b9b Mon Sep 17 00:00:00 2001
+From: Elvis Pranskevichus <elvis@magic.io>
+Date: Fri, 15 Sep 2017 11:10:05 -0400
+Subject: [PATCH] Build v8 as a shared library when compiling Electron
+
+---
+ v8/BUILD.gn               | 14 +++++++-------
+ v8/src/inspector/BUILD.gn |  2 +-
+ 2 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/v8/BUILD.gn b/v8/BUILD.gn
+index 8895103..d0ea71c 100644
+--- a/v8/BUILD.gn
++++ b/v8/BUILD.gn
+@@ -134,7 +134,7 @@ config("internal_config") {
+ 
+   include_dirs = [ "." ]
+ 
+-  if (is_component_build) {
++  if (is_component_build || is_electron_build) {
+     defines = [ "BUILDING_V8_SHARED" ]
+   }
+ }
+@@ -148,14 +148,14 @@ config("internal_config_base") {
+ # This config should be applied to code using the libplatform.
+ config("libplatform_config") {
+   include_dirs = [ "include" ]
+-  if (is_component_build) {
++  if (is_component_build || is_electron_build) {
+     defines = [ "USING_V8_PLATFORM_SHARED" ]
+   }
+ }
+ 
+ # This config should be applied to code using the libbase.
+ config("libbase_config") {
+-  if (is_component_build) {
++  if (is_component_build || is_electron_build) {
+     defines = [ "USING_V8_BASE_SHARED" ]
+   }
+   libs = []
+@@ -172,7 +172,7 @@ config("libsampler_config") {
+ # This config should only be applied to code using V8 and not any V8 code
+ # itself.
+ config("external_config") {
+-  if (is_component_build) {
++  if (is_component_build || is_electron_build) {
+     defines = [ "USING_V8_SHARED" ]
+   }
+   include_dirs = [ "include" ]
+@@ -2328,7 +2328,7 @@ v8_component("v8_libbase") {
+ 
+   defines = []
+ 
+-  if (is_component_build) {
++  if (is_component_build || is_electron_build) {
+     defines = [ "BUILDING_V8_BASE_SHARED" ]
+   }
+ 
+@@ -2418,7 +2418,7 @@ v8_component("v8_libplatform") {
+ 
+   configs = [ ":internal_config_base" ]
+ 
+-  if (is_component_build) {
++  if (is_component_build || is_electron_build) {
+     defines = [ "BUILDING_V8_PLATFORM_SHARED" ]
+   }
+ 
+@@ -2588,7 +2588,7 @@ group("v8_fuzzers") {
+   ]
+ }
+ 
+-if (is_component_build) {
++if (is_component_build || is_electron_build) {
+   v8_component("v8") {
+     sources = [
+       "src/v8dll-main.cc",
+diff --git a/v8/src/inspector/BUILD.gn b/v8/src/inspector/BUILD.gn
+index e6742c0..ef3876d 100644
+--- a/v8/src/inspector/BUILD.gn
++++ b/v8/src/inspector/BUILD.gn
+@@ -106,7 +106,7 @@ config("inspector_config") {
+       "/wd4996",  # Deprecated function call.
+     ]
+   }
+-  if (is_component_build) {
++  if (is_component_build || is_electron_build) {
+     defines = [ "BUILDING_V8_SHARED" ]
+   }
+ }
+-- 
+2.14.1
+
