@@ -6,21 +6,13 @@
 
 import argparse
 import collections
-import concurrent.futures
-import io
-import json
-import operator
 import os
 import os.path
-import pickle
 import re
 import shutil
-import string
 import subprocess
 import sys
 import tarfile
-import textwrap
-import traceback
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -49,23 +41,26 @@ def main():
         if f.endswith('.patch') and 'third_party/icu' not in f
     ]
 
-    # if not os.path.exists(os.path.join(args.target, '.git')):
-    #     git('init', cwd=args.target)
-    #
-    # stuff = git('status', '--porcelain', cwd=args.target)
-    # if stuff:
-    #     die('there are uncommitted or untracked files in {}'.format(
-    #         args.target))
-    #
-    # git('checkout', '--orphan', info.chromium_version, cwd=args.target)
-    # git('rm', '-rf', '--ignore-unmatch', '.', cwd=args.target)
-    # git('clean', '-fdx', cwd=args.target)
-    #
-    # download_and_unpack_chromium_source(info.chromium_version, args.target)
-    #
-    # git('add', '--force', '.', cwd=args.target)
-    # git('commit', '-m', 'Import chromium-{}'.format(info.chromium_version),
-    #     cwd=args.target)
+    if not os.path.exists(os.path.join(args.target, '.git')):
+        git('init', cwd=args.target)
+
+    stuff = git('status', '--porcelain', cwd=args.target)
+    if stuff:
+        die('there are uncommitted or untracked files in {}'.format(
+            args.target))
+
+    git('checkout', '--orphan', info.chromium_version, cwd=args.target)
+    git('rm', '-rf', '--ignore-unmatch', '.', cwd=args.target)
+    git('clean', '-fdx', cwd=args.target)
+
+    download_and_unpack_chromium_source(info.chromium_version, args.target)
+
+    git('add', '--force', '.', cwd=args.target)
+    git('commit', '-m', 'Import chromium-{}'.format(info.chromium_version),
+        cwd=args.target)
+
+    if not args.apply_patches:
+        return 0
 
     patches = [
         (patch.partition('/')[2],
@@ -98,6 +93,8 @@ def main():
 
 def parse_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--apply-patches', action='store_true', default=False,
+                        help='Apply Electron and Gentoo patches.')
     parser.add_argument('ebuild', help='Path to electron ebuild.')
     parser.add_argument('target', help='Path to target directory.')
     return parser.parse_args()
@@ -112,7 +109,7 @@ _ver_re = re.compile(r'CHROMIUM_VERSION="([^"]+)"')
 _libcc_re = re.compile(r'LIBCHROMIUMCONTENT_COMMIT="([^"]+)"')
 _patch_re = re.compile(r'CHROMIUM_PATCHES="([^"]+)"', re.M)
 _bundled_re = re.compile(r'keeplibs=\(([^)]+)\)', re.M)
-_gn_syslibs_re = re.compile(r'gn_system_libraries="([^"]+)"', re.M)
+_gn_syslibs_re = re.compile(r'gn_system_libraries=\(([^)]+)\)', re.M)
 
 
 ElectronInfo = collections.namedtuple(
