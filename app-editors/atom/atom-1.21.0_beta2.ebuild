@@ -23,7 +23,7 @@ NAN_V=2.6.2
 
 CACHED_RUN_IN_THIS_CONTEXT_V=0.4.1
 CTAGS_V=3.0.0
-FS_ADMIN_V=0.1.5
+FS_ADMIN_V=0.1.6
 GIT_UTILS_V=5.0.0
 KEYBOARD_LAYOUT_V=2.0.13
 KEYTAR_V=4.0.4
@@ -31,10 +31,9 @@ NSFW_V=1.0.16
 NSLOG_V=3.0.0
 ONIGURUMA_V=6.2.1
 PATHWATCHER_V=8.0.1
-RUNAS_V=3.1.1
 SCROLLBAR_STYLE_V=3.2.0
-SPELLCHECKER_V=3.4.2
-SUPERSTRING_V=2.0.17
+SPELLCHECKER_V=3.4.3
+SUPERSTRING_V=2.2.3
 
 # The x86_64 arch below is irrelevant, as we will rebuild all binary packages.
 SRC_URI="
@@ -44,7 +43,7 @@ SRC_URI="
 	https://github.com/nodejs/nan/archive/v${NAN_V}.tar.gz -> nodejs-nan-${NAN_V}.tar.gz
 	https://registry.npmjs.org/cached-run-in-this-context/-/cached-run-in-this-context-0.4.1.tgz -> atomdep-cached-run-in-this-context-0.4.1.tar.gz
 	https://registry.npmjs.org/ctags/-/ctags-3.0.0.tgz -> atomdep-ctags-3.0.0.tar.gz
-	https://registry.npmjs.org/fs-admin/-/fs-admin-0.1.5.tgz -> atomdep-fs-admin-0.1.5.tar.gz
+	https://registry.npmjs.org/fs-admin/-/fs-admin-0.1.6.tgz -> atomdep-fs-admin-0.1.6.tar.gz
 	https://registry.npmjs.org/git-utils/-/git-utils-5.0.0.tgz -> atomdep-git-utils-5.0.0.tar.gz
 	https://registry.npmjs.org/keyboard-layout/-/keyboard-layout-2.0.13.tgz -> atomdep-keyboard-layout-2.0.13.tar.gz
 	https://registry.npmjs.org/keytar/-/keytar-4.0.4.tgz -> atomdep-keytar-4.0.4.tar.gz
@@ -52,10 +51,9 @@ SRC_URI="
 	https://registry.npmjs.org/nslog/-/nslog-3.0.0.tgz -> atomdep-nslog-3.0.0.tar.gz
 	https://registry.npmjs.org/oniguruma/-/oniguruma-6.2.1.tgz -> atomdep-oniguruma-6.2.1.tar.gz
 	https://registry.npmjs.org/pathwatcher/-/pathwatcher-8.0.1.tgz -> atomdep-pathwatcher-8.0.1.tar.gz
-	https://registry.npmjs.org/runas/-/runas-3.1.1.tgz -> atomdep-runas-3.1.1.tar.gz
 	https://registry.npmjs.org/scrollbar-style/-/scrollbar-style-3.2.0.tgz -> atomdep-scrollbar-style-3.2.0.tar.gz
-	https://registry.npmjs.org/spellchecker/-/spellchecker-3.4.2.tgz -> atomdep-spellchecker-3.4.2.tar.gz
-	https://registry.npmjs.org/superstring/-/superstring-2.0.17.tgz -> atomdep-superstring-2.0.17.tar.gz
+	https://registry.npmjs.org/spellchecker/-/spellchecker-3.4.3.tgz -> atomdep-spellchecker-3.4.3.tar.gz
+	https://registry.npmjs.org/superstring/-/superstring-2.2.3.tgz -> atomdep-superstring-2.2.3.tar.gz
 "
 
 BINMODS=(
@@ -69,7 +67,6 @@ BINMODS=(
 	nslog
 	oniguruma
 	pathwatcher
-	runas
 	scrollbar-style
 	spellchecker
 	superstring
