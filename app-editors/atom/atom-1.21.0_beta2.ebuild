@@ -17,7 +17,7 @@ MY_PV="${PV//_/-}"
 ELECTRON_V=1.6.9
 ELECTRON_SLOT=1.6
 
-ASAR_V=0.12.1
+ASAR_V=0.13.0
 # All binary packages depend on this
 NAN_V=2.6.2
 
@@ -139,8 +139,9 @@ src_prepare() {
 
 	cd "${BUILD_DIR}/app" || die
 
-	eapply "${FILESDIR}/${PN}-python.patch"
-	eapply "${FILESDIR}/${PN}-unbundle-electron.patch"
+	eapply "${FILESDIR}/atom-python.patch"
+	eapply "${FILESDIR}/apm-python.patch"
+	eapply "${FILESDIR}/atom-unbundle-electron.patch"
 	eapply "${FILESDIR}/atom-apm-path-r1.patch"
 	eapply "${FILESDIR}/atom-license-path-r1.patch"
 	eapply "${FILESDIR}/atom-fix-app-restart-r1.patch"
