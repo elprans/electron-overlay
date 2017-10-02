@@ -216,7 +216,7 @@ def generate_ebuild(atom_version, deps, template_fn):
 
     return template.substitute({
         'SLOT': 'beta' if atom_version == 'beta' else '0',
-        'KEYWORDS': '' if atom_version == 'beta' else '~amd64',
+        'KEYWORDS': '~amd64',
         'ELECTRON_V': electron_version,
         'ELECTRON_S': electron_slot,
         'SRC_URI': textwrap.indent('\n'.join(urls), '\t'),
