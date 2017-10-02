@@ -76,11 +76,7 @@ BINMODS=(
 )
 
 LICENSE="MIT"
-if [[ "${PV}" == *beta* ]]; then
-	SLOT="beta"
-else
-	SLOT="0"
-fi
+SLOT="0"
 KEYWORDS="~amd64"
 IUSE=""
 REQUIRED_USE="${PYTHON_REQUIRED_USE}"

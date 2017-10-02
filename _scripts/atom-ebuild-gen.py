@@ -98,7 +98,7 @@ def main():
         template = os.path.join(os.path.dirname(__file__),
                                 'atom.template.ebuild')
 
-    output = generate_ebuild(deps, template)
+    output = generate_ebuild(atom_version, deps, template)
 
     if args.output:
         output_fn = args.output
@@ -192,7 +192,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def generate_ebuild(deps, template_fn):
+def generate_ebuild(atom_version, deps, template_fn):
     with open(template_fn, 'rt') as f:
         template = Template(f.read())
 
@@ -215,6 +215,8 @@ def generate_ebuild(deps, template_fn):
                                      pkg.version))
 
     return template.substitute({
+        'SLOT': 'beta' if atom_version == 'beta' else '0',
+        'KEYWORDS': '' if atom_version == 'beta' else '~amd64',
         'ELECTRON_V': electron_version,
         'ELECTRON_S': electron_slot,
         'SRC_URI': textwrap.indent('\n'.join(urls), '\t'),

@@ -37,12 +37,8 @@ BINMODS=(
 )
 
 LICENSE="MIT"
-if [[ "${PV}" == *beta* ]]; then
-	SLOT="beta"
-else
-	SLOT="0"
-fi
-KEYWORDS="~amd64"
+SLOT="@@{SLOT}"
+KEYWORDS="@@{KEYWORDS}"
 IUSE=""
 REQUIRED_USE="${PYTHON_REQUIRED_USE}"
 
