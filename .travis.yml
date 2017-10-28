@@ -1,0 +1,16 @@
+sudo: required
+
+cache: ccache
+
+services:
+    - docker
+
+matrix:
+    include:
+        - env: GENTOO_PACKAGE="electron:1.6"
+
+before_install:
+    - .ci/travis-before-install.sh
+
+script:
+    - .ci/travis-build.sh
