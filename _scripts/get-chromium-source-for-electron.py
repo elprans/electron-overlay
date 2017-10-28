@@ -234,7 +234,6 @@ def update_repo(repo_url):
     repo_gitdir = os.path.join(repo_dir, '.git')
 
     if os.path.exists(repo_gitdir):
-        return
         git('fetch', cwd=repo_dir)
     else:
         if os.path.exists(repo_dir):
