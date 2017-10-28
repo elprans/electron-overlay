@@ -30,7 +30,7 @@ PDF_VIEWER_COMMIT="a050a339cfeabcfb5f07c313161d2ee27b6c3a39"
 # Keep this in sync with vendor/pdf_viewer/vendor/grit
 GRIT_COMMIT="9536fb6429147d27ef1563088341825db0a893cd"
 # Keep this in sync with script/lib/config.py:LIBCHROMIUMCONTENT_COMMIT
-LIBCHROMIUMCONTENT_COMMIT="1e4434d8846439415bc3375bf17d11e3058712fe"
+LIBCHROMIUMCONTENT_COMMIT="a9b88fab38a8162bb485cc5854973f71ea0bc7a6"
 # Keep this in sync with package.json#devDependencies
 ASAR_VERSION="0.13.0"
 BROWSERIFY_VERSION="14.0.0"
@@ -78,7 +78,7 @@ LIBCC_S="${BRIGHTRAY_S}/vendor/libchromiumcontent"
 LICENSE="BSD"
 SLOT="$(get_version_component_range 1-2)"
 KEYWORDS="~amd64"
-IUSE="cups custom-cflags gnome gnome-keyring kerberos lto neon pic +proprietary-codecs pulseaudio selinux +system-ffmpeg +tcmalloc"
+IUSE="cups custom-cflags gnome gnome-keyring kerberos lto neon pic +proprietary-codecs pulseaudio selinux +system-ffmpeg +system-icu +tcmalloc"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
 
 # Native Client binaries are compiled with different set of flags, bug #452066.
@@ -95,7 +95,7 @@ COMMON_DEPEND="
 	>=dev-libs/elfutils-0.149
 	dev-libs/expat:=
 	dev-libs/glib:2
-	dev-libs/icu:=
+	system-icu? ( <dev-libs/icu-59:= )
 	>=dev-libs/jsoncpp-0.5.0-r1:=
 	dev-libs/nspr:=
 	>=dev-libs/nss-3.14.3:=
@@ -178,6 +178,17 @@ DEPEND="${COMMON_DEPEND}
 	')
 "
 
+CHROMIUM_PATCHES="
+	chromium-FORTIFY_SOURCE.patch
+	chromium-glibc-2.24.patch
+	chromium-56-gcc4.patch
+	chromium-system-ffmpeg-r4.patch
+	chromium-disable-widevine.patch
+	chromium-remove-gardiner-mod-font-r1.patch
+	chromium-shared-v8-r2.patch
+	chromium-lto-fixes-r3.patch
+"
+
 # Keep this in sync with the python_gen_any_dep call.
 python_check_deps() {
 	has_version --host-root "dev-python/beautifulsoup:python-2[${PYTHON_USEDEP}]" &&
@@ -248,12 +259,17 @@ pkg_setup() {
 }
 
 _unnest_patches() {
-	local _s="${1%/}/" relpath out
+	local _s="${1%/}/"
+	local path
+	local relpath
+	local out
 
-	for f in $(find "${_s}" -mindepth 2 -name *.patch -printf \"%P\"\\n); do
-		relpath="$(dirname ${f})"
-		out="${_s}/${relpath////_}_$(basename ${f})"
-		sed -r -e "s|^([-+]{3}) (.*)$|\1 ${relpath}/\2 ${f}|g" > "${out}"
+	(find "${_s}" -mindepth 2 -name '*.patch' -printf "%P\n" || die) \
+	| while read -r path; do
+		relpath="$(dirname ${path})"
+		out="${_s}/__${relpath////_}_$(basename ${path})"
+		sed -r -e "s|^([-+]{3}) [ab]/(.*)$|\1 ${relpath}/\2|g" \
+			"${_s}/${path}" > "${out}" || die
 	done
 }
 
@@ -359,15 +375,6 @@ src_prepare() {
 	# chromium patches
 	cd "${CHROMIUM_S}" || die
 
-	eapply "${FILESDIR}/chromium-FORTIFY_SOURCE.patch"
-	eapply "${FILESDIR}/chromium-glibc-2.24.patch"
-	eapply "${FILESDIR}/chromium-56-gcc4.patch"
-	eapply "${FILESDIR}/chromium-system-ffmpeg-r4.patch"
-	eapply "${FILESDIR}/chromium-disable-widevine.patch"
-	eapply "${FILESDIR}/chromium-remove-gardiner-mod-font-r1.patch"
-	eapply "${FILESDIR}/chromium-shared-v8-r2.patch"
-	eapply "${FILESDIR}/chromium-lto-fixes-r3.patch"
-
 	# libcc chromium patches
 	_unnest_patches "${LIBCC_S}/patches"
 
@@ -377,6 +384,12 @@ src_prepare() {
 	EPATCH_EXCLUDE="third_party_icu*" \
 	EPATCH_MULTI_MSG="Applying libchromiumcontent patches..." \
 		epatch
+
+	# Apply Gentoo-specific Chromium patches
+	local p
+	for p in ${CHROMIUM_PATCHES}; do
+		eapply "${FILESDIR}/${p}"
+	done
 
 	# Merge chromiumcontent component into chromium source tree.
 	mkdir -p "${CHROMIUM_S}/chromiumcontent" || die
@@ -502,6 +515,9 @@ src_prepare() {
 	if ! use system-ffmpeg; then
 		keeplibs+=( third_party/ffmpeg )
 	fi
+	if ! use system-icu; then
+		keeplibs+=( third_party/icu )
+	fi
 
 	# Remove most bundled libraries. Some are still needed.
 	build/linux/unbundle/remove_bundled_libraries.py \
@@ -537,7 +553,6 @@ src_configure() {
 	local gn_system_libraries="
 		flac
 		harfbuzz-ng
-		icu
 		libjpeg
 		libpng
 		libvpx
@@ -550,6 +565,9 @@ src_configure() {
 		zlib"
 	if use system-ffmpeg; then
 		gn_system_libraries+=" ffmpeg"
+	fi
+	if use system-icu; then
+		gn_system_libraries+=" icu"
 	fi
 	build/linux/unbundle/replace_gn_files.py --system-libraries ${gn_system_libraries} || die
 
