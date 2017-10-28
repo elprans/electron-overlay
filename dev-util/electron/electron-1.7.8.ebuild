@@ -179,7 +179,7 @@ CHROMIUM_PATCHES="
 	chromium-gn-bootstrap-r2.patch
 	chromium-system-ffmpeg-r5.patch
 	chromium-lto-fixes-r3.patch
-	chromium-shared-v8-r3.patch
+	chromium-shared-v8-r2.patch
 	skia-avx2.patch
 "
 
