@@ -206,7 +206,8 @@ def generate_ebuild(atom_version, deps, template_fn):
     electron_slot = '{}.{}'.format(electron_v.major, electron_v.minor)
 
     for pkg in packages:
-        name = pkg.package
+        name = pkg.package.strip('@').replace('/', '--')
+
         urls.append(
             '{} -> atomdep-{}-{}.tar.gz'.format(
                 pkg.archive, name, pkg.version))

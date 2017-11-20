@@ -49,7 +49,7 @@ DEPEND="
 	>=dev-libs/libgit2-0.23:=[ssh]
 	>=dev-libs/libpcre2-10.22:=[jit,pcre16]
 	>=gnome-base/libgnome-keyring-3.12:=
-	>=dev-libs/oniguruma-5.9.5:=
+	>=dev-libs/oniguruma-6.6.0:=
 	>=dev-util/ctags-5.8
 	>=dev-util/electron-${ELECTRON_V}:${ELECTRON_SLOT}
 	x11-libs/libxkbfile"
