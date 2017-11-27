@@ -78,7 +78,7 @@ LIBCC_S="${BRIGHTRAY_S}/vendor/libchromiumcontent"
 LICENSE="BSD"
 SLOT="$(get_version_component_range 1-2)"
 KEYWORDS="~amd64"
-IUSE="cups custom-cflags gnome gnome-keyring kerberos lto neon pic +proprietary-codecs pulseaudio selinux +system-ffmpeg +system-icu +tcmalloc"
+IUSE="cups custom-cflags gnome gnome-keyring kerberos lto neon pic +proprietary-codecs pulseaudio selinux +system-ffmpeg +tcmalloc"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
 
 # Native Client binaries are compiled with different set of flags, bug #452066.
@@ -95,7 +95,7 @@ COMMON_DEPEND="
 	>=dev-libs/elfutils-0.149
 	dev-libs/expat:=
 	dev-libs/glib:2
-	system-icu? ( >=dev-libs/icu-58:= )
+	>=dev-libs/icu-58:=
 	>=dev-libs/jsoncpp-0.5.0-r1:=
 	dev-libs/nspr:=
 	>=dev-libs/nss-3.14.3:=
@@ -192,7 +192,6 @@ CHROMIUM_PATCHES="
 	chromium-lto-fixes-r3.patch
 	chromium-python3-compat-r0.patch
 "
-
 
 # Keep this in sync with the python_gen_any_dep call.
 python_check_deps() {
@@ -341,7 +340,7 @@ src_prepare() {
 	# electron patches
 	cd "${ELECTRON_S}" || die
 	eapply "${FILESDIR}/${P}.patch"
-	use system-icu && eapply "${FILESDIR}/${PN}-system-icu-r0.patch"
+	eapply "${FILESDIR}/${PN}-system-icu-r0.patch"
 
 	# node patches
 	cd "${NODE_S}" || die
@@ -520,9 +519,6 @@ src_prepare() {
 	if ! use system-ffmpeg; then
 		keeplibs+=( third_party/ffmpeg )
 	fi
-	if ! use system-icu; then
-		keeplibs+=( third_party/icu )
-	fi
 
 	# Remove most bundled libraries. Some are still needed.
 	ebegin "Unbundling libraries"
@@ -560,6 +556,7 @@ src_configure() {
 	local gn_system_libraries="
 		flac
 		harfbuzz-ng
+		icu
 		libjpeg
 		libpng
 		libvpx
@@ -572,9 +569,6 @@ src_configure() {
 		zlib"
 	if use system-ffmpeg; then
 		gn_system_libraries+=" ffmpeg"
-	fi
-	if use system-icu; then
-		gn_system_libraries+=" icu"
 	fi
 	build/linux/unbundle/replace_gn_files.py --system-libraries ${gn_system_libraries} || die
 
@@ -658,7 +652,7 @@ src_configure() {
 	# Define a custom toolchain for GN
 	myconf_gn+=" custom_toolchain=\"${FILESDIR}/toolchain:default\""
 
-	myconf_gn+=" icu_use_data_file=$(usex system-icu false true)"
+	myconf_gn+=" icu_use_data_file=false"
 
 	use lto && myconf_gn+=" allow_posix_link_time_opt=true"
 
@@ -777,7 +771,7 @@ src_compile() {
 	# Gather and prepare built components of libchromiumcontent.
 	create_dist_args+=" --target_arch=${target_arch} --component=static_library"
 	create_dist_args+=" --no_zip"
-	use system-icu && create_dist_args+=" --system-icu"
+	create_dist_args+=" --system-icu"
 	CHROMIUM_BUILD_DIR="${chromium_target}" \
 	python2 "${libcc_path}"/script/create-dist ${create_dist_args} || die
 
@@ -785,11 +779,6 @@ src_compile() {
 	# for generate_filenames_gypi to find.
 	mkdir -p "${libcc_dist_shared_path}" || die
 	cp "${chromium_target}/libv8.so" "${libcc_dist_shared_path}" || die
-	if ! use system-icu; then
-		for l in libicui18n.so libicuuc.so; do
-			cp "${chromium_target}/${l}" "${libcc_dist_shared_path}" || die
-		done
-	fi
 
 	python2 "${libcc_path}"/tools/generate_filenames_gypi.py \
 		"${libcc_dist_path}/filenames.gypi" \
@@ -803,8 +792,9 @@ src_compile() {
 		$(gyp_use gnome use_gconf)
 		$(gyp_use gnome-keyring use_gnome_keyring)
 		$(gyp_use gnome-keyring linux_link_gnome_keyring)
-		$(gyp_use lto)
-		$(gyp_use system-icu use_system_icu)"
+		$(gyp_use lto)"
+
+	myconf_gyp+=" -Duse_system_icu=1"
 
 	if [[ $(tc-getCC) == *clang* ]]; then
 		myconf_gyp+=" -Dclang=1"
@@ -833,7 +823,7 @@ src_compile() {
 	# Disable fatal linker warnings, bug 506268.
 	myconf_gyp+=" -Ddisable_fatal_linker_warnings=1"
 
-	myconf_gyp+=" -Dicu_use_data_file_flag=$(usex system-icu 0 1)"
+	myconf_gyp+=" -Dicu_use_data_file_flag=0"
 	myconf_gyp+=" -Dgenerate_character_data=0"
 
 	myconf_gyp+=" -Dlibchromiumcontent_component=0"
@@ -849,13 +839,6 @@ src_compile() {
 	cp "${chromium_target}/libv8.so" "${compile_target}/lib/" || die
 	cp "${chromium_target}/natives_blob.bin" "${compile_target}" || die
 	cp "${chromium_target}/snapshot_blob.bin" "${compile_target}" || die
-	# Same for ICU if not using the system one.
-	if ! use system-icu; then
-		for l in libicui18n.so libicuuc.so icudtl.dat; do
-			cp "${chromium_target}/${l}" "${compile_target}/lib/" || die
-		done
-		cp "${chromium_target}/icudtl.dat" "${compile_target}/" || die
-	fi
 
 	# Copy generated shim headers.
 	mkdir -p "${compile_target}/gen" || die
@@ -890,12 +873,6 @@ src_install() {
 	doexe out/R/chromedriver
 	doins out/R/libv8.so
 	doins out/R/libnode.so
-	if ! use system-icu; then
-		for l in libicui18n.so libicuuc.so; do
-			doins "out/R/${l}"
-		done
-	fi
-	use system-icu || doins icudtl.dat
 	fperms +x "${install_dir}"/*.so
 	doins out/R/natives_blob.bin
 	doins out/R/snapshot_blob.bin
