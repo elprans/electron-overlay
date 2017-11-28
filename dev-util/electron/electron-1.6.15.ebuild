@@ -377,6 +377,10 @@ src_prepare() {
 	cd "${LIBCC_S}" || die
 	eapply "${FILESDIR}/${P}-vendor-libchromiumcontent.patch"
 
+	# breakpad patches
+	cd "${BREAKPAD_S}" || die
+	eapply "${FILESDIR}/${P}-vendor-breakpad.patch"
+
 	# chromium patches
 	cd "${CHROMIUM_S}" || die
 
