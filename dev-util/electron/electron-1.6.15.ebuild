@@ -758,6 +758,7 @@ src_compile() {
 	# Build mksnapshot and pax-mark it.
 	eninja -C "${chromium_target}" mksnapshot || die
 	pax-mark m "${chromium_target}/mksnapshot"
+	cp -a "${chromium_target}/mksnapshot" "${compile_target}/" || die
 
 	# Build chromedriver.
 	eninja -C "${chromium_target}" chromedriver
@@ -871,6 +872,7 @@ src_install() {
 	newexe out/R/nodebin node
 	doexe out/R/electron
 	doexe out/R/chromedriver
+	doexe out/R/mksnapshot
 	doins out/R/libv8.so
 	doins out/R/libnode.so
 	fperms +x "${install_dir}"/*.so
