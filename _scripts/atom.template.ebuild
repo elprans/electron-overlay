@@ -9,7 +9,7 @@
 EAPI=6
 
 PYTHON_COMPAT=( python2_7 )
-inherit python-single-r1 multiprocessing rpm virtualx
+inherit python-single-r1 multiprocessing rpm virtualx xdg-utils
 
 DESCRIPTION="A hackable text editor for the 21st Century"
 HOMEPAGE="https://atom.io"
@@ -300,6 +300,14 @@ src_install() {
 	_fix_executables "${install_dir}/app/apm/node_modules/npm/bin"
 	_fix_executables "${install_dir}/app/apm/node_modules/npm/bin/node-gyp-bin"
 	_fix_executables "${install_dir}/app/apm/node_modules/node-gyp/bin"
+}
+
+pkg_postinst() {
+	xdg_desktop_database_update
+}
+
+pkg_postrm() {
+	xdg_desktop_database_update
 }
 
 # Helpers
