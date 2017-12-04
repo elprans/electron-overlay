@@ -185,6 +185,7 @@ CHROMIUM_PATCHES="
 	chromium-system-ffmpeg-r4.patch
 	chromium-system-icu-r0.patch
 	chromium-icu-59-r0.patch
+	chromium-icu-60-r0.patch
 	chromium-v8-icu-59-r0.patch
 	chromium-disable-widevine.patch
 	chromium-remove-gardiner-mod-font-r1.patch
@@ -878,8 +879,9 @@ src_install() {
 	doexe out/R/chromedriver
 	doexe out/R/mksnapshot
 	doins out/R/libv8.so
+	fperms +x "${install_dir}/libv8.so"
 	doins out/R/libnode.so
-	fperms +x "${install_dir}"/*.so
+	fperms +x "${install_dir}/libnode.so"
 	doins out/R/natives_blob.bin
 	doins out/R/snapshot_blob.bin
 	doins out/R/blink_image_resources_200_percent.pak
