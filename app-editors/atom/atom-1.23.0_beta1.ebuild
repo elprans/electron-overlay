@@ -35,7 +35,7 @@ ONIGURUMA_V=6.2.1
 PATHWATCHER_V=8.0.1
 SCROLLBAR_STYLE_V=3.2.0
 SPELLCHECKER_V=3.4.4
-SUPERSTRING_V=2.2.9
+SUPERSTRING_V=2.2.13
 
 # The x86_64 arch below is irrelevant, as we will rebuild all binary packages.
 SRC_URI="
@@ -56,7 +56,7 @@ SRC_URI="
 	https://registry.npmjs.org/pathwatcher/-/pathwatcher-8.0.1.tgz -> atomdep-pathwatcher-8.0.1.tar.gz
 	https://registry.npmjs.org/scrollbar-style/-/scrollbar-style-3.2.0.tgz -> atomdep-scrollbar-style-3.2.0.tar.gz
 	https://registry.npmjs.org/spellchecker/-/spellchecker-3.4.4.tgz -> atomdep-spellchecker-3.4.4.tar.gz
-	https://registry.npmjs.org/superstring/-/superstring-2.2.9.tgz -> atomdep-superstring-2.2.9.tar.gz
+	https://registry.npmjs.org/superstring/-/superstring-2.2.13.tgz -> atomdep-superstring-2.2.13.tar.gz
 "
 
 BINMODS=(
