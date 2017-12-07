@@ -180,6 +180,7 @@ DEPEND="${COMMON_DEPEND}
 
 CHROMIUM_PATCHES="
 	chromium-FORTIFY_SOURCE.patch
+	chromium-gcc-7-r0.patch
 	chromium-glibc-2.24.patch
 	chromium-56-gcc4.patch
 	chromium-system-ffmpeg-r4.patch
