@@ -187,7 +187,7 @@ src_prepare() {
 
 	rm apm/bin/node || die
 
-	sed -i -e "s|/$(get_atom_rpmdir)/atom|/usr/bin/atom${suffix}|g" \
+	sed -i -e "s|/$(get_atom_rpmdir)/atom|${EROOT%/}/usr/bin/atom${suffix}|g" \
 		"${BIN_S}/usr/share/applications/$(get_atom_appname).desktop" || die
 
 	for binmod in ${BINMODS[@]}; do
