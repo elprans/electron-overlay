@@ -12,34 +12,32 @@ inherit check-reqs chromium-2 gnome2-utils flag-o-matic multilib \
 	multiprocessing pax-utils portability python-any-r1 toolchain-funcs \
 	versionator virtualx xdg-utils
 
-# Keep this in sync with vendor/brightray/vendor/libchromiumcontent/VERSION
-CHROMIUM_VERSION="56.0.2924.87"
+# Keep this in sync with vendor/libchromiumcontent/VERSION
+CHROMIUM_VERSION="58.0.3029.110"
 # Keep this in sync with vendor/breakpad
 BREAKPAD_COMMIT="c566c50d81f7b1edeaee9f11f5d07bda858d6b64"
 # Keep this in sync with vendor/breakpad/src (and find the corresponding
 # commit in https://github.com/google/breakpad/)
 BREAKPAD_SRC_COMMIT="e35167de7516448fcc2bf687ad580b9d8b6aedc2"
-# Keep this in sync with vendor/brightray
-BRIGHTRAY_COMMIT="909c49265493bd095c27cefd999567be2107899a"
 # Keep this in sync with vendor/node
-NODE_COMMIT="9b1683e7000481ec6214eafa3eef7ac4594eb410"
+NODE_COMMIT="a992f2ff412b85606ec1d4c1eb00ad832fa1e640"
 # Keep this in sync with vendor/native_mate
-NATIVE_MATE_COMMIT="fd0e7dc4ab778f0d1ccda6c9640464ea06ee771e"
+NATIVE_MATE_COMMIT="7d9c1a80f025f4c46f7da8ea73246fe0f1968579"
 # Keep this in sync with vendor/pdf_viewer
-PDF_VIEWER_COMMIT="a050a339cfeabcfb5f07c313161d2ee27b6c3a39"
+PDF_VIEWER_COMMIT="beb36874a6b61d7a18b92bf7dcd1f0661e4c59cf"
 # Keep this in sync with vendor/pdf_viewer/vendor/grit
 GRIT_COMMIT="9536fb6429147d27ef1563088341825db0a893cd"
-# Keep this in sync with script/lib/config.py:LIBCHROMIUMCONTENT_COMMIT
-LIBCHROMIUMCONTENT_COMMIT="a9b88fab38a8162bb485cc5854973f71ea0bc7a6"
+# Keep this in sync with vendor/libchromiumcontent
+LIBCHROMIUMCONTENT_COMMIT="2f7b83669315f9492380334d1a8b1cd9bc758efd"
 # Keep this in sync with package.json#devDependencies
 ASAR_VERSION="0.13.0"
 BROWSERIFY_VERSION="14.0.0"
+NINJA_VERSION="1.8.2"
 
 PATCHES_P="gentoo-electron-patches-${P}"
 CHROMIUM_P="chromium-${CHROMIUM_VERSION}"
 BREAKPAD_P="chromium-breakpad-${BREAKPAD_COMMIT}"
 BREAKPAD_SRC_P="breakpad-${BREAKPAD_SRC_COMMIT}"
-BRIGHTRAY_P="brightray-${BRIGHTRAY_COMMIT}"
 NODE_P="node-${NODE_COMMIT}"
 NATIVE_MATE_P="native-mate-${NATIVE_MATE_COMMIT}"
 PDF_VIEWER_P="pdf-viewer-${PDF_VIEWER_COMMIT}"
@@ -55,7 +53,6 @@ SRC_URI="
 	https://github.com/electron/electron/archive/v${PV}.tar.gz -> ${P}.tar.gz
 	https://github.com/electron/chromium-breakpad/archive/${BREAKPAD_COMMIT}.tar.gz -> electron-${BREAKPAD_P}.tar.gz
 	https://github.com/google/breakpad/archive/${BREAKPAD_SRC_COMMIT}.tar.gz -> electron-${BREAKPAD_SRC_P}.tar.gz
-	https://github.com/electron/brightray/archive/${BRIGHTRAY_COMMIT}.tar.gz -> electron-${BRIGHTRAY_P}.tar.gz
 	https://github.com/electron/node/archive/${NODE_COMMIT}.tar.gz -> electron-${NODE_P}.tar.gz
 	https://github.com/zcbenz/native-mate/archive/${NATIVE_MATE_COMMIT}.tar.gz -> electron-${NATIVE_MATE_P}.tar.gz
 	https://github.com/electron/pdf-viewer/archive/${PDF_VIEWER_COMMIT}.tar.gz -> electron-${PDF_VIEWER_P}.tar.gz
@@ -64,6 +61,7 @@ SRC_URI="
 	https://github.com/elprans/asar/releases/download/v${ASAR_VERSION}-gentoo/asar-build.tar.gz -> ${ASAR_P}.tar.gz
 	https://github.com/elprans/node-browserify/releases/download/${BROWSERIFY_VERSION}-gentoo/browserify-build.tar.gz -> ${BROWSERIFY_P}.tar.gz
 	https://github.com/elprans/gentoo-electron-patches/archive/${P}.tar.gz -> electron-patches-${PV}.tar.gz
+	https://github.com/ninja-build/ninja/archive/v${NINJA_VERSION}.tar.gz -> ninja-${NINJA_VERSION}.tar.gz
 "
 
 S="${WORKDIR}/${P}"
@@ -71,16 +69,15 @@ CHROMIUM_S="${S}/chromium"
 NODE_S="${S}/vendor/node"
 BREAKPAD_S="${S}/vendor/breakpad"
 BREAKPAD_SRC_S="${BREAKPAD_S}/src"
-BRIGHTRAY_S="${S}/vendor/brightray"
 NATIVE_MATE_S="${S}/vendor/native_mate"
 PDF_VIEWER_S="${S}/vendor/pdf_viewer"
 GRIT_S="${PDF_VIEWER_S}/vendor/grit"
-LIBCC_S="${BRIGHTRAY_S}/vendor/libchromiumcontent"
+LIBCC_S="${S}/vendor/libchromiumcontent"
 
 LICENSE="BSD"
 SLOT="$(get_version_component_range 1-2)"
 KEYWORDS="~amd64"
-IUSE="cups custom-cflags gnome gnome-keyring kerberos lto neon pic +proprietary-codecs pulseaudio selinux +system-ffmpeg +tcmalloc"
+IUSE="cups custom-cflags gconf gnome-keyring kerberos lto neon pic +proprietary-codecs pulseaudio selinux +system-ffmpeg +tcmalloc"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
 
 # Native Client binaries are compiled with different set of flags, bug #452066.
@@ -99,18 +96,21 @@ COMMON_DEPEND="
 	dev-libs/glib:2
 	>=dev-libs/icu-58:=
 	>=dev-libs/jsoncpp-0.5.0-r1:=
+	dev-libs/libxml2:=[icu]
+	dev-libs/libxslt:=
 	dev-libs/nspr:=
 	>=dev-libs/nss-3.14.3:=
 	>=dev-libs/re2-0.2016.05.01:=
-	gnome? ( >=gnome-base/gconf-2.24.0:= )
+	gconf? ( >=gnome-base/gconf-2.24.0:= )
 	gnome-keyring? ( >=gnome-base/libgnome-keyring-3.12:= )
 	>=media-libs/alsa-lib-1.0.19:=
 	media-libs/fontconfig:=
 	media-libs/freetype:=
+	>=media-libs/harfbuzz-1.3.1:=[icu(+)]
 	media-libs/libexif:=
 	media-libs/libjpeg-turbo:=
 	media-libs/libpng:=
-	media-libs/libvpx:=[svc]
+	media-libs/libvpx:=[postproc,svc]
 	media-libs/speex:=
 	pulseaudio? ( media-sound/pulseaudio:= )
 	system-ffmpeg? ( >=media-video/ffmpeg-3:= )
@@ -136,10 +136,7 @@ COMMON_DEPEND="
 	x11-libs/libXtst:=
 	x11-libs/pango:=
 	app-arch/snappy:=
-	dev-libs/libxml2:=[icu]
-	dev-libs/libxslt:=
 	media-libs/flac:=
-	>=media-libs/harfbuzz-1.3.1:=[icu(+)]
 	>=media-libs/libwebp-0.4.0:=
 	sys-libs/zlib:=[minizip]
 	kerberos? ( virtual/krb5 )
@@ -309,8 +306,6 @@ src_prepare() {
 		mv "${WORKDIR}/${BREAKPAD_P}" "${BREAKPAD_S}" || die
 	rm -r "${BREAKPAD_SRC_S}" &&
 		mv "${WORKDIR}/${BREAKPAD_SRC_P}/src" "${BREAKPAD_SRC_S}" || die
-	rm -r "${BRIGHTRAY_S}" &&
-		mv "${WORKDIR}/${BRIGHTRAY_P}" "${BRIGHTRAY_S}" || die
 	rm -r "${NATIVE_MATE_S}" &&
 		mv "${WORKDIR}/${NATIVE_MATE_P}" "${NATIVE_MATE_S}" || die
 	rm -r "${PDF_VIEWER_S}" &&
@@ -336,6 +331,7 @@ src_prepare() {
 	sed -i -e "s/|| 'python'/|| '${EPYTHON}'/" \
 		deps/npm/node_modules/node-gyp/lib/configure.js || die
 
+	python_fix_shebang "${CHROMIUM_S}/chrome/browser"
 	python_fix_shebang "${CHROMIUM_S}/build/gyp_chromium"
 	python_fix_shebang "${S}/tools/"
 
@@ -348,6 +344,10 @@ src_prepare() {
 	sed -i -e "s|lib/|${LIBDIR}/|g" tools/install.py || die
 	sed -i -e "s/'lib'/'${LIBDIR}'/" lib/module.js || die
 	sed -i -e "s|\"lib\"|\"${LIBDIR}\"|" deps/npm/lib/npm.js || die
+
+	# Fix broken patch
+	cd "${LIBCC_S}" || die
+	eapply "${FILESDIR}/electron-1.7.13-v8-crankshaft-rce-fix.patch"
 
 	# Apply libcc Chromium patches.
 	cd "${CHROMIUM_S}" || die
@@ -435,6 +435,8 @@ src_prepare() {
 		third_party/mesa
 		third_party/modp_b64
 		third_party/mt19937ar
+		third_party/node
+		third_party/node/node_modules/vulcanize/third_party/UglifyJS2
 		third_party/openh264
 		third_party/openmax_dl
 		third_party/opus
@@ -541,7 +543,7 @@ src_configure() {
 
 	# Optional dependencies.
 	myconf_gn+=" use_cups=$(usex cups true false)"
-	myconf_gn+=" use_gconf=$(usex gnome true false)"
+	myconf_gn+=" use_gconf=$(usex gconf true false)"
 	myconf_gn+=" use_gnome_keyring=$(usex gnome-keyring true false)"
 	myconf_gn+=" use_gtk3=false"
 	myconf_gn+=" use_kerberos=$(usex kerberos true false)"
@@ -671,15 +673,10 @@ src_configure() {
 	myconf_gn+=" root_extra_deps = [\"//chromiumcontent:chromiumcontent\"]"
 	myconf_gn+=" is_electron_build = true"
 	myconf_gn+=" is_component_build = false"
+	myconf_gn+=" use_allocator=$(usex tcmalloc \"tcmalloc\" \"none\")"
 
 	einfo "Configuring chromiumcontent..."
-	# TODO: bootstrapped gn binary hangs when using tcmalloc with portage's sandbox.
-	tools/gn/bootstrap/bootstrap.py -v --gn-gen-args "${myconf_gn} use_allocator=\"none\"" || die
-	# Remove the glibc allocator shim so that it doesn't get picked up
-	# by Electron's build_libs script.
-	rm out/Release/obj/base/allocator/unified_allocator_shim/allocator_shim_default_dispatch_to_glibc.o || die
-
-	myconf_gn+=" use_allocator=$(usex tcmalloc \"tcmalloc\" \"none\")"
+	tools/gn/bootstrap/bootstrap.py -v --gn-gen-args "${myconf_gn}" || die
 	out/Release/gn gen --args="${myconf_gn}" out/Release || die
 
 	cd "${S}" || die
@@ -706,7 +703,7 @@ src_compile() {
 	local compile_target="${S}/out/R"
 	local myconf_gyp=""
 	local chromium_target="${CHROMIUM_S}/out/Release"
-	local libcc_path="${S}/vendor/brightray/vendor/libchromiumcontent"
+	local libcc_path="${S}/vendor/libchromiumcontent"
 	local libcc_dist_path="${libcc_path}/dist/main"
 	local libcc_dist_static_path="${libcc_dist_path}/static_library"
 	local libcc_dist_shared_path="${libcc_dist_path}/shared_library"
@@ -741,6 +738,7 @@ src_compile() {
 	create_dist_args+=" --no_zip"
 	create_dist_args+=" --system-icu"
 	CHROMIUM_BUILD_DIR="${chromium_target}" \
+	PYTHONPATH="${WORKDIR}/ninja-${NINJA_VERSION}/misc" \
 	"${EPYTHON}" "${libcc_path}"/script/create-dist ${create_dist_args} || die
 
 	# v8 is built as a shared library, so copy it manually
@@ -757,7 +755,7 @@ src_compile() {
 	# Configure electron.
 	myconf_gyp+="
 		$(gyp_use cups)
-		$(gyp_use gnome use_gconf)
+		$(gyp_use gconf use_gconf)
 		$(gyp_use gnome-keyring use_gnome_keyring)
 		$(gyp_use gnome-keyring linux_link_gnome_keyring)
 		$(gyp_use lto)"
