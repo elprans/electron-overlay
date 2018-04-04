@@ -77,7 +77,8 @@ LIBCC_S="${S}/vendor/libchromiumcontent"
 LICENSE="BSD"
 SLOT="$(get_version_component_range 1-2)"
 KEYWORDS="~amd64"
-IUSE="cups custom-cflags gconf gnome-keyring kerberos lto neon pic +proprietary-codecs pulseaudio selinux +system-ffmpeg +tcmalloc"
+IUSE="cups custom-cflags gconf gnome-keyring gtk3 kerberos lto neon pic
+	  +proprietary-codecs pulseaudio selinux +system-ffmpeg +tcmalloc"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
 
 # Native Client binaries are compiled with different set of flags, bug #452066.
@@ -110,7 +111,7 @@ COMMON_DEPEND="
 	media-libs/libexif:=
 	media-libs/libjpeg-turbo:=
 	media-libs/libpng:=
-	>=media-libs/libvpx-1.7.0:=[postproc,svc]
+	media-libs/libvpx:=[postproc,svc]
 	media-libs/speex:=
 	pulseaudio? ( media-sound/pulseaudio:= )
 	system-ffmpeg? ( >=media-video/ffmpeg-3:= )
@@ -147,7 +148,8 @@ RDEPEND="${COMMON_DEPEND}
 	x11-misc/xdg-utils
 	virtual/opengl
 	virtual/ttf-fonts
-	x11-libs/gtk+:2
+	!gtk3? ( x11-libs/gtk+:2 )
+	gtk3? ( x11-libs/gtk+:3[X] )
 	selinux? ( sec-policy/selinux-chromium )
 	tcmalloc? ( !<x11-drivers/nvidia-drivers-331.20 )
 "
@@ -364,6 +366,11 @@ src_prepare() {
 	cp -a "${LIBCC_S}/chromiumcontent" "${CHROMIUM_S}/" || die
 	cp -a "${LIBCC_S}/tools/linux/" "${CHROMIUM_S}/tools/" || die
 
+	if use gtk3; then
+		sed -i -e 's/gtk2/gtk3/g' "${CHROMIUM_S}/chromiumcontent/BUILD.gn" \
+		|| die
+	fi
+
 	local keeplibs=(
 		base/third_party/dmg_fp
 		base/third_party/dynamic_annotations
@@ -545,7 +552,7 @@ src_configure() {
 	myconf_gn+=" use_cups=$(usex cups true false)"
 	myconf_gn+=" use_gconf=$(usex gconf true false)"
 	myconf_gn+=" use_gnome_keyring=$(usex gnome-keyring true false)"
-	myconf_gn+=" use_gtk3=false"
+	myconf_gn+=" use_gtk3=$(usex gtk3 true false)"
 	myconf_gn+=" use_kerberos=$(usex kerberos true false)"
 	myconf_gn+=" use_pulseaudio=$(usex pulseaudio true false)"
 
@@ -758,6 +765,7 @@ src_compile() {
 		$(gyp_use gconf use_gconf)
 		$(gyp_use gnome-keyring use_gnome_keyring)
 		$(gyp_use gnome-keyring linux_link_gnome_keyring)
+		$(gyp_use gtk3)
 		$(gyp_use lto)"
 
 	myconf_gyp+=" -Duse_system_icu=1"
