@@ -349,7 +349,7 @@ src_prepare() {
 
 	# Fix broken patch
 	cd "${LIBCC_S}" || die
-	eapply "${FILESDIR}/electron-1.7.13-v8-crankshaft-rce-fix.patch"
+	eapply "${FILESDIR}/${P}-v8-crankshaft-rce-fix.patch"
 
 	# Apply libcc Chromium patches.
 	cd "${CHROMIUM_S}" || die
