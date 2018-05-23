@@ -1,31 +1,31 @@
-From 5e093b9568891cda78f080cf2aaaf38661a4d2c1 Mon Sep 17 00:00:00 2001
+From 5f1f840372611b8f42d8fd3be7b680f90958f015 Mon Sep 17 00:00:00 2001
 From: Elvis Pranskevichus <elvis@magic.io>
 Date: Wed, 28 Mar 2018 18:52:58 -0400
 Subject: [PATCH] Unbreak config watcher in the main process
 
 ---
- src/path-watcher.js | 13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ src/path-watcher.js | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
 diff --git a/src/path-watcher.js b/src/path-watcher.js
-index ff7e8fd56..44a59dec7 100644
+index 6693489ef..f3ddc6fe4 100644
 --- a/src/path-watcher.js
 +++ b/src/path-watcher.js
-@@ -176,7 +176,7 @@ class NativeWatcher {
-     this.onEvents = this.onEvents.bind(this)
-     this.onError = this.onError.bind(this)
- 
--    this.subs.add(atom.config.onDidChange('core.fileSystemWatcher', async () => {
-+    this.subs.add(this.getConfig().onDidChange('core.fileSystemWatcher', async () => {
-       if (this.state === WATCHER_STATE.STARTING) {
-         // Wait for this watcher to finish starting.
-         await new Promise(resolve => {
-@@ -197,9 +197,18 @@ class NativeWatcher {
-     }))
+@@ -544,12 +544,22 @@ class PathWatcherManager {
+   // Private: Access the currently active manager instance, creating one if necessary.
+   static active () {
+     if (!this.activeManager) {
+-      this.activeManager = new PathWatcherManager(atom.config.get('core.fileSystemWatcher'))
+-      this.sub = atom.config.onDidChange('core.fileSystemWatcher', ({newValue}) => { this.transitionTo(newValue) })
++      let config = this.getConfig()
++      this.activeManager = new PathWatcherManager(config.get('core.fileSystemWatcher'))
++      this.sub = config.onDidChange('core.fileSystemWatcher', ({newValue}) => { this.transitionTo(newValue) })
+     }
+     return this.activeManager
    }
  
 +  // Private: get config instance for the current application
-+  getConfig() {
++  static getConfig() {
 +    if (typeof(global.atom) != 'undefined') {
 +      return global.atom.config
 +    } else {
@@ -33,13 +33,9 @@ index ff7e8fd56..44a59dec7 100644
 +    }
 +  }
 +
-   // Private: Read the `core.fileSystemWatcher` setting to determine the filesystem backend to use.
-   getCurrentBackend () {
--    const setting = atom.config.get('core.fileSystemWatcher')
-+    const setting = this.getConfig().get('core.fileSystemWatcher')
-     return BACKENDS[setting] || DEFAULT_BACKEND
-   }
- 
+   // Private: Replace the active {PathWatcherManager} with a new one that creates [NativeWatchers]{NativeWatcher}
+   // based on the value of `setting`.
+   static async transitionTo (setting) {
 -- 
-2.16.1
+2.17.0
 

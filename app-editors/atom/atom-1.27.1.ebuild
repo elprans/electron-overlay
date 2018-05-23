@@ -15,8 +15,8 @@ DESCRIPTION="A hackable text editor for the 21st Century"
 HOMEPAGE="https://atom.io"
 MY_PV="${PV//_/-}"
 
-ELECTRON_V=1.6.15
-ELECTRON_SLOT=1.6
+ELECTRON_V=1.7.15
+ELECTRON_SLOT=1.7
 
 ASAR_V=0.13.0
 # All binary packages depend on this
@@ -26,16 +26,22 @@ ATOM__NSFW_V=1.0.18
 CACHED_RUN_IN_THIS_CONTEXT_V=0.4.1
 CTAGS_V=3.0.0
 FS_ADMIN_V=0.1.6
-GIT_UTILS_V=5.1.0
+GIT_UTILS_V=5.3.1
 KEYBOARD_LAYOUT_V=2.0.13
-KEYTAR_V=4.1.0
-NSFW_V=1.0.16
 NSLOG_V=3.0.0
 ONIGURUMA_V=6.2.1
 PATHWATCHER_V=8.0.1
 SCROLLBAR_STYLE_V=3.2.0
 SPELLCHECKER_V=3.4.4
-SUPERSTRING_V=2.2.16
+SUPERSTRING_V=2.3.0
+TREE_SITTER_V=0.11.2
+TREE_SITTER_BASH_V=0.11.0
+TREE_SITTER_C_V=0.11.4
+TREE_SITTER_CPP_V=0.11.3
+TREE_SITTER_GO_V=0.11.0
+TREE_SITTER_JAVASCRIPT_V=0.11.1
+TREE_SITTER_PYTHON_V=0.11.3
+TREE_SITTER_TYPESCRIPT_V=0.11.0
 
 # The x86_64 arch below is irrelevant, as we will rebuild all binary packages.
 SRC_URI="
@@ -47,16 +53,22 @@ SRC_URI="
 	https://registry.npmjs.org/cached-run-in-this-context/-/cached-run-in-this-context-0.4.1.tgz -> atomdep-cached-run-in-this-context-0.4.1.tar.gz
 	https://registry.npmjs.org/ctags/-/ctags-3.0.0.tgz -> atomdep-ctags-3.0.0.tar.gz
 	https://registry.npmjs.org/fs-admin/-/fs-admin-0.1.6.tgz -> atomdep-fs-admin-0.1.6.tar.gz
-	https://registry.npmjs.org/git-utils/-/git-utils-5.1.0.tgz -> atomdep-git-utils-5.1.0.tar.gz
+	https://registry.npmjs.org/git-utils/-/git-utils-5.3.1.tgz -> atomdep-git-utils-5.3.1.tar.gz
 	https://registry.npmjs.org/keyboard-layout/-/keyboard-layout-2.0.13.tgz -> atomdep-keyboard-layout-2.0.13.tar.gz
-	https://registry.npmjs.org/keytar/-/keytar-4.1.0.tgz -> atomdep-keytar-4.1.0.tar.gz
-	https://registry.npmjs.org/nsfw/-/nsfw-1.0.16.tgz -> atomdep-nsfw-1.0.16.tar.gz
 	https://registry.npmjs.org/nslog/-/nslog-3.0.0.tgz -> atomdep-nslog-3.0.0.tar.gz
 	https://registry.npmjs.org/oniguruma/-/oniguruma-6.2.1.tgz -> atomdep-oniguruma-6.2.1.tar.gz
 	https://registry.npmjs.org/pathwatcher/-/pathwatcher-8.0.1.tgz -> atomdep-pathwatcher-8.0.1.tar.gz
 	https://registry.npmjs.org/scrollbar-style/-/scrollbar-style-3.2.0.tgz -> atomdep-scrollbar-style-3.2.0.tar.gz
 	https://registry.npmjs.org/spellchecker/-/spellchecker-3.4.4.tgz -> atomdep-spellchecker-3.4.4.tar.gz
-	https://registry.npmjs.org/superstring/-/superstring-2.2.16.tgz -> atomdep-superstring-2.2.16.tar.gz
+	https://registry.npmjs.org/superstring/-/superstring-2.3.0.tgz -> atomdep-superstring-2.3.0.tar.gz
+	https://registry.npmjs.org/tree-sitter/-/tree-sitter-0.11.2.tgz -> atomdep-tree-sitter-0.11.2.tar.gz
+	https://registry.npmjs.org/tree-sitter-bash/-/tree-sitter-bash-0.11.0.tgz -> atomdep-tree-sitter-bash-0.11.0.tar.gz
+	https://registry.npmjs.org/tree-sitter-c/-/tree-sitter-c-0.11.4.tgz -> atomdep-tree-sitter-c-0.11.4.tar.gz
+	https://registry.npmjs.org/tree-sitter-cpp/-/tree-sitter-cpp-0.11.3.tgz -> atomdep-tree-sitter-cpp-0.11.3.tar.gz
+	https://registry.npmjs.org/tree-sitter-go/-/tree-sitter-go-0.11.0.tgz -> atomdep-tree-sitter-go-0.11.0.tar.gz
+	https://registry.npmjs.org/tree-sitter-javascript/-/tree-sitter-javascript-0.11.1.tgz -> atomdep-tree-sitter-javascript-0.11.1.tar.gz
+	https://registry.npmjs.org/tree-sitter-python/-/tree-sitter-python-0.11.3.tgz -> atomdep-tree-sitter-python-0.11.3.tar.gz
+	https://registry.npmjs.org/tree-sitter-typescript/-/tree-sitter-typescript-0.11.0.tgz -> atomdep-tree-sitter-typescript-0.11.0.tar.gz
 "
 
 BINMODS=(
@@ -66,14 +78,20 @@ BINMODS=(
 	fs-admin
 	git-utils
 	keyboard-layout
-	keytar
-	nsfw
 	nslog
 	oniguruma
 	pathwatcher
 	scrollbar-style
 	spellchecker
 	superstring
+	tree-sitter
+	tree-sitter-bash
+	tree-sitter-c
+	tree-sitter-cpp
+	tree-sitter-go
+	tree-sitter-javascript
+	tree-sitter-python
+	tree-sitter-typescript
 )
 
 LICENSE="MIT"
@@ -145,11 +163,15 @@ src_prepare() {
 
 	eapply "${FILESDIR}/atom-python.patch"
 	eapply "${FILESDIR}/apm-python.patch"
-	eapply "${FILESDIR}/atom-unbundle-electron-r1.patch"
+	eapply "${FILESDIR}/atom-unbundle-electron-r2.patch"
 	eapply "${FILESDIR}/atom-apm-path-r2.patch"
-	eapply "${FILESDIR}/atom-license-path-r1.patch"
-	eapply "${FILESDIR}/atom-fix-app-restart-r1.patch"
+	eapply "${FILESDIR}/atom-fix-app-restart-r2.patch"
 	eapply "${FILESDIR}/atom-marker-layer-r1.patch"
+	eapply "${FILESDIR}/atom-fix-config-watcher-r1.patch"
+
+	sed -i -e "s|path.join(process.resourcesPath, 'LICENSE.md')|'/usr/share/licenses/$(get_atom_appname)/LICENSE.md'|g" \
+		./src/main-process/atom-application.js \
+		|| die
 
 	sed -i -e "s|{{NPM_CONFIG_NODEDIR}}|$(get_electron_nodedir)|g" \
 		./atom.sh \
