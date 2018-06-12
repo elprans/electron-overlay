@@ -72,18 +72,6 @@ def main():
     git('add', '--force', '.', cwd=args.target)
     git('commit', '-m', 'libchromiumcontent patches', cwd=args.target)
 
-    patches = []
-    for patch in info.gentoo_patches:
-        with open(patch, 'r') as f:
-            patch_text = f.read()
-        patches.append(
-            (os.path.basename(patch), patch_text)
-        )
-
-    apply_patches(patches, args.target)
-    git('add', '--force', '.', cwd=args.target)
-    git('commit', '-m', 'gentoo patches', cwd=args.target)
-
     unbundle_libs(info, args.target)
     git('add', '--force', '.', cwd=args.target)
     git('commit', '-m', 'unbundled libraries', cwd=args.target)
@@ -116,7 +104,6 @@ ElectronInfo = collections.namedtuple(
     'ElectronInfo', [
         'chromium_version',
         'libcc_version',
-        'gentoo_patches',
         'bundled_libraries',
         'gn_system_libraries',
     ]
@@ -137,19 +124,6 @@ def parse_electron_ebuild(ebuild_fn):
         die('could not find libchromiumcontent version in {}'.format(
             ebuild_fn))
     libcc_ver = libcc_ver.group(1)
-
-    patches = _patch_re.search(ebuild)
-    if not patches:
-        die('could not find gentoo patches in {}'.format(
-            ebuild_fn))
-    patch_names = list(filter(
-        None, (p.strip(' \n\t') for p in patches.group(1).split('\n'))))
-    patches = []
-    for pn in patch_names:
-        patch = os.path.join(os.path.dirname(ebuild_fn), 'files', pn)
-        if not os.path.exists(patch):
-            die('{}: no such file or directory'.format(patch))
-        patches.append(patch)
 
     bundled = _bundled_re.search(ebuild)
     if not bundled:
@@ -172,7 +146,6 @@ def parse_electron_ebuild(ebuild_fn):
     return ElectronInfo(
         chromium_version=ver,
         libcc_version=libcc_ver,
-        gentoo_patches=patches,
         bundled_libraries=bundled_libs,
         gn_system_libraries=gn_syslibs,
     )

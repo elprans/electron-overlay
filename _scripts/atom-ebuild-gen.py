@@ -156,6 +156,12 @@ def find_atom_deps(sha):
     npm_deps = package_json['dependencies']
     find_binary_deps(npm_deps, binary_deps, parents=['atom'])
 
+    apm_package_json = get_repo_package_json(repodir(ATOM_REPO_URL), sha=sha,
+                                             path='apm/package.json')
+
+    apm_deps = apm_package_json['dependencies']
+    find_binary_deps(apm_deps, binary_deps, parents=['atom'])
+
     atomio_deps = package_json['packageDependencies']
     find_binary_deps(atomio_deps, binary_deps, parents=['atom'],
                      registries=(ATOM_REGISTRY, NPM_REGISTRY))
@@ -580,16 +586,16 @@ def get_tags(reponame):
         sorted(tags, key=lambda v: v[0], reverse=True))
 
 
-def get_repo_package_json(reponame, sha='HEAD'):
+def get_repo_package_json(reponame, sha='HEAD', path='package.json'):
     repo_dir = os.path.join(CACHEDIR, reponame)
 
-    package_json = git('show', '{}:package.json'.format(sha), cwd=repo_dir)
+    package_json = git('show', '{}:{}'.format(sha, path), cwd=repo_dir)
 
     try:
         package_json = json.loads(package_json)
     except Exception as e:
-        die('could not read {}/package.json: {}'.format(
-            reponame, traceback.format_exception_only(type(e), e)
+        die('could not read {}/{}: {}'.format(
+            reponame, path, traceback.format_exception_only(type(e), e)
         ))
 
     return package_json
@@ -714,6 +720,19 @@ def get_package_archive(repo_url, version):
     )
 
 
+def is_binary(metadata):
+    # Detect if the package is binary from its npm metadata.
+    if metadata.get('gypfile'):
+        return True
+    deps = metadata.get('dependencies', {})
+    if deps.get('nan') or deps.get('node-pre-gyp'):
+        return True
+    devdeps = metadata.get('devDependencies', {})
+    if devdeps.get('node-pre-gyp'):
+        return True
+    return False
+
+
 def find_binary_deps(deps, result, *, memo=set(), parents,
                      registries=(NPM_REGISTRY,)):
     resolved_deps = {}
@@ -750,7 +769,7 @@ def find_binary_deps(deps, result, *, memo=set(), parents,
             if isinstance(repository, dict):
                 repository = repository['url']
 
-            if metadata.get('gypfile'):
+            if is_binary(metadata):
                 previous = result.get(package)
                 if previous is not None:
                     if previous.version != pkg_ver:
