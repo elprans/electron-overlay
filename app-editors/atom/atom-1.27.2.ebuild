@@ -167,6 +167,7 @@ src_prepare() {
 	eapply "${FILESDIR}/atom-apm-path-r2.patch"
 	eapply "${FILESDIR}/atom-fix-app-restart-r2.patch"
 	eapply "${FILESDIR}/atom-marker-layer-r1.patch"
+	eapply "${FILESDIR}/atom-fix-config-watcher-r1.patch"
 
 	sed -i -e "s|path.join(process.resourcesPath, 'LICENSE.md')|'/usr/share/licenses/$(get_atom_appname)/LICENSE.md'|g" \
 		./src/main-process/atom-application.js \
