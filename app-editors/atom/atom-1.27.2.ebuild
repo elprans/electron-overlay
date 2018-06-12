@@ -35,9 +35,9 @@ SCROLLBAR_STYLE_V=3.2.0
 SPELLCHECKER_V=3.4.4
 SUPERSTRING_V=2.3.0
 TREE_SITTER_V=0.11.2
-TREE_SITTER_BASH_V=0.11.0
+TREE_SITTER_BASH_V=0.11.2
 TREE_SITTER_C_V=0.11.4
-TREE_SITTER_CPP_V=0.11.3
+TREE_SITTER_CPP_V=0.11.4
 TREE_SITTER_GO_V=0.11.0
 TREE_SITTER_JAVASCRIPT_V=0.11.1
 TREE_SITTER_PYTHON_V=0.11.3
@@ -62,9 +62,9 @@ SRC_URI="
 	https://registry.npmjs.org/spellchecker/-/spellchecker-3.4.4.tgz -> atomdep-spellchecker-3.4.4.tar.gz
 	https://registry.npmjs.org/superstring/-/superstring-2.3.0.tgz -> atomdep-superstring-2.3.0.tar.gz
 	https://registry.npmjs.org/tree-sitter/-/tree-sitter-0.11.2.tgz -> atomdep-tree-sitter-0.11.2.tar.gz
-	https://registry.npmjs.org/tree-sitter-bash/-/tree-sitter-bash-0.11.0.tgz -> atomdep-tree-sitter-bash-0.11.0.tar.gz
+	https://registry.npmjs.org/tree-sitter-bash/-/tree-sitter-bash-0.11.2.tgz -> atomdep-tree-sitter-bash-0.11.2.tar.gz
 	https://registry.npmjs.org/tree-sitter-c/-/tree-sitter-c-0.11.4.tgz -> atomdep-tree-sitter-c-0.11.4.tar.gz
-	https://registry.npmjs.org/tree-sitter-cpp/-/tree-sitter-cpp-0.11.3.tgz -> atomdep-tree-sitter-cpp-0.11.3.tar.gz
+	https://registry.npmjs.org/tree-sitter-cpp/-/tree-sitter-cpp-0.11.4.tgz -> atomdep-tree-sitter-cpp-0.11.4.tar.gz
 	https://registry.npmjs.org/tree-sitter-go/-/tree-sitter-go-0.11.0.tgz -> atomdep-tree-sitter-go-0.11.0.tar.gz
 	https://registry.npmjs.org/tree-sitter-javascript/-/tree-sitter-javascript-0.11.1.tgz -> atomdep-tree-sitter-javascript-0.11.1.tar.gz
 	https://registry.npmjs.org/tree-sitter-python/-/tree-sitter-python-0.11.3.tgz -> atomdep-tree-sitter-python-0.11.3.tar.gz
@@ -167,7 +167,6 @@ src_prepare() {
 	eapply "${FILESDIR}/atom-apm-path-r2.patch"
 	eapply "${FILESDIR}/atom-fix-app-restart-r2.patch"
 	eapply "${FILESDIR}/atom-marker-layer-r1.patch"
-	eapply "${FILESDIR}/atom-fix-config-watcher-r1.patch"
 
 	sed -i -e "s|path.join(process.resourcesPath, 'LICENSE.md')|'/usr/share/licenses/$(get_atom_appname)/LICENSE.md'|g" \
 		./src/main-process/atom-application.js \
