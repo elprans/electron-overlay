@@ -23,11 +23,13 @@ ASAR_V=0.13.0
 NAN_V=2.6.2
 
 ATOM__NSFW_V=1.0.18
+ATOM__WATCHER_V=1.0.3
 CACHED_RUN_IN_THIS_CONTEXT_V=0.4.1
 CTAGS_V=3.0.0
 FS_ADMIN_V=0.1.6
 GIT_UTILS_V=5.3.1
 KEYBOARD_LAYOUT_V=2.0.13
+KEYTAR_V=4.2.1
 NSLOG_V=3.0.0
 ONIGURUMA_V=6.2.1
 PATHWATCHER_V=8.0.1
@@ -50,11 +52,13 @@ SRC_URI="
 	https://github.com/elprans/asar/releases/download/v${ASAR_V}-gentoo/asar-build.tar.gz -> asar-${ASAR_V}.tar.gz
 	https://github.com/nodejs/nan/archive/v${NAN_V}.tar.gz -> nodejs-nan-${NAN_V}.tar.gz
 	https://registry.npmjs.org/@atom/nsfw/-/nsfw-1.0.18.tgz -> atomdep-atom--nsfw-1.0.18.tar.gz
+	https://registry.npmjs.org/@atom/watcher/-/watcher-1.0.3.tgz -> atomdep-atom--watcher-1.0.3.tar.gz
 	https://registry.npmjs.org/cached-run-in-this-context/-/cached-run-in-this-context-0.4.1.tgz -> atomdep-cached-run-in-this-context-0.4.1.tar.gz
 	https://registry.npmjs.org/ctags/-/ctags-3.0.0.tgz -> atomdep-ctags-3.0.0.tar.gz
 	https://registry.npmjs.org/fs-admin/-/fs-admin-0.1.6.tgz -> atomdep-fs-admin-0.1.6.tar.gz
 	https://registry.npmjs.org/git-utils/-/git-utils-5.3.1.tgz -> atomdep-git-utils-5.3.1.tar.gz
 	https://registry.npmjs.org/keyboard-layout/-/keyboard-layout-2.0.13.tgz -> atomdep-keyboard-layout-2.0.13.tar.gz
+	https://registry.npmjs.org/keytar/-/keytar-4.2.1.tgz -> atomdep-keytar-4.2.1.tar.gz
 	https://registry.npmjs.org/nslog/-/nslog-3.0.0.tgz -> atomdep-nslog-3.0.0.tar.gz
 	https://registry.npmjs.org/oniguruma/-/oniguruma-6.2.1.tgz -> atomdep-oniguruma-6.2.1.tar.gz
 	https://registry.npmjs.org/pathwatcher/-/pathwatcher-8.0.1.tgz -> atomdep-pathwatcher-8.0.1.tar.gz
@@ -73,11 +77,13 @@ SRC_URI="
 
 BINMODS=(
 	atom--nsfw
+	atom--watcher
 	cached-run-in-this-context
 	ctags
 	fs-admin
 	git-utils
 	keyboard-layout
+	keytar
 	nslog
 	oniguruma
 	pathwatcher
