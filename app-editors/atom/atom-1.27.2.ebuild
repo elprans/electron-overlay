@@ -9,7 +9,7 @@
 EAPI=6
 
 PYTHON_COMPAT=( python2_7 )
-inherit python-single-r1 multiprocessing rpm virtualx xdg-utils
+inherit multiprocessing python-single-r1 rpm virtualx xdg-utils
 
 DESCRIPTION="A hackable text editor for the 21st Century"
 HOMEPAGE="https://atom.io"
@@ -51,28 +51,28 @@ SRC_URI="
 	https://github.com/${PN}/${PN}/archive/v${MY_PV}.tar.gz -> atom-${MY_PV}.tar.gz
 	https://github.com/elprans/asar/releases/download/v${ASAR_V}-gentoo/asar-build.tar.gz -> asar-${ASAR_V}.tar.gz
 	https://github.com/nodejs/nan/archive/v${NAN_V}.tar.gz -> nodejs-nan-${NAN_V}.tar.gz
-	https://registry.npmjs.org/@atom/nsfw/-/nsfw-1.0.18.tgz -> atomdep-atom--nsfw-1.0.18.tar.gz
-	https://registry.npmjs.org/@atom/watcher/-/watcher-1.0.3.tgz -> atomdep-atom--watcher-1.0.3.tar.gz
-	https://registry.npmjs.org/cached-run-in-this-context/-/cached-run-in-this-context-0.4.1.tgz -> atomdep-cached-run-in-this-context-0.4.1.tar.gz
-	https://registry.npmjs.org/ctags/-/ctags-3.0.0.tgz -> atomdep-ctags-3.0.0.tar.gz
-	https://registry.npmjs.org/fs-admin/-/fs-admin-0.1.6.tgz -> atomdep-fs-admin-0.1.6.tar.gz
-	https://registry.npmjs.org/git-utils/-/git-utils-5.3.1.tgz -> atomdep-git-utils-5.3.1.tar.gz
-	https://registry.npmjs.org/keyboard-layout/-/keyboard-layout-2.0.13.tgz -> atomdep-keyboard-layout-2.0.13.tar.gz
-	https://registry.npmjs.org/keytar/-/keytar-4.2.1.tgz -> atomdep-keytar-4.2.1.tar.gz
-	https://registry.npmjs.org/nslog/-/nslog-3.0.0.tgz -> atomdep-nslog-3.0.0.tar.gz
-	https://registry.npmjs.org/oniguruma/-/oniguruma-6.2.1.tgz -> atomdep-oniguruma-6.2.1.tar.gz
-	https://registry.npmjs.org/pathwatcher/-/pathwatcher-8.0.1.tgz -> atomdep-pathwatcher-8.0.1.tar.gz
-	https://registry.npmjs.org/scrollbar-style/-/scrollbar-style-3.2.0.tgz -> atomdep-scrollbar-style-3.2.0.tar.gz
-	https://registry.npmjs.org/spellchecker/-/spellchecker-3.4.4.tgz -> atomdep-spellchecker-3.4.4.tar.gz
-	https://registry.npmjs.org/superstring/-/superstring-2.3.0.tgz -> atomdep-superstring-2.3.0.tar.gz
-	https://registry.npmjs.org/tree-sitter/-/tree-sitter-0.11.2.tgz -> atomdep-tree-sitter-0.11.2.tar.gz
-	https://registry.npmjs.org/tree-sitter-bash/-/tree-sitter-bash-0.11.2.tgz -> atomdep-tree-sitter-bash-0.11.2.tar.gz
-	https://registry.npmjs.org/tree-sitter-c/-/tree-sitter-c-0.11.4.tgz -> atomdep-tree-sitter-c-0.11.4.tar.gz
-	https://registry.npmjs.org/tree-sitter-cpp/-/tree-sitter-cpp-0.11.4.tgz -> atomdep-tree-sitter-cpp-0.11.4.tar.gz
-	https://registry.npmjs.org/tree-sitter-go/-/tree-sitter-go-0.11.0.tgz -> atomdep-tree-sitter-go-0.11.0.tar.gz
-	https://registry.npmjs.org/tree-sitter-javascript/-/tree-sitter-javascript-0.11.1.tgz -> atomdep-tree-sitter-javascript-0.11.1.tar.gz
-	https://registry.npmjs.org/tree-sitter-python/-/tree-sitter-python-0.11.3.tgz -> atomdep-tree-sitter-python-0.11.3.tar.gz
-	https://registry.npmjs.org/tree-sitter-typescript/-/tree-sitter-typescript-0.11.0.tgz -> atomdep-tree-sitter-typescript-0.11.0.tar.gz
+	https://registry.npmjs.org/@atom/nsfw/-/nsfw-1.0.18.tgz -> atomdep-atom--nsfw-${ATOM__NSFW_V}.tar.gz
+	https://registry.npmjs.org/@atom/watcher/-/watcher-1.0.3.tgz -> atomdep-atom--watcher-${ATOM__WATCHER_V}.tar.gz
+	https://registry.npmjs.org/cached-run-in-this-context/-/cached-run-in-this-context-0.4.1.tgz -> atomdep-cached-run-in-this-context-${CACHED_RUN_IN_THIS_CONTEXT_V}.tar.gz
+	https://registry.npmjs.org/ctags/-/ctags-3.0.0.tgz -> atomdep-ctags-${CTAGS_V}.tar.gz
+	https://registry.npmjs.org/fs-admin/-/fs-admin-0.1.6.tgz -> atomdep-fs-admin-${FS_ADMIN_V}.tar.gz
+	https://registry.npmjs.org/git-utils/-/git-utils-5.3.1.tgz -> atomdep-git-utils-${GIT_UTILS_V}.tar.gz
+	https://registry.npmjs.org/keyboard-layout/-/keyboard-layout-2.0.13.tgz -> atomdep-keyboard-layout-${KEYBOARD_LAYOUT_V}.tar.gz
+	https://registry.npmjs.org/keytar/-/keytar-4.2.1.tgz -> atomdep-keytar-${KEYTAR_V}.tar.gz
+	https://registry.npmjs.org/nslog/-/nslog-3.0.0.tgz -> atomdep-nslog-${NSLOG_V}.tar.gz
+	https://registry.npmjs.org/oniguruma/-/oniguruma-6.2.1.tgz -> atomdep-oniguruma-${ONIGURUMA_V}.tar.gz
+	https://registry.npmjs.org/pathwatcher/-/pathwatcher-8.0.1.tgz -> atomdep-pathwatcher-${PATHWATCHER_V}.tar.gz
+	https://registry.npmjs.org/scrollbar-style/-/scrollbar-style-3.2.0.tgz -> atomdep-scrollbar-style-${SCROLLBAR_STYLE_V}.tar.gz
+	https://registry.npmjs.org/spellchecker/-/spellchecker-3.4.4.tgz -> atomdep-spellchecker-${SPELLCHECKER_V}.tar.gz
+	https://registry.npmjs.org/superstring/-/superstring-2.3.0.tgz -> atomdep-superstring-${SUPERSTRING_V}.tar.gz
+	https://registry.npmjs.org/tree-sitter/-/tree-sitter-0.11.2.tgz -> atomdep-tree-sitter-${TREE_SITTER_V}.tar.gz
+	https://registry.npmjs.org/tree-sitter-bash/-/tree-sitter-bash-0.11.2.tgz -> atomdep-tree-sitter-bash-${TREE_SITTER_BASH_V}.tar.gz
+	https://registry.npmjs.org/tree-sitter-c/-/tree-sitter-c-0.11.4.tgz -> atomdep-tree-sitter-c-${TREE_SITTER_C_V}.tar.gz
+	https://registry.npmjs.org/tree-sitter-cpp/-/tree-sitter-cpp-0.11.4.tgz -> atomdep-tree-sitter-cpp-${TREE_SITTER_CPP_V}.tar.gz
+	https://registry.npmjs.org/tree-sitter-go/-/tree-sitter-go-0.11.0.tgz -> atomdep-tree-sitter-go-${TREE_SITTER_GO_V}.tar.gz
+	https://registry.npmjs.org/tree-sitter-javascript/-/tree-sitter-javascript-0.11.1.tgz -> atomdep-tree-sitter-javascript-${TREE_SITTER_JAVASCRIPT_V}.tar.gz
+	https://registry.npmjs.org/tree-sitter-python/-/tree-sitter-python-0.11.3.tgz -> atomdep-tree-sitter-python-${TREE_SITTER_PYTHON_V}.tar.gz
+	https://registry.npmjs.org/tree-sitter-typescript/-/tree-sitter-typescript-0.11.0.tgz -> atomdep-tree-sitter-typescript-${TREE_SITTER_TYPESCRIPT_V}.tar.gz
 "
 
 BINMODS=(
@@ -132,38 +132,56 @@ pkg_setup() {
 src_unpack() {
 	local a
 
+	mkdir "${BIN_S}" || die
+
 	for a in ${A} ; do
-		case ${a} in
-		*.rpm) srcrpm_unpack "${a}" ;;
-		*) _unpack "${a}" ;;
+		case "${a}" in
+			*.rpm)
+				pushd "${BIN_S}" >/dev/null || die
+				srcrpm_unpack "${a}"
+				popd >/dev/null || die
+				;;
+
+			*.tar|*.tar.gz|*.tar.bz2|*.tar.xz)
+				# Tarballs on registry.npmjs.org are wildly inconsistent,
+				# and violate the convention of having ${P} as the top
+				# directory name, so we strip the first component and
+				# unpack into a correct directory explicitly.
+				local basename=${a%.tar.*}
+				local destdir=${WORKDIR}/${basename#atomdep-}
+				mkdir "${destdir}" || die
+				tar -C "${destdir}" -x -o --strip-components 1 \
+					-f "${DISTDIR}/${a}" || die
+				;;
+
+			*)
+				# Fallback to the default unpacker.
+				unpack "${a}"
+				;;
 		esac
 	done
-
-	mkdir "${BIN_S}" || die
-	mv "${WORKDIR}/usr" "${BIN_S}" || die
 }
 
 src_prepare() {
 	local install_dir="$(get_install_dir)"
 	local suffix="$(get_install_suffix)"
 	local nan_s="${WORKDIR}/nodejs-nan-${NAN_V}"
+	local atom_rpmdir=$(get_atom_rpmdir)
 	local patch
 	local binmod
-	local _s
+	local pkgdir
 
 	mkdir "${BUILD_DIR}" || die
-	cp -a "${BIN_S}/$(get_atom_rpmdir)/resources/app" \
+	cp -a "${BIN_S}/${atom_rpmdir}/resources/app" \
 		"${BUILD_DIR}/app" || die
 
 	# Add source files omitted from the upstream binary distribution,
 	# and which we want to include in ours.
-	cp -a -t "${BUILD_DIR}/app" "${S}/spec" || die
+	cp -a "${S}/spec" "${BUILD_DIR}/app" || die
 
 	# Unpack app.asar
-	if [ -e "${BIN_S}/$(get_atom_rpmdir)/resources/app.asar" ]; then
-		easar extract "${BIN_S}/$(get_atom_rpmdir)/resources/app.asar" \
-			"${BUILD_DIR}/app"
-	fi
+	easar extract "${BIN_S}/${atom_rpmdir}/resources/app.asar" \
+		"${BUILD_DIR}/app"
 
 	cd "${BUILD_DIR}/app" || die
 
@@ -180,27 +198,14 @@ src_prepare() {
 		|| die
 
 	sed -i -e "s|{{NPM_CONFIG_NODEDIR}}|$(get_electron_nodedir)|g" \
+			-e "s|{{ATOM_PATH}}|$(get_electron_dir)/electron|g" \
+			-e "s|{{ATOM_RESOURCE_PATH}}|${EROOT%/}${install_dir}/app.asar|g" \
+			-e "s|{{ATOM_PREFIX}}|${EROOT%/}|g" \
+			-e "s|^#!/bin/bash|#!${EROOT%/}/bin/bash|g" \
 		./atom.sh \
 		|| die
 
-	sed -i -e "s|{{ATOM_PATH}}|$(get_electron_dir)/electron|g" \
-		./atom.sh \
-		|| die
-
-	sed -i -e "s|{{ATOM_RESOURCE_PATH}}|${EROOT%/}${install_dir}/app.asar|g" \
-		./atom.sh \
-		|| die
-
-	sed -i -e "s|{{ATOM_PREFIX}}|${EROOT%/}|g" \
-		./atom.sh \
-		|| die
-
-	sed -i -e "s|^#!/bin/bash|#!${EROOT%/}/bin/bash|g" \
-		./atom.sh \
-		|| die
-
-	local env="export NPM_CONFIG_NODEDIR=$(get_electron_nodedir)\n\
-			   export ELECTRON_NO_ASAR=1"
+	local env="export NPM_CONFIG_NODEDIR=$(get_electron_nodedir)\nexport ELECTRON_NO_ASAR=1"
 	sed -i -e \
 		"s|\"\$binDir/\$nodeBin\"|${env}\nexec $(get_electron_dir)/node|g" \
 			apm/bin/apm || die
@@ -215,16 +220,14 @@ src_prepare() {
 
 	rm apm/bin/node || die
 
-	sed -i -e "s|/$(get_atom_rpmdir)/atom|${EROOT%/}/usr/bin/atom${suffix}|g" \
+	sed -i -e "s|/${atom_rpmdir}/atom|${EROOT%/}/usr/bin/atom${suffix}|g" \
 		"${BIN_S}/usr/share/applications/$(get_atom_appname).desktop" || die
 
-	for binmod in ${BINMODS[@]}; do
-		_s="${WORKDIR}/$(package_dir ${binmod})"
-		cd "${_s}" || die
-		if _have_patches_for "${binmod}"; then
-			for patch in "${FILESDIR}"/${binmod}-*.patch; do
-				eapply "${patch}"
-			done
+	for binmod in "${BINMODS[@]}"; do
+		pkgdir="${WORKDIR}/$(package_dir ${binmod})"
+		cd "${pkgdir}" || die
+		if have_patches_for "${binmod}"; then
+			eapply "${FILESDIR}"/${binmod}-*.patch
 		fi
 	done
 
@@ -232,32 +235,32 @@ src_prepare() {
 
 	# Unbundle bundled libs from modules
 
-	_s="${WORKDIR}/$(package_dir git-utils)"
+	pkgdir="${WORKDIR}/$(package_dir git-utils)"
 	${EPYTHON} "${FILESDIR}/gyp-unbundle.py" \
 		--inplace --unbundle "git;libgit2;git2" \
-		"${_s}/binding.gyp" || die
+		"${pkgdir}/binding.gyp" || die
 
-	_s="${WORKDIR}/$(package_dir oniguruma)"
+	pkgdir="${WORKDIR}/$(package_dir oniguruma)"
 	${EPYTHON} "${FILESDIR}/gyp-unbundle.py" \
 		--inplace --unbundle "onig_scanner;oniguruma;onig" \
-		"${_s}/binding.gyp" || die
+		"${pkgdir}/binding.gyp" || die
 
-	_s="${WORKDIR}/$(package_dir spellchecker)"
+	pkgdir="${WORKDIR}/$(package_dir spellchecker)"
 	${EPYTHON} "${FILESDIR}/gyp-unbundle.py" \
 		--inplace --unbundle "spellchecker;hunspell;hunspell" \
-		"${_s}/binding.gyp" || die
+		"${pkgdir}/binding.gyp" || die
 
-	_s="${WORKDIR}/$(package_dir superstring)"
+	pkgdir="${WORKDIR}/$(package_dir superstring)"
 	${EPYTHON} "${FILESDIR}/gyp-unbundle.py" \
 		--inplace --unbundle \
 		"superstring_core;./vendor/pcre/pcre.gyp:pcre;pcre2-16; \
 			-DPCRE2_CODE_UNIT_WIDTH=16" \
-		"${_s}/binding.gyp" || die
+		"${pkgdir}/binding.gyp" || die
 
-	for binmod in ${BINMODS[@]}; do
-		_s="${WORKDIR}/$(package_dir ${binmod})"
-		mkdir -p "${_s}/node_modules" || die
-		ln -s "${nan_s}" "${_s}/node_modules/nan" || die
+	for binmod in "${BINMODS[@]}"; do
+		pkgdir="${WORKDIR}/$(package_dir ${binmod})"
+		mkdir -p "${pkgdir}/node_modules" || die
+		ln -s "${nan_s}" "${pkgdir}/node_modules/nan" || die
 	done
 
 	sed -i -e "s|{{ATOM_PREFIX}}|${EROOT%/}|g" \
@@ -272,7 +275,7 @@ src_prepare() {
 src_configure() {
 	local binmod
 
-	for binmod in ${BINMODS[@]}; do
+	for binmod in "${BINMODS[@]}"; do
 		einfo "Configuring ${binmod}..."
 		cd "${WORKDIR}/$(package_dir ${binmod})" || die
 		enodegyp_atom configure
@@ -281,45 +284,47 @@ src_configure() {
 
 src_compile() {
 	local binmod
-	local x
 	local ctags_d="node_modules/symbols-view/vendor"
 	local jobs=$(makeopts_jobs)
-	local gypopts
+	local unpacked_paths
 
 	# Transpile any yet untranspiled files.
-	ecoffeescript "${BUILD_DIR}/app/spec/*.coffee"
-
-	gypopts="--verbose"
-
-	if [[ ${MAKEOPTS} == *-j* && ${jobs} != 999 ]]; then
-		gypopts+=" --jobs ${jobs}"
-	fi
+	ecoffeescript "${BUILD_DIR}"/app/spec/'*.coffee'
 
 	mkdir -p "${BUILD_DIR}/modules/" || die
 
-	for binmod in ${BINMODS[@]}; do
+	for binmod in "${BINMODS[@]}"; do
+		local binmod_name=${binmod##node-}
+
 		einfo "Building ${binmod}..."
 		cd "${WORKDIR}/$(package_dir ${binmod})" || die
-		enodegyp_atom ${gypopts} build
-		x=${binmod##node-}
-		mkdir -p "${BUILD_DIR}/modules/${x}" || die
-		cp build/Release/*.node "${BUILD_DIR}/modules/${x}" || die
+		enodegyp_atom --verbose --jobs="$(makeopts_jobs)" build
+		mkdir -p "${BUILD_DIR}/modules/${binmod_name}" || die
+		cp build/Release/*.node "${BUILD_DIR}/modules/${binmod_name}" || die
 	done
 
 	# Put compiled binary modules in place
-	_fix_binmods "${BUILD_DIR}/app" "apm"
-	_fix_binmods "${BUILD_DIR}/app" "node_modules"
+	fix_binmods "${BUILD_DIR}/app" "apm"
+	fix_binmods "${BUILD_DIR}/app" "node_modules"
 
 	# Remove non-Linux vendored ctags binaries
 	rm "${BUILD_DIR}/app/${ctags_d}/ctags-darwin" \
-	   "${BUILD_DIR}/app/${ctags_d}/ctags-win32.exe" || die
+		"${BUILD_DIR}/app/${ctags_d}/ctags-win32.exe" || die
 
 	# Re-pack app.asar
 	# Keep unpack rules in sync with build/tasks/generate-asar-task.coffee
+	unpacked_paths=(
+		"*.node"
+		"ctags-config"
+		"ctags-linux"
+		"**/spec/fixtures/**"
+		"**/node_modules/spellchecker/**"
+		"**/resources/atom.png")
+
+	unpacked_paths=$(IFS=,; echo "${unpacked_paths[*]}")
+
 	cd "${BUILD_DIR}" || die
-	x="--unpack={*.node,ctags-config,ctags-linux,**/spec/fixtures/**,**/node_modules/spellchecker/**,**/resources/atom.png}"
-	xd="--unpack-dir=apm"
-	easar pack "${x}" "${xd}" "app" "app.asar"
+	easar pack --unpack="{${unpacked_paths}}" --unpack-dir=apm "app" "app.asar"
 
 	rm -r "${BUILD_DIR}/app.asar.unpacked/apm" || die
 
@@ -359,14 +364,14 @@ src_install() {
 	newexe "${BUILD_DIR}/app/atom.sh" atom
 	insinto "/usr/share/licenses/${PN}${suffix}"
 	doins "${BIN_S}/$(get_atom_rpmdir)/resources/LICENSE.md"
-	dosym "${install_dir}/atom" "/usr/bin/atom${suffix}"
-	dosym "${install_dir}/app/apm/bin/apm" "/usr/bin/apm${suffix}"
+	dosym "../..${install_dir}/atom" "/usr/bin/atom${suffix}"
+	dosym "../..${install_dir}/app/apm/bin/apm" "/usr/bin/apm${suffix}"
 
-	_fix_executables "${install_dir}/app/apm/bin"
-	_fix_executables "${install_dir}/app/apm/node_modules/.bin"
-	_fix_executables "${install_dir}/app/apm/node_modules/npm/bin"
-	_fix_executables "${install_dir}/app/apm/node_modules/npm/bin/node-gyp-bin"
-	_fix_executables "${install_dir}/app/apm/node_modules/node-gyp/bin"
+	fix_executables "${install_dir}/app/apm/bin"
+	fix_executables "${install_dir}/app/apm/node_modules/.bin"
+	fix_executables "${install_dir}/app/apm/node_modules/npm/bin"
+	fix_executables "${install_dir}/app/apm/node_modules/npm/bin/node-gyp-bin"
+	fix_executables "${install_dir}/app/apm/node_modules/node-gyp/bin"
 }
 
 pkg_postinst() {
@@ -382,8 +387,7 @@ pkg_postrm() {
 
 # Return the installation suffix appropriate for the slot.
 get_install_suffix() {
-	local c=(${SLOT//\// })
-	local slot=${c[0]}
+	local slot=${SLOT%%/*}
 	local suffix
 
 	if [[ "${slot}" == "0" ]]; then
@@ -392,42 +396,42 @@ get_install_suffix() {
 		suffix="-${slot}"
 	fi
 
-	echo -n "${suffix}"
+	echo "${suffix}"
 }
 
 # Return the upstream app name appropriate for $PV.
 get_atom_appname() {
 	if [[ "${PV}" == *beta* ]]; then
-		echo -n "atom-beta"
+		echo "atom-beta"
 	else
-		echo -n "atom"
+		echo "atom"
 	fi
 }
 
 # Return the app installation path inside the upstream archive.
 get_atom_rpmdir() {
-	echo -n "usr/share/$(get_atom_appname)"
+	echo "usr/share/$(get_atom_appname)"
 }
 
 # Return the installation target directory.
 get_install_dir() {
-	echo -n "/usr/$(get_libdir)/atom$(get_install_suffix)"
+	echo "/usr/$(get_libdir)/atom$(get_install_suffix)"
 }
 
 # Return the Electron installation directory.
 get_electron_dir() {
-	echo -n "${EROOT%/}/usr/$(get_libdir)/electron-${ELECTRON_SLOT}"
+	echo "${EROOT%/}/usr/$(get_libdir)/electron-${ELECTRON_SLOT}"
 }
 
 # Return the directory containing appropriate Node headers
 # for the required version of Electron.
 get_electron_nodedir() {
-	echo -n "${EROOT%/}/usr/include/electron-${ELECTRON_SLOT}/node/"
+	echo "${EROOT%/}/usr/include/electron-${ELECTRON_SLOT}/node/"
 }
 
 # Run JavaScript using Electron's version of Node.
 enode_electron() {
-	"$(get_electron_dir)"/node $@
+	"$(get_electron_dir)"/node "${@}"
 }
 
 # Run node-gyp using Electron's version of Node.
@@ -437,127 +441,98 @@ enodegyp_atom() {
 
 	PATH="$(get_electron_dir):${PATH}" \
 		enode_electron "${nodegyp}" \
-			--nodedir="$(get_electron_nodedir)" $@ || die
+			--nodedir="$(get_electron_nodedir)" "${@}" || die
 }
 
 # Coffee Script wrapper.
 ecoffeescript() {
 	local cscript="${FILESDIR}/transpile-coffee-script.js"
 
-	# Disable shell glob expansion, as we want the coffee script
-	# transpiler to do that instead.
-	set -f
-	echo "ecoffeescript" $@
+	echo "ecoffeescript" "${@}"
+	echo ATOM_HOME="${T}/.atom" ATOM_SRC_ROOT="${BUILD_DIR}/app" \
+	NODE_PATH="${BUILD_DIR}/app/node_modules" \
+		enode_electron "${cscript}" "${@}" || die
 	ATOM_HOME="${T}/.atom" ATOM_SRC_ROOT="${BUILD_DIR}/app" \
 	NODE_PATH="${BUILD_DIR}/app/node_modules" \
-		enode_electron "${cscript}" $@ || die
-	set +f
+		enode_electron "${cscript}" "${@}" || die
 }
 
 # asar wrapper.
 easar() {
 	local asar="${WORKDIR}/$(package_dir asar)/node_modules/asar/bin/asar"
-	echo "asar" $@
-	enode_electron "${asar}" $@ || die
+	echo "asar" "${@}"
+	enode_electron "${asar}" "${@}" || die
 }
 
 # Return a $WORKDIR directory for a given package name.
 package_dir() {
 	local binmod="${1//-/_}"
 	local binmod_v="${binmod^^}_V"
-	echo -n ${1}-${!binmod_v}
+	if [[ -z "${binmod_v}" ]]; then
+		die "${binmod_v} is not set."
+	fi
+
+	echo ${1}-${!binmod_v}
 }
 
 # Check if there are patches for a given package.
-_have_patches_for() {
-	local _patches="${1}-*.patch" _find
-	_find=$(find "${FILESDIR}" -maxdepth 1 -name "${_patches}" -print -quit)
-	test -n "$_find"
-}
-
-# Tarballs on registry.npmjs.org are wildly inconsistent,
-# and violate the convention of having ${P} as the top directory name.
-# This helper detects and fixes that.
-_unpack() {
-	local a="${1}"
-	local b="${a%.tar.gz}"
-	local p="${b#atomdep-}"
-	local dir="$(tar -tzf "${DISTDIR}/${a}" | head -1 | cut -f1 -d'/')"
-
-	unpack "${a}"
-
-	if [[ "${dir}" != "${p}" ]]; then
-		# Set the correct name for the unpacked directory.
-		mv "${WORKDIR}/${dir}" "${WORKDIR}/${p}" || die
-	fi
-}
-
-# Check if the binary node module is actually a valid dependency.
-# Sometimes the upstream removes a dependency from package.json but
-# forgets to remove the module from node_modules.
-_is_valid_binmod() {
-	local mod
-
-	for mod in "${BINMODS[@]}"; do
-		if [[ "${mod}" == "${1}" ]]; then
-			return 0
-		fi
-	done
-
-	return 1
+have_patches_for() {
+	local patches="${1}-*.patch"
+	local found
+	found=$(find "${FILESDIR}" -maxdepth 1 -name "${patches}" -print -quit)
+	test -n "${found}"
 }
 
 # Replace binary node modules with the newly compiled versions thereof.
-_fix_binmods() {
-	local _dir="${2}"
-	local _prefix="${1}"
+fix_binmods() {
+	local dir="${2}"
+	local prefix="${1}"
 	local path
 	local relpath
 	local modpath
 	local mod
-	local f
-	local d
 	local cruft
 
-	(find "${_prefix}/${_dir}" -name '*.node' -print || die) \
-	| while IFS= read -r path; do
-		f=$(basename "${path}")
-		d=$(dirname "${path}")
-	    relpath=${path#${_prefix}}
+	(find "${prefix}/${dir}" -name '*.node' -print0 || die) \
+	| while IFS= read -r -d '' path; do
+		relpath=${path#${prefix}}
 		relpath=${relpath##/}
-		relpath=${relpath#W${_dir}}
+		relpath=${relpath#W${dir}}
 		modpath=$(dirname ${relpath})
 		modpath=${modpath%build/Release}
 		mod=$(basename ${modpath})
 
-		_is_valid_binmod "${mod}" || continue
+		# Check if the binary node module is actually a valid dependency.
+		# Sometimes the upstream removes a dependency from package.json but
+		# forgets to remove the module from node_modules.
+		has "${mod}" "${BINMODS[@]}" || continue
 
-		# must copy here as symlinks will cause the module loading to fail
-		cp -f "${BUILD_DIR}/modules/${mod}/${f}" "${path}" || die
-		cruft=$(find "${d}" -name '*.a' -print)
-		if [[ -n "${cruft}" ]]; then
-			rm ${cruft} || die
-		fi
+		# Must copy here as symlinks will cause the module loading to fail.
+		cp -f "${BUILD_DIR}/modules/${mod}/${path##*/}" "${path}" || die
+
+		# Drop unnecessary static libraries.
+		find "${path%/*}" -name '*.a' -delete || die
 	done
 }
 
 # Fix script permissions and shebangs to point to the correct version
 # of Node.
-_fix_executables() {
-	local _dir="${1}"
-	local _node_sb="#!$(get_electron_dir)"/node
+fix_executables() {
+	local dir="${1}"
+	local node_sb="#!$(get_electron_dir)"/node
 
-	(find -L "${ED}/${_dir}" -maxdepth 1 -mindepth 1 -type f -print || die) \
-	| while IFS= read -r f; do
+	(find -L "${ED}/${dir}" -maxdepth 1 -mindepth 1 -type f -print0 || die) \
+	| while IFS= read -r -d '' f; do
 		IFS= read -r shebang < "${f}"
 
 		if [[ ${shebang} == '#!'* ]]; then
 			fperms +x "${f#${ED}}"
-			if [[ "${shebang}" == "#!/usr/bin/env node" || "${shebang}" == "#!/usr/bin/node" ]]; then
+			if [[ "${shebang}" == "#!/usr/bin/env node" || \
+					"${shebang}" == "#!/usr/bin/node" ]]; then
 				einfo "Fixing node shebang in ${f#${ED}}"
 				sed --follow-symlinks -i \
-					-e "1s:${shebang}$:${_node_sb}:" "${f}" || die
+					-e "1s:${shebang}$:${node_sb}:" "${f}" || die
 			fi
 		fi
-	done || die
+	done
 }
