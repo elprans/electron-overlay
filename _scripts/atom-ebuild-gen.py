@@ -213,13 +213,13 @@ def generate_ebuild(atom_version, deps, template_fn):
 
     for pkg in packages:
         name = pkg.package.strip('@').replace('/', '--')
+        varname = name.upper().replace('-', '_')
 
         urls.append(
-            '{} -> atomdep-{}-{}.tar.gz'.format(
-                pkg.archive, name, pkg.version))
+            '{} -> atomdep-{}-${{{}_V}}.tar.gz'.format(
+                pkg.archive, name, varname))
         pkgs.append(name)
-        vers.append('{}_V={}'.format(name.upper().replace('-', '_'),
-                                     pkg.version))
+        vers.append('{}_V={}'.format(varname, pkg.version))
 
     return template.substitute({
         'SLOT': 'beta' if atom_version == 'beta' else '0',
