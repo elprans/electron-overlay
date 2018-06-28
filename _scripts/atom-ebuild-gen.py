@@ -742,6 +742,8 @@ def find_binary_deps(deps, result, *, memo=set(), parents,
             e.submit(get_package_metadata, pkg, ver_str, registries):
             (pkg, ver_str)
             for pkg, ver_str in deps.items()
+            if (not ver_str.startswith('file:') and  # skip bundled packages
+                not ver_str.startswith('https:'))  # and atom.io refs
         }
 
         for future in concurrent.futures.as_completed(work):

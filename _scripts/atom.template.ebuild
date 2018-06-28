@@ -9,7 +9,7 @@
 EAPI=6
 
 PYTHON_COMPAT=( python2_7 )
-inherit multiprocessing python-single-r1 rpm virtualx xdg-utils
+inherit multiprocessing python-single-r1 rpm xdg-utils
 
 DESCRIPTION="A hackable text editor for the 21st Century"
 HOMEPAGE="https://atom.io"
@@ -18,9 +18,9 @@ MY_PV="${PV//_/-}"
 ELECTRON_V=@@{ELECTRON_V}
 ELECTRON_SLOT=@@{ELECTRON_S}
 
-ASAR_V=0.13.0
+ASAR_V=0.14.3
 # All binary packages depend on this
-NAN_V=2.6.2
+NAN_V=2.11.1
 
 @@{BINMOD_VERSIONS}
 
@@ -43,18 +43,25 @@ KEYWORDS="@@{KEYWORDS}"
 IUSE=""
 REQUIRED_USE="${PYTHON_REQUIRED_USE}"
 
-DEPEND="
-	${PYTHON_DEPS}
+COMMON_DEPEND="
 	>=app-text/hunspell-1.3.3:=
 	>=dev-libs/libgit2-0.23:=[ssh]
 	>=dev-libs/libpcre2-10.22:=[jit,pcre16]
-	>=gnome-base/libgnome-keyring-3.12:=
 	>=dev-libs/oniguruma-6.6.0:=
 	>=dev-util/ctags-5.8
 	>=dev-util/electron-${ELECTRON_V}:${ELECTRON_SLOT}
-	x11-libs/libxkbfile"
+	>=gnome-base/libgnome-keyring-3.12:=
+	x11-libs/libxkbfile
+"
+
+DEPEND="
+	${PYTHON_DEPS}
+	${COMMON_DEPEND}
+"
+
 RDEPEND="
-	${DEPEND}
+	${COMMON_DEPEND}
+	dev-vcs/git
 	!sys-apps/apmd
 "
 
@@ -100,11 +107,13 @@ src_unpack() {
 }
 
 src_prepare() {
-	local install_dir="$(get_install_dir)"
 	local suffix="$(get_install_suffix)"
-	local nan_s="${WORKDIR}/nodejs-nan-${NAN_V}"
 	local atom_rpmdir=$(get_atom_rpmdir)
-	local patch
+	local install_dir="${EPREFIX%/}/$(get_install_dir)"
+	local electron_dir="${EPREFIX%/}/$(get_electron_dir)"
+	local electron_path="${electron_dir}/electron"
+	local node_path="${electron_dir}/node"
+	local node_includes="${EPREFIX%/}/$(get_node_includedir)"
 	local binmod
 	local pkgdir
 
@@ -122,9 +131,9 @@ src_prepare() {
 
 	cd "${BUILD_DIR}/app" || die
 
-	eapply "${FILESDIR}/atom-python.patch"
 	eapply "${FILESDIR}/apm-python.patch"
-	eapply "${FILESDIR}/atom-unbundle-electron-r2.patch"
+	eapply "${FILESDIR}/atom-unbundle-electron-r3.patch"
+	eapply "${FILESDIR}/atom-python-r1.patch"
 	eapply "${FILESDIR}/atom-apm-path-r2.patch"
 	eapply "${FILESDIR}/atom-fix-app-restart-r2.patch"
 	eapply "${FILESDIR}/atom-marker-layer-r1.patch"
@@ -134,30 +143,30 @@ src_prepare() {
 		./src/main-process/atom-application.js \
 		|| die
 
-	sed -i -e "s|{{NPM_CONFIG_NODEDIR}}|$(get_electron_nodedir)|g" \
-			-e "s|{{ATOM_PATH}}|$(get_electron_dir)/electron|g" \
-			-e "s|{{ATOM_RESOURCE_PATH}}|${EROOT%/}${install_dir}/app.asar|g" \
-			-e "s|{{ATOM_PREFIX}}|${EROOT%/}|g" \
-			-e "s|^#!/bin/bash|#!${EROOT%/}/bin/bash|g" \
+	sed -i -e "s|{{NPM_CONFIG_NODEDIR}}|${node_includes}|g" \
+			-e "s|{{ATOM_PATH}}|${electron_path}|g" \
+			-e "s|{{ATOM_RESOURCE_PATH}}|${install_dir}/app.asar|g" \
+			-e "s|{{ATOM_PREFIX}}|${EPREFIX}|g" \
+			-e "s|^#!/bin/bash|#!${EPREFIX%/}/bin/bash|g" \
 		./atom.sh \
 		|| die
 
-	local env="export NPM_CONFIG_NODEDIR=$(get_electron_nodedir)\nexport ELECTRON_NO_ASAR=1"
+	local env="export NPM_CONFIG_NODEDIR=${node_includes}\nexport ELECTRON_NO_ASAR=1"
 	sed -i -e \
-		"s|\"\$binDir/\$nodeBin\"|${env}\nexec $(get_electron_dir)/node|g" \
+		"s|\"\$binDir/\$nodeBin\"|${env}\nexec \"${node_path}\"|g" \
 			apm/bin/apm || die
 
 	sed -i -e \
-		"s|^\([[:space:]]*\)node[[:space:]]\+|\1\"$(get_electron_dir)/node\" |g" \
+		"s|^\([[:space:]]*\)node[[:space:]]\+|\1\"${node_path}\" |g" \
 			apm/node_modules/npm/bin/node-gyp-bin/node-gyp || die
 
 	sed -i -e \
-		"s|atomCommand = 'atom';|atomCommand = '${EROOT%/}/usr/bin/atom${suffix}'|g" \
+		"s|atomCommand = 'atom';|atomCommand = '${EPREFIX%/}/usr/bin/atom${suffix}'|g" \
 			apm/lib/test.js || die
 
 	rm apm/bin/node || die
 
-	sed -i -e "s|/${atom_rpmdir}/atom|${EROOT%/}/usr/bin/atom${suffix}|g" \
+	sed -i -e "s|/${atom_rpmdir}/atom|${EPREFIX%/}/usr/bin/atom${suffix}|g" \
 		"${BIN_S}/usr/share/applications/$(get_atom_appname).desktop" || die
 
 	for binmod in "${BINMODS[@]}"; do
@@ -197,10 +206,11 @@ src_prepare() {
 	for binmod in "${BINMODS[@]}"; do
 		pkgdir="${WORKDIR}/$(package_dir ${binmod})"
 		mkdir -p "${pkgdir}/node_modules" || die
-		ln -s "${nan_s}" "${pkgdir}/node_modules/nan" || die
+		ln -s "${WORKDIR}/nodejs-nan-${NAN_V}" \
+			"${pkgdir}/node_modules/nan" || die
 	done
 
-	sed -i -e "s|{{ATOM_PREFIX}}|${EROOT%/}|g" \
+	sed -i -e "s|{{ATOM_PREFIX}}|${EPREFIX}|g" \
 		"${BUILD_DIR}/app/src/config-schema.js" || die
 
 	sed -i -e "s|{{ATOM_SUFFIX}}|${suffix}|g" \
@@ -248,13 +258,18 @@ src_compile() {
 	rm "${BUILD_DIR}/app/${ctags_d}/ctags-darwin" \
 		"${BUILD_DIR}/app/${ctags_d}/ctags-win32.exe" || die
 
+	# Remove bundled git
+	rm -r "${BUILD_DIR}/app/node_modules/dugite/git" || die
+
 	# Re-pack app.asar
-	# Keep unpack rules in sync with build/tasks/generate-asar-task.coffee
+	# Keep unpack rules in sync with buildAsarUnpackGlobExpression()
+	# in script/lib/package-application.js
 	unpacked_paths=(
 		"*.node"
 		"ctags-config"
 		"ctags-linux"
 		"**/spec/fixtures/**"
+		"**/node_modules/github/bin/**"
 		"**/node_modules/spellchecker/**"
 		"**/resources/atom.png")
 
@@ -267,15 +282,8 @@ src_compile() {
 
 	# Replace vendored ctags with a symlink to system ctags
 	rm "${BUILD_DIR}/app.asar.unpacked/${ctags_d}/ctags-linux" || die
-	ln -s "${EROOT%/}/usr/bin/ctags" \
+	ln -s "${EPREFIX%/}/usr/bin/ctags" \
 		"${BUILD_DIR}/app.asar.unpacked/${ctags_d}/ctags-linux" || die
-}
-
-src_test() {
-	local electron="$(get_electron_dir)/electron"
-	local app="${BUILD_DIR}/app.asar"
-
-	virtx "${electron}" --app="${app}" --test "${app}/spec"
 }
 
 src_install() {
@@ -357,18 +365,18 @@ get_install_dir() {
 
 # Return the Electron installation directory.
 get_electron_dir() {
-	echo "${EROOT%/}/usr/$(get_libdir)/electron-${ELECTRON_SLOT}"
+	echo "/usr/$(get_libdir)/electron-${ELECTRON_SLOT}"
 }
 
 # Return the directory containing appropriate Node headers
 # for the required version of Electron.
-get_electron_nodedir() {
-	echo "${EROOT%/}/usr/include/electron-${ELECTRON_SLOT}/node/"
+get_node_includedir() {
+	echo "/usr/include/electron-${ELECTRON_SLOT}/node/"
 }
 
 # Run JavaScript using Electron's version of Node.
 enode_electron() {
-	"$(get_electron_dir)"/node "${@}"
+	"${EROOT%/}/$(get_electron_dir)"/node "${@}"
 }
 
 # Run node-gyp using Electron's version of Node.
@@ -376,9 +384,9 @@ enodegyp_atom() {
 	local apmpath="$(get_atom_rpmdir)/resources/app/apm"
 	local nodegyp="${BIN_S}/${apmpath}/node_modules/node-gyp/bin/node-gyp.js"
 
-	PATH="$(get_electron_dir):${PATH}" \
+	PATH="${EROOT%/}/$(get_electron_dir):${PATH}" \
 		enode_electron "${nodegyp}" \
-			--nodedir="$(get_electron_nodedir)" "${@}" || die
+			--nodedir="${EROOT%/}/$(get_node_includedir)" "${@}" || die
 }
 
 # Coffee Script wrapper.
@@ -430,8 +438,7 @@ fix_binmods() {
 	local mod
 	local cruft
 
-	(find "${prefix}/${dir}" -name '*.node' -print0 || die) \
-	| while IFS= read -r -d '' path; do
+	while IFS= read -r -d '' path; do
 		relpath=${path#${prefix}}
 		relpath=${relpath##/}
 		relpath=${relpath#W${dir}}
@@ -449,17 +456,16 @@ fix_binmods() {
 
 		# Drop unnecessary static libraries.
 		find "${path%/*}" -name '*.a' -delete || die
-	done
+	done < <(find "${prefix}/${dir}" -name '*.node' -print0 || die)
 }
 
 # Fix script permissions and shebangs to point to the correct version
 # of Node.
 fix_executables() {
 	local dir="${1}"
-	local node_sb="#!$(get_electron_dir)"/node
+	local node_sb="#!${EPREFIX%/}/$(get_electron_dir)"/node
 
-	(find -L "${ED}/${dir}" -maxdepth 1 -mindepth 1 -type f -print0 || die) \
-	| while IFS= read -r -d '' f; do
+	while IFS= read -r -d '' f; do
 		IFS= read -r shebang < "${f}"
 
 		if [[ ${shebang} == '#!'* ]]; then
@@ -471,5 +477,5 @@ fix_executables() {
 					-e "1s:${shebang}$:${node_sb}:" "${f}" || die
 			fi
 		fi
-	done
+	done < <(find -L "${ED}/${dir}" -maxdepth 1 -mindepth 1 -type f -print0 || die)
 }

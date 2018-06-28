@@ -9,41 +9,45 @@
 EAPI=6
 
 PYTHON_COMPAT=( python2_7 )
-inherit multiprocessing python-single-r1 rpm virtualx xdg-utils
+inherit multiprocessing python-single-r1 rpm xdg-utils
 
 DESCRIPTION="A hackable text editor for the 21st Century"
 HOMEPAGE="https://atom.io"
 MY_PV="${PV//_/-}"
 
-ELECTRON_V=1.7.15
-ELECTRON_SLOT=1.7
+ELECTRON_V=2.0.7
+ELECTRON_SLOT=2.0
 
-ASAR_V=0.13.0
+ASAR_V=0.14.3
 # All binary packages depend on this
-NAN_V=2.6.2
+NAN_V=2.11.1
 
-ATOM__NSFW_V=1.0.18
-ATOM__WATCHER_V=1.0.3
+ATOM__NSFW_V=1.0.20
+ATOM__WATCHER_V=1.0.8
 CACHED_RUN_IN_THIS_CONTEXT_V=0.4.1
 CTAGS_V=3.0.0
-FS_ADMIN_V=0.1.6
-GIT_UTILS_V=5.3.1
+FS_ADMIN_V=0.1.7
+GIT_UTILS_V=5.2.1
 KEYBOARD_LAYOUT_V=2.0.13
 KEYTAR_V=4.2.1
 NSLOG_V=3.0.0
 ONIGURUMA_V=6.2.1
 PATHWATCHER_V=8.0.1
 SCROLLBAR_STYLE_V=3.2.0
-SPELLCHECKER_V=3.4.4
-SUPERSTRING_V=2.3.0
-TREE_SITTER_V=0.11.2
-TREE_SITTER_BASH_V=0.11.2
-TREE_SITTER_C_V=0.11.4
-TREE_SITTER_CPP_V=0.11.4
-TREE_SITTER_GO_V=0.11.0
-TREE_SITTER_JAVASCRIPT_V=0.11.1
-TREE_SITTER_PYTHON_V=0.11.3
-TREE_SITTER_TYPESCRIPT_V=0.11.0
+SPELLCHECKER_V=3.5.0
+SUPERSTRING_V=2.3.4
+TREE_SITTER_V=0.13.8
+TREE_SITTER_BASH_V=0.13.2
+TREE_SITTER_C_V=0.13.5
+TREE_SITTER_CPP_V=0.13.4
+TREE_SITTER_EMBEDDED_TEMPLATE_V=0.13.0
+TREE_SITTER_GO_V=0.13.1
+TREE_SITTER_HTML_V=0.13.4
+TREE_SITTER_JAVASCRIPT_V=0.13.7
+TREE_SITTER_PYTHON_V=0.13.4
+TREE_SITTER_REGEX_V=0.13.0
+TREE_SITTER_RUBY_V=0.13.10
+TREE_SITTER_TYPESCRIPT_V=0.13.4
 
 # The x86_64 arch below is irrelevant, as we will rebuild all binary packages.
 SRC_URI="
@@ -51,28 +55,32 @@ SRC_URI="
 	https://github.com/${PN}/${PN}/archive/v${MY_PV}.tar.gz -> atom-${MY_PV}.tar.gz
 	https://github.com/elprans/asar/releases/download/v${ASAR_V}-gentoo/asar-build.tar.gz -> asar-${ASAR_V}.tar.gz
 	https://github.com/nodejs/nan/archive/v${NAN_V}.tar.gz -> nodejs-nan-${NAN_V}.tar.gz
-	https://registry.npmjs.org/@atom/nsfw/-/nsfw-1.0.18.tgz -> atomdep-atom--nsfw-${ATOM__NSFW_V}.tar.gz
-	https://registry.npmjs.org/@atom/watcher/-/watcher-1.0.3.tgz -> atomdep-atom--watcher-${ATOM__WATCHER_V}.tar.gz
-	https://registry.npmjs.org/cached-run-in-this-context/-/cached-run-in-this-context-0.4.1.tgz -> atomdep-cached-run-in-this-context-${CACHED_RUN_IN_THIS_CONTEXT_V}.tar.gz
+	https://registry.npmjs.org/@atom/nsfw/-/nsfw-1.0.20.tgz -> atomdep-atom--nsfw-${ATOM__NSFW_V}.tar.gz
+	https://registry.npmjs.org/@atom/watcher/-/watcher-1.0.8.tgz -> atomdep-atom--watcher-${ATOM__WATCHER_V}.tar.gz
+	http://registry.npmjs.org/cached-run-in-this-context/-/cached-run-in-this-context-0.4.1.tgz -> atomdep-cached-run-in-this-context-${CACHED_RUN_IN_THIS_CONTEXT_V}.tar.gz
 	https://registry.npmjs.org/ctags/-/ctags-3.0.0.tgz -> atomdep-ctags-${CTAGS_V}.tar.gz
-	https://registry.npmjs.org/fs-admin/-/fs-admin-0.1.6.tgz -> atomdep-fs-admin-${FS_ADMIN_V}.tar.gz
-	https://registry.npmjs.org/git-utils/-/git-utils-5.3.1.tgz -> atomdep-git-utils-${GIT_UTILS_V}.tar.gz
+	https://registry.npmjs.org/fs-admin/-/fs-admin-0.1.7.tgz -> atomdep-fs-admin-${FS_ADMIN_V}.tar.gz
+	https://registry.npmjs.org/git-utils/-/git-utils-5.2.1.tgz -> atomdep-git-utils-${GIT_UTILS_V}.tar.gz
 	https://registry.npmjs.org/keyboard-layout/-/keyboard-layout-2.0.13.tgz -> atomdep-keyboard-layout-${KEYBOARD_LAYOUT_V}.tar.gz
 	https://registry.npmjs.org/keytar/-/keytar-4.2.1.tgz -> atomdep-keytar-${KEYTAR_V}.tar.gz
 	https://registry.npmjs.org/nslog/-/nslog-3.0.0.tgz -> atomdep-nslog-${NSLOG_V}.tar.gz
 	https://registry.npmjs.org/oniguruma/-/oniguruma-6.2.1.tgz -> atomdep-oniguruma-${ONIGURUMA_V}.tar.gz
 	https://registry.npmjs.org/pathwatcher/-/pathwatcher-8.0.1.tgz -> atomdep-pathwatcher-${PATHWATCHER_V}.tar.gz
 	https://registry.npmjs.org/scrollbar-style/-/scrollbar-style-3.2.0.tgz -> atomdep-scrollbar-style-${SCROLLBAR_STYLE_V}.tar.gz
-	https://registry.npmjs.org/spellchecker/-/spellchecker-3.4.4.tgz -> atomdep-spellchecker-${SPELLCHECKER_V}.tar.gz
-	https://registry.npmjs.org/superstring/-/superstring-2.3.0.tgz -> atomdep-superstring-${SUPERSTRING_V}.tar.gz
-	https://registry.npmjs.org/tree-sitter/-/tree-sitter-0.11.2.tgz -> atomdep-tree-sitter-${TREE_SITTER_V}.tar.gz
-	https://registry.npmjs.org/tree-sitter-bash/-/tree-sitter-bash-0.11.2.tgz -> atomdep-tree-sitter-bash-${TREE_SITTER_BASH_V}.tar.gz
-	https://registry.npmjs.org/tree-sitter-c/-/tree-sitter-c-0.11.4.tgz -> atomdep-tree-sitter-c-${TREE_SITTER_C_V}.tar.gz
-	https://registry.npmjs.org/tree-sitter-cpp/-/tree-sitter-cpp-0.11.4.tgz -> atomdep-tree-sitter-cpp-${TREE_SITTER_CPP_V}.tar.gz
-	https://registry.npmjs.org/tree-sitter-go/-/tree-sitter-go-0.11.0.tgz -> atomdep-tree-sitter-go-${TREE_SITTER_GO_V}.tar.gz
-	https://registry.npmjs.org/tree-sitter-javascript/-/tree-sitter-javascript-0.11.1.tgz -> atomdep-tree-sitter-javascript-${TREE_SITTER_JAVASCRIPT_V}.tar.gz
-	https://registry.npmjs.org/tree-sitter-python/-/tree-sitter-python-0.11.3.tgz -> atomdep-tree-sitter-python-${TREE_SITTER_PYTHON_V}.tar.gz
-	https://registry.npmjs.org/tree-sitter-typescript/-/tree-sitter-typescript-0.11.0.tgz -> atomdep-tree-sitter-typescript-${TREE_SITTER_TYPESCRIPT_V}.tar.gz
+	https://registry.npmjs.org/spellchecker/-/spellchecker-3.5.0.tgz -> atomdep-spellchecker-${SPELLCHECKER_V}.tar.gz
+	https://registry.npmjs.org/superstring/-/superstring-2.3.4.tgz -> atomdep-superstring-${SUPERSTRING_V}.tar.gz
+	https://registry.npmjs.org/tree-sitter/-/tree-sitter-0.13.8.tgz -> atomdep-tree-sitter-${TREE_SITTER_V}.tar.gz
+	https://registry.npmjs.org/tree-sitter-bash/-/tree-sitter-bash-0.13.2.tgz -> atomdep-tree-sitter-bash-${TREE_SITTER_BASH_V}.tar.gz
+	https://registry.npmjs.org/tree-sitter-c/-/tree-sitter-c-0.13.5.tgz -> atomdep-tree-sitter-c-${TREE_SITTER_C_V}.tar.gz
+	https://registry.npmjs.org/tree-sitter-cpp/-/tree-sitter-cpp-0.13.4.tgz -> atomdep-tree-sitter-cpp-${TREE_SITTER_CPP_V}.tar.gz
+	https://registry.npmjs.org/tree-sitter-embedded-template/-/tree-sitter-embedded-template-0.13.0.tgz -> atomdep-tree-sitter-embedded-template-${TREE_SITTER_EMBEDDED_TEMPLATE_V}.tar.gz
+	https://registry.npmjs.org/tree-sitter-go/-/tree-sitter-go-0.13.1.tgz -> atomdep-tree-sitter-go-${TREE_SITTER_GO_V}.tar.gz
+	https://registry.npmjs.org/tree-sitter-html/-/tree-sitter-html-0.13.4.tgz -> atomdep-tree-sitter-html-${TREE_SITTER_HTML_V}.tar.gz
+	https://registry.npmjs.org/tree-sitter-javascript/-/tree-sitter-javascript-0.13.7.tgz -> atomdep-tree-sitter-javascript-${TREE_SITTER_JAVASCRIPT_V}.tar.gz
+	https://registry.npmjs.org/tree-sitter-python/-/tree-sitter-python-0.13.4.tgz -> atomdep-tree-sitter-python-${TREE_SITTER_PYTHON_V}.tar.gz
+	https://registry.npmjs.org/tree-sitter-regex/-/tree-sitter-regex-0.13.0.tgz -> atomdep-tree-sitter-regex-${TREE_SITTER_REGEX_V}.tar.gz
+	https://registry.npmjs.org/tree-sitter-ruby/-/tree-sitter-ruby-0.13.10.tgz -> atomdep-tree-sitter-ruby-${TREE_SITTER_RUBY_V}.tar.gz
+	https://registry.npmjs.org/tree-sitter-typescript/-/tree-sitter-typescript-0.13.4.tgz -> atomdep-tree-sitter-typescript-${TREE_SITTER_TYPESCRIPT_V}.tar.gz
 "
 
 BINMODS=(
@@ -94,9 +102,13 @@ BINMODS=(
 	tree-sitter-bash
 	tree-sitter-c
 	tree-sitter-cpp
+	tree-sitter-embedded-template
 	tree-sitter-go
+	tree-sitter-html
 	tree-sitter-javascript
 	tree-sitter-python
+	tree-sitter-regex
+	tree-sitter-ruby
 	tree-sitter-typescript
 )
 
@@ -106,18 +118,25 @@ KEYWORDS="~amd64"
 IUSE=""
 REQUIRED_USE="${PYTHON_REQUIRED_USE}"
 
-DEPEND="
-	${PYTHON_DEPS}
+COMMON_DEPEND="
 	>=app-text/hunspell-1.3.3:=
 	>=dev-libs/libgit2-0.23:=[ssh]
 	>=dev-libs/libpcre2-10.22:=[jit,pcre16]
-	>=gnome-base/libgnome-keyring-3.12:=
 	>=dev-libs/oniguruma-6.6.0:=
 	>=dev-util/ctags-5.8
 	>=dev-util/electron-${ELECTRON_V}:${ELECTRON_SLOT}
-	x11-libs/libxkbfile"
+	>=gnome-base/libgnome-keyring-3.12:=
+	x11-libs/libxkbfile
+"
+
+DEPEND="
+	${PYTHON_DEPS}
+	${COMMON_DEPEND}
+"
+
 RDEPEND="
-	${DEPEND}
+	${COMMON_DEPEND}
+	dev-vcs/git
 	!sys-apps/apmd
 "
 
@@ -163,11 +182,13 @@ src_unpack() {
 }
 
 src_prepare() {
-	local install_dir="$(get_install_dir)"
 	local suffix="$(get_install_suffix)"
-	local nan_s="${WORKDIR}/nodejs-nan-${NAN_V}"
 	local atom_rpmdir=$(get_atom_rpmdir)
-	local patch
+	local install_dir="${EPREFIX%/}/$(get_install_dir)"
+	local electron_dir="${EPREFIX%/}/$(get_electron_dir)"
+	local electron_path="${electron_dir}/electron"
+	local node_path="${electron_dir}/node"
+	local node_includes="${EPREFIX%/}/$(get_node_includedir)"
 	local binmod
 	local pkgdir
 
@@ -185,9 +206,9 @@ src_prepare() {
 
 	cd "${BUILD_DIR}/app" || die
 
-	eapply "${FILESDIR}/atom-python.patch"
 	eapply "${FILESDIR}/apm-python.patch"
-	eapply "${FILESDIR}/atom-unbundle-electron-r2.patch"
+	eapply "${FILESDIR}/atom-unbundle-electron-r3.patch"
+	eapply "${FILESDIR}/atom-python-r1.patch"
 	eapply "${FILESDIR}/atom-apm-path-r2.patch"
 	eapply "${FILESDIR}/atom-fix-app-restart-r2.patch"
 	eapply "${FILESDIR}/atom-marker-layer-r1.patch"
@@ -197,30 +218,30 @@ src_prepare() {
 		./src/main-process/atom-application.js \
 		|| die
 
-	sed -i -e "s|{{NPM_CONFIG_NODEDIR}}|$(get_electron_nodedir)|g" \
-			-e "s|{{ATOM_PATH}}|$(get_electron_dir)/electron|g" \
-			-e "s|{{ATOM_RESOURCE_PATH}}|${EROOT%/}${install_dir}/app.asar|g" \
-			-e "s|{{ATOM_PREFIX}}|${EROOT%/}|g" \
-			-e "s|^#!/bin/bash|#!${EROOT%/}/bin/bash|g" \
+	sed -i -e "s|{{NPM_CONFIG_NODEDIR}}|${node_includes}|g" \
+			-e "s|{{ATOM_PATH}}|${electron_path}|g" \
+			-e "s|{{ATOM_RESOURCE_PATH}}|${install_dir}/app.asar|g" \
+			-e "s|{{ATOM_PREFIX}}|${EPREFIX}|g" \
+			-e "s|^#!/bin/bash|#!${EPREFIX%/}/bin/bash|g" \
 		./atom.sh \
 		|| die
 
-	local env="export NPM_CONFIG_NODEDIR=$(get_electron_nodedir)\nexport ELECTRON_NO_ASAR=1"
+	local env="export NPM_CONFIG_NODEDIR=${node_includes}\nexport ELECTRON_NO_ASAR=1"
 	sed -i -e \
-		"s|\"\$binDir/\$nodeBin\"|${env}\nexec $(get_electron_dir)/node|g" \
+		"s|\"\$binDir/\$nodeBin\"|${env}\nexec \"${node_path}\"|g" \
 			apm/bin/apm || die
 
 	sed -i -e \
-		"s|^\([[:space:]]*\)node[[:space:]]\+|\1\"$(get_electron_dir)/node\" |g" \
+		"s|^\([[:space:]]*\)node[[:space:]]\+|\1\"${node_path}\" |g" \
 			apm/node_modules/npm/bin/node-gyp-bin/node-gyp || die
 
 	sed -i -e \
-		"s|atomCommand = 'atom';|atomCommand = '${EROOT%/}/usr/bin/atom${suffix}'|g" \
+		"s|atomCommand = 'atom';|atomCommand = '${EPREFIX%/}/usr/bin/atom${suffix}'|g" \
 			apm/lib/test.js || die
 
 	rm apm/bin/node || die
 
-	sed -i -e "s|/${atom_rpmdir}/atom|${EROOT%/}/usr/bin/atom${suffix}|g" \
+	sed -i -e "s|/${atom_rpmdir}/atom|${EPREFIX%/}/usr/bin/atom${suffix}|g" \
 		"${BIN_S}/usr/share/applications/$(get_atom_appname).desktop" || die
 
 	for binmod in "${BINMODS[@]}"; do
@@ -260,10 +281,11 @@ src_prepare() {
 	for binmod in "${BINMODS[@]}"; do
 		pkgdir="${WORKDIR}/$(package_dir ${binmod})"
 		mkdir -p "${pkgdir}/node_modules" || die
-		ln -s "${nan_s}" "${pkgdir}/node_modules/nan" || die
+		ln -s "${WORKDIR}/nodejs-nan-${NAN_V}" \
+			"${pkgdir}/node_modules/nan" || die
 	done
 
-	sed -i -e "s|{{ATOM_PREFIX}}|${EROOT%/}|g" \
+	sed -i -e "s|{{ATOM_PREFIX}}|${EPREFIX}|g" \
 		"${BUILD_DIR}/app/src/config-schema.js" || die
 
 	sed -i -e "s|{{ATOM_SUFFIX}}|${suffix}|g" \
@@ -311,13 +333,18 @@ src_compile() {
 	rm "${BUILD_DIR}/app/${ctags_d}/ctags-darwin" \
 		"${BUILD_DIR}/app/${ctags_d}/ctags-win32.exe" || die
 
+	# Remove bundled git
+	rm -r "${BUILD_DIR}/app/node_modules/dugite/git" || die
+
 	# Re-pack app.asar
-	# Keep unpack rules in sync with build/tasks/generate-asar-task.coffee
+	# Keep unpack rules in sync with buildAsarUnpackGlobExpression()
+	# in script/lib/package-application.js
 	unpacked_paths=(
 		"*.node"
 		"ctags-config"
 		"ctags-linux"
 		"**/spec/fixtures/**"
+		"**/node_modules/github/bin/**"
 		"**/node_modules/spellchecker/**"
 		"**/resources/atom.png")
 
@@ -330,15 +357,8 @@ src_compile() {
 
 	# Replace vendored ctags with a symlink to system ctags
 	rm "${BUILD_DIR}/app.asar.unpacked/${ctags_d}/ctags-linux" || die
-	ln -s "${EROOT%/}/usr/bin/ctags" \
+	ln -s "${EPREFIX%/}/usr/bin/ctags" \
 		"${BUILD_DIR}/app.asar.unpacked/${ctags_d}/ctags-linux" || die
-}
-
-src_test() {
-	local electron="$(get_electron_dir)/electron"
-	local app="${BUILD_DIR}/app.asar"
-
-	virtx "${electron}" --app="${app}" --test "${app}/spec"
 }
 
 src_install() {
@@ -420,18 +440,18 @@ get_install_dir() {
 
 # Return the Electron installation directory.
 get_electron_dir() {
-	echo "${EROOT%/}/usr/$(get_libdir)/electron-${ELECTRON_SLOT}"
+	echo "/usr/$(get_libdir)/electron-${ELECTRON_SLOT}"
 }
 
 # Return the directory containing appropriate Node headers
 # for the required version of Electron.
-get_electron_nodedir() {
-	echo "${EROOT%/}/usr/include/electron-${ELECTRON_SLOT}/node/"
+get_node_includedir() {
+	echo "/usr/include/electron-${ELECTRON_SLOT}/node/"
 }
 
 # Run JavaScript using Electron's version of Node.
 enode_electron() {
-	"$(get_electron_dir)"/node "${@}"
+	"${EROOT%/}/$(get_electron_dir)"/node "${@}"
 }
 
 # Run node-gyp using Electron's version of Node.
@@ -439,9 +459,9 @@ enodegyp_atom() {
 	local apmpath="$(get_atom_rpmdir)/resources/app/apm"
 	local nodegyp="${BIN_S}/${apmpath}/node_modules/node-gyp/bin/node-gyp.js"
 
-	PATH="$(get_electron_dir):${PATH}" \
+	PATH="${EROOT%/}/$(get_electron_dir):${PATH}" \
 		enode_electron "${nodegyp}" \
-			--nodedir="$(get_electron_nodedir)" "${@}" || die
+			--nodedir="${EROOT%/}/$(get_node_includedir)" "${@}" || die
 }
 
 # Coffee Script wrapper.
@@ -493,8 +513,7 @@ fix_binmods() {
 	local mod
 	local cruft
 
-	(find "${prefix}/${dir}" -name '*.node' -print0 || die) \
-	| while IFS= read -r -d '' path; do
+	while IFS= read -r -d '' path; do
 		relpath=${path#${prefix}}
 		relpath=${relpath##/}
 		relpath=${relpath#W${dir}}
@@ -512,17 +531,16 @@ fix_binmods() {
 
 		# Drop unnecessary static libraries.
 		find "${path%/*}" -name '*.a' -delete || die
-	done
+	done < <(find "${prefix}/${dir}" -name '*.node' -print0 || die)
 }
 
 # Fix script permissions and shebangs to point to the correct version
 # of Node.
 fix_executables() {
 	local dir="${1}"
-	local node_sb="#!$(get_electron_dir)"/node
+	local node_sb="#!${EPREFIX%/}/$(get_electron_dir)"/node
 
-	(find -L "${ED}/${dir}" -maxdepth 1 -mindepth 1 -type f -print0 || die) \
-	| while IFS= read -r -d '' f; do
+	while IFS= read -r -d '' f; do
 		IFS= read -r shebang < "${f}"
 
 		if [[ ${shebang} == '#!'* ]]; then
@@ -534,5 +552,5 @@ fix_executables() {
 					-e "1s:${shebang}$:${node_sb}:" "${f}" || die
 			fi
 		fi
-	done
+	done < <(find -L "${ED}/${dir}" -maxdepth 1 -mindepth 1 -type f -print0 || die)
 }
