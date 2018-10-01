@@ -1,0 +1,25 @@
+diff --git a/code b/code
+index 96b1755..5b50aad 100755
+--- a/code
++++ b/code
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env bash
++#!{{EPREFIX}}/usr/bin/env bash
+ #
+ # Copyright (c) Microsoft Corporation. All rights reserved.
+ # Licensed under the MIT License. See License.txt in the project root for license information.
+@@ -30,7 +30,10 @@ else
+ 	fi
+ fi
+ 
+-ELECTRON="$VSCODE_PATH/code"
+-CLI="$VSCODE_PATH/resources/app/out/cli.js"
+-ELECTRON_RUN_AS_NODE=1 "$ELECTRON" "$CLI" "$@"
+-exit $?
++VSCODE_PATH="{{VSCODE_PATH}}"
++ELECTRON="{{ELECTRON_PATH}}"
++CLI="${VSCODE_PATH}/out/cli.js"
++exec {{EPREFIX}}/usr/bin/env \
++	ELECTRON_RUN_AS_NODE=1 \
++	NPM_CONFIG_NODEDIR="{{NPM_CONFIG_NODEDIR}}" \
++	"${ELECTRON}" "${CLI}" --app="${VSCODE_PATH}" "$@"

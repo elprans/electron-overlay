@@ -1,0 +1,22 @@
+diff --git a/extensions/search-rg/node_modules/vscode-ripgrep/lib/index.js b/extensions/search-rg/node_modules/vscode-ripgrep/lib/index.js
+index f89c1cc..1f1f41e 100644
+--- a/extensions/search-rg/node_modules/vscode-ripgrep/lib/index.js
++++ b/extensions/search-rg/node_modules/vscode-ripgrep/lib/index.js
+@@ -2,4 +2,4 @@
+ 
+ const path = require('path');
+ 
+-module.exports.rgPath = path.join(__dirname, `../bin/rg${process.platform === 'win32' ? '.exe' : ''}`);
+\ No newline at end of file
++module.exports.rgPath = '/usr/bin/rg';
+diff --git a/node_modules/vscode-ripgrep/lib/index.js b/node_modules/vscode-ripgrep/lib/index.js
+index f89c1cc..1f1f41e 100644
+--- a/node_modules/vscode-ripgrep/lib/index.js
++++ b/node_modules/vscode-ripgrep/lib/index.js
+@@ -2,4 +2,4 @@
+ 
+ const path = require('path');
+ 
+-module.exports.rgPath = path.join(__dirname, `../bin/rg${process.platform === 'win32' ? '.exe' : ''}`);
+\ No newline at end of file
++module.exports.rgPath = '/usr/bin/rg';

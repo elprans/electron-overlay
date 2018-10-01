@@ -28,6 +28,7 @@ import urllib.request
 ATOM_REPO_URL = 'https://github.com/atom/atom.git'
 ATOM_REGISTRY = 'https://atom.io/api/packages/'
 NPM_REGISTRY = 'https://registry.npmjs.org/'
+VSCODE_REPO_URL = 'https://github.com/Microsoft/vscode.git'
 
 CACHEHOME = os.environ.get(
     'XDG_CACHE_HOME', os.path.expandvars('$HOME/.cache'))
@@ -58,47 +59,54 @@ def main():
         pprint.pprint(metadata)
         return 0
 
+    if args.target == 'atom':
+        args.repo_url = ATOM_REPO_URL
+    elif args.target == 'vscode':
+        args.repo_url = VSCODE_REPO_URL
+    else:
+        die('unsupported target: {}'.format(args.target))
+
     os.makedirs(CACHEDIR, exist_ok=True)
 
-    update_repo(ATOM_REPO_URL)
-    atom_tags = get_tags(repodir(ATOM_REPO_URL))
-    atom_stable_versions = list(filter(
-        lambda v: not v[0].pre, atom_tags.items()))
-    atom_beta_versions = list(filter(
+    update_repo(args.repo_url)
+    target_tags = get_tags(repodir(args.repo_url))
+    target_stable_versions = list(filter(
+        lambda v: not v[0].pre, target_tags.items()))
+    target_beta_versions = list(filter(
         lambda v: v[0].pre and v[0].pre[0].startswith('beta'),
-        atom_tags.items()))
+        target_tags.items()))
 
-    if not args.atom_version:
-        atom_version = 'stable'
+    if not args.target_version:
+        target_version = 'stable'
     else:
-        atom_version = args.atom_version
+        target_version = args.target_version
 
-    if atom_version == 'stable':
-        requested_v, sha = atom_stable_versions[0]
-    elif atom_version == 'beta':
-        requested_v, sha = atom_beta_versions[0]
+    if target_version == 'stable':
+        requested_v, sha = target_stable_versions[0]
+    elif target_version == 'beta':
+        requested_v, sha = target_beta_versions[0]
     else:
-        requested_v = parse_version(atom_version)
+        requested_v = parse_version(target_version)
 
         if requested_v is None:
-            die('Invalid --atom-version: {!r}'.format(atom_version))
+            die('Invalid --target-version: {!r}'.format(target_version))
 
-        if requested_v not in atom_tags:
-            die('Unknown --atom-version: {!r}'.format(atom_version))
+        if requested_v not in target_tags:
+            die('Unknown --target-version: {!r}'.format(target_version))
 
-        sha = atom_tags[requested_v]
+        sha = target_tags[requested_v]
 
-    print('Using Atom version {} ({}).'.format(
-        format_version(requested_v), sha))
+    print('Using {} version {} ({}).'.format(
+        args.target, format_version(requested_v), sha))
 
-    deps = get_atom_deps(sha)
+    deps = get_target_deps(args, sha)
 
     template = args.template
     if not template:
         template = os.path.join(os.path.dirname(__file__),
-                                'atom.template.ebuild')
+                                '{}.template.ebuild'.format(args.target))
 
-    output = generate_ebuild(atom_version, deps, template)
+    output = generate_ebuild(args.target, target_version, deps, template)
 
     if args.output:
         output_fn = args.output
@@ -107,8 +115,8 @@ def main():
         if not outdir:
             outdir = os.getcwd()
 
-        atom_v = format_version(requested_v, as_gentoo_atom=True)
-        fn = 'atom-{v}.ebuild'.format(v=atom_v)
+        target_v = format_version(requested_v, as_gentoo_atom=True)
+        fn = '{target}-{v}.ebuild'.format(target=args.target, v=target_v)
         output_fn = os.path.join(outdir, fn)
 
     if output_fn == '-':
@@ -120,7 +128,7 @@ def main():
     return 0
 
 
-def get_atom_deps(sha):
+def get_target_deps(args, sha):
     try:
         cache_fn = os.path.join(CACHEDIR, 'depcache-{}'.format(sha))
         with open(cache_fn, 'rb') as f:
@@ -133,7 +141,12 @@ def get_atom_deps(sha):
         deps = None
 
     if deps is None:
-        deps = find_atom_deps(sha)
+        if args.target == 'atom':
+            deps = find_atom_deps(args, sha)
+        elif args.target == 'vscode':
+            deps = find_vscode_deps(args, sha)
+        else:
+            die('unsupported target: {}'.format(args.target))
 
     try:
         cache_fn = os.path.join(CACHEDIR, 'depcache-{}'.format(sha))
@@ -147,16 +160,16 @@ def get_atom_deps(sha):
     return deps
 
 
-def find_atom_deps(sha):
-    package_json = get_repo_package_json(repodir(ATOM_REPO_URL), sha=sha)
-    electron_version = package_json.get('electronVersion')
+def find_atom_deps(args, sha):
+    package_json = get_repo_package_json(repodir(args.repo_url), sha=sha)
+    electron_version = package_json['electronVersion']
 
     binary_deps = {}
 
     npm_deps = package_json['dependencies']
     find_binary_deps(npm_deps, binary_deps, parents=['atom'])
 
-    apm_package_json = get_repo_package_json(repodir(ATOM_REPO_URL), sha=sha,
+    apm_package_json = get_repo_package_json(repodir(args.repo_url), sha=sha,
                                              path='apm/package.json')
 
     apm_deps = apm_package_json['dependencies']
@@ -172,10 +185,32 @@ def find_atom_deps(sha):
     )
 
 
+def find_vscode_deps(args, sha):
+    package_json = get_repo_package_json(repodir(args.repo_url), sha=sha)
+    yarnrc = get_repo_file(repodir(args.repo_url), path='.yarnrc', sha=sha)
+    for line in yarnrc.split('\n'):
+        k, v, *_ = re.split('\s+', line)
+        if k == 'target':
+            electron_version = v.strip('"')
+            break
+    else:
+        die('could not determine Electron version from vscode/.yarnrc')
+
+    binary_deps = {}
+
+    npm_deps = package_json['dependencies']
+    find_binary_deps(npm_deps, binary_deps, parents=['atom'])
+
+    return (
+        electron_version,
+        list(sorted(binary_deps.values(), key=lambda d: d.package)),
+    )
+
+
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--atom-version', default='stable',
-                        help='Atom version to create the ebuild for.  '
+    parser.add_argument('--target-version', default='stable',
+                        help='Target version to create the ebuild for.  '
                              'Use "stable" for the latest stable version, '
                              'and "beta" for the latest beta version. '
                              'Defaults to "stable".')
@@ -184,7 +219,7 @@ def parse_args():
                              'created.  Defaults to current directory.')
     parser.add_argument('-o', '--output',
                         help='Output file name.  '
-                             'Defaults to "atom-<version>.ebuild" in the '
+                             'Defaults to "<target>-<version>.ebuild" in the '
                              'directory specified by --output-directory.  '
                              'Pass "-" to output to stdout.')
     parser.add_argument('-t', '--template',
@@ -194,11 +229,13 @@ def parse_args():
 
     parser.add_argument('-V', '--test-version-parser')
     parser.add_argument('-M', '--test-package-metadata')
+    parser.add_argument('target', choices=['atom', 'vscode'],
+                        help='The target to generate an ebuild for.')
 
     return parser.parse_args()
 
 
-def generate_ebuild(atom_version, deps, template_fn):
+def generate_ebuild(target, target_version, deps, template_fn):
     with open(template_fn, 'rt') as f:
         template = Template(f.read())
 
@@ -216,13 +253,13 @@ def generate_ebuild(atom_version, deps, template_fn):
         varname = name.upper().replace('-', '_')
 
         urls.append(
-            '{} -> atomdep-{}-${{{}_V}}.tar.gz'.format(
-                pkg.archive, name, varname))
+            '{} -> {}dep-{}-${{{}_V}}.tar.gz'.format(
+                pkg.archive, target, name, varname))
         pkgs.append(name)
         vers.append('{}_V={}'.format(varname, pkg.version))
 
     return template.substitute({
-        'SLOT': 'beta' if atom_version == 'beta' else '0',
+        'SLOT': 'beta' if target_version == 'beta' else '0',
         'KEYWORDS': '~amd64',
         'ELECTRON_V': electron_version,
         'ELECTRON_S': electron_slot,
@@ -577,6 +614,9 @@ def get_tags(reponame):
 
         sha, _, name = tag.partition(':')
 
+        if not re.match(r'v?\d+(\.\d.)*', name):
+            continue
+
         if name[0] == 'v':
             name = name[1:]
 
@@ -586,10 +626,13 @@ def get_tags(reponame):
         sorted(tags, key=lambda v: v[0], reverse=True))
 
 
-def get_repo_package_json(reponame, sha='HEAD', path='package.json'):
+def get_repo_file(reponame, path, sha='HEAD'):
     repo_dir = os.path.join(CACHEDIR, reponame)
+    return git('show', '{}:{}'.format(sha, path), cwd=repo_dir)
 
-    package_json = git('show', '{}:{}'.format(sha, path), cwd=repo_dir)
+
+def get_repo_package_json(reponame, sha='HEAD', path='package.json'):
+    package_json = get_repo_file(reponame, path=path, sha=sha)
 
     try:
         package_json = json.loads(package_json)
@@ -760,6 +803,9 @@ def find_binary_deps(deps, result, *, memo=set(), parents,
             pkg_deps = metadata.get('dependencies', {})
             str_ver = metadata.get('version')
             pkg_ver = parse_version(str_ver)
+            pkg_os = metadata.get('os')
+            if pkg_os and 'linux' not in pkg_os:
+                continue
 
             dist = metadata.get('dist')
             if dist:
