@@ -17,7 +17,7 @@ index 935204bfc..0ad3f5b23 100755
  
 +  export NPM_CONFIG_NODEDIR="{{NPM_CONFIG_NODEDIR}}"
 +  export ATOM_RESOURCE_PATH="{{ATOM_RESOURCE_PATH}}"
-+  export LOCAL_GIT_DIRECTORY="/usr"
++  export LOCAL_GIT_DIRECTORY="{{ATOM_PREFIX}}/usr"
 +  ATOM_PATH="{{ATOM_PATH}}"
 +
    : ${TMPDIR:=/tmp}
@@ -37,4 +37,3 @@ index 935204bfc..0ad3f5b23 100755
        exit $?
 -- 
 2.16.4
-
