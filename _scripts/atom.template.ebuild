@@ -6,7 +6,7 @@
 #       modifying the ebuild template and submitting a PR to
 #       https://github.com/elprans/atom-overlay.
 
-EAPI=6
+EAPI=7
 
 PYTHON_COMPAT=( python2_7 )
 inherit multiprocessing python-single-r1 rpm xdg-utils
@@ -43,24 +43,24 @@ KEYWORDS="@@{KEYWORDS}"
 IUSE=""
 REQUIRED_USE="${PYTHON_REQUIRED_USE}"
 
-COMMON_DEPEND="
+BDEPEND="
+	${PYTHON_DEPS}
+	>=dev-util/electron-${ELECTRON_V}:${ELECTRON_SLOT}
+"
+
+DEPEND="
 	>=app-text/hunspell-1.3.3:=
 	>=dev-libs/libgit2-0.23:=[ssh]
 	>=dev-libs/libpcre2-10.22:=[jit,pcre16]
 	>=dev-libs/oniguruma-6.6.0:=
 	>=dev-util/ctags-5.8
-	>=dev-util/electron-${ELECTRON_V}:${ELECTRON_SLOT}
 	>=gnome-base/libgnome-keyring-3.12:=
 	x11-libs/libxkbfile
 "
 
-DEPEND="
-	${PYTHON_DEPS}
-	${COMMON_DEPEND}
-"
-
 RDEPEND="
-	${COMMON_DEPEND}
+	${DEPEND}
+	>=dev-util/electron-${ELECTRON_V}:${ELECTRON_SLOT}
 	dev-vcs/git
 	!sys-apps/apmd
 "
@@ -109,11 +109,11 @@ src_unpack() {
 src_prepare() {
 	local suffix="$(get_install_suffix)"
 	local atom_rpmdir=$(get_atom_rpmdir)
-	local install_dir="${EPREFIX%/}/$(get_install_dir)"
-	local electron_dir="${EPREFIX%/}/$(get_electron_dir)"
+	local install_dir="${EPREFIX}$(get_install_dir)"
+	local electron_dir="${EPREFIX}$(get_electron_dir)"
 	local electron_path="${electron_dir}/electron"
 	local node_path="${electron_dir}/node"
-	local node_includes="${EPREFIX%/}/$(get_node_includedir)"
+	local node_includes="${EPREFIX}$(get_node_includedir)"
 	local binmod
 	local pkgdir
 
@@ -147,7 +147,7 @@ src_prepare() {
 			-e "s|{{ATOM_PATH}}|${electron_path}|g" \
 			-e "s|{{ATOM_RESOURCE_PATH}}|${install_dir}/app.asar|g" \
 			-e "s|{{ATOM_PREFIX}}|${EPREFIX}|g" \
-			-e "s|^#!/bin/bash|#!${EPREFIX%/}/bin/bash|g" \
+			-e "s|^#!/bin/bash|#!${EPREFIX}/bin/bash|g" \
 		./atom.sh \
 		|| die
 
@@ -161,12 +161,12 @@ src_prepare() {
 			apm/node_modules/npm/bin/node-gyp-bin/node-gyp || die
 
 	sed -i -e \
-		"s|atomCommand = 'atom';|atomCommand = '${EPREFIX%/}/usr/bin/atom${suffix}'|g" \
+		"s|atomCommand = 'atom';|atomCommand = '${EPREFIX}/usr/bin/atom${suffix}'|g" \
 			apm/lib/test.js || die
 
 	rm apm/bin/node || die
 
-	sed -i -e "s|/${atom_rpmdir}/atom|${EPREFIX%/}/usr/bin/atom${suffix}|g" \
+	sed -i -e "s|/${atom_rpmdir}/atom|${EPREFIX}/usr/bin/atom${suffix}|g" \
 		"${BIN_S}/usr/share/applications/$(get_atom_appname).desktop" || die
 
 	for binmod in "${BINMODS[@]}"; do
@@ -282,7 +282,7 @@ src_compile() {
 
 	# Replace vendored ctags with a symlink to system ctags
 	rm "${BUILD_DIR}/app.asar.unpacked/${ctags_d}/ctags-linux" || die
-	ln -s "${EPREFIX%/}/usr/bin/ctags" \
+	ln -s "${EPREFIX}/usr/bin/ctags" \
 		"${BUILD_DIR}/app.asar.unpacked/${ctags_d}/ctags-linux" || die
 }
 
@@ -321,10 +321,12 @@ src_install() {
 
 pkg_postinst() {
 	xdg_desktop_database_update
+	xdg_mimeinfo_database_update
 }
 
 pkg_postrm() {
 	xdg_desktop_database_update
+	xdg_mimeinfo_database_update
 }
 
 # Helpers
@@ -376,7 +378,7 @@ get_node_includedir() {
 
 # Run JavaScript using Electron's version of Node.
 enode_electron() {
-	"${EROOT%/}/$(get_electron_dir)"/node "${@}"
+	"${BROOT}/$(get_electron_dir)"/node "${@}"
 }
 
 # Run node-gyp using Electron's version of Node.
@@ -384,9 +386,9 @@ enodegyp_atom() {
 	local apmpath="$(get_atom_rpmdir)/resources/app/apm"
 	local nodegyp="${BIN_S}/${apmpath}/node_modules/node-gyp/bin/node-gyp.js"
 
-	PATH="${EROOT%/}/$(get_electron_dir):${PATH}" \
+	PATH="${BROOT}/$(get_electron_dir):${PATH}" \
 		enode_electron "${nodegyp}" \
-			--nodedir="${EROOT%/}/$(get_node_includedir)" "${@}" || die
+			--nodedir="${BROOT}/$(get_node_includedir)" "${@}" || die
 }
 
 # Coffee Script wrapper.
@@ -463,7 +465,7 @@ fix_binmods() {
 # of Node.
 fix_executables() {
 	local dir="${1}"
-	local node_sb="#!${EPREFIX%/}/$(get_electron_dir)"/node
+	local node_sb="#!${EPREFIX}$(get_electron_dir)"/node
 
 	while IFS= read -r -d '' f; do
 		IFS= read -r shebang < "${f}"
@@ -477,5 +479,5 @@ fix_executables() {
 					-e "1s:${shebang}$:${node_sb}:" "${f}" || die
 			fi
 		fi
-	done < <(find -L "${ED}/${dir}" -maxdepth 1 -mindepth 1 -type f -print0 || die)
+	done < <(find -L "${ED}${dir}" -maxdepth 1 -mindepth 1 -type f -print0 || die)
 }
