@@ -6,7 +6,7 @@
 #       modifying the ebuild template and submitting a PR to
 #       https://github.com/elprans/atom-overlay.
 
-EAPI=6
+EAPI=7
 
 PYTHON_COMPAT=( python2_7 )
 inherit multiprocessing python-single-r1 rpm xdg-utils
@@ -66,25 +66,27 @@ KEYWORDS="~amd64"
 IUSE=""
 REQUIRED_USE="${PYTHON_REQUIRED_USE}"
 
-COMMON_DEPEND="
+BDEPEND="
+	${PYTHON_DEPS}
+	>=dev-util/electron-${ELECTRON_V}:${ELECTRON_SLOT}
+	>=net-libs/nodejs-6.11.0[${PYTHON_USEDEP}]
+"
+
+DEPEND="
 	>=app-crypt/libsecret-0.18.6:=
 	>=app-text/hunspell-1.3.3:=
 	>=dev-libs/glib-2.52.0:=
 	>=dev-libs/libgit2-0.23:=[ssh]
 	>=dev-libs/libpcre2-10.22:=[jit,pcre16]
 	>=dev-libs/oniguruma-6.6.0:=
-	>=dev-util/electron-${ELECTRON_V}:${ELECTRON_SLOT}
 	x11-libs/libX11
 	x11-libs/libxkbfile
 "
 
-DEPEND="
-	${PYTHON_DEPS}
-	${COMMON_DEPEND}
-"
-
 RDEPEND="
-	${COMMON_DEPEND}
+	${DEPEND}
+	>=dev-util/ctags-5.8
+	>=dev-util/electron-${ELECTRON_V}:${ELECTRON_SLOT}
 	dev-vcs/git
 	sys-apps/ripgrep
 "
@@ -135,11 +137,11 @@ src_prepare() {
 	local suffix="$(get_install_suffix)"
 	local vscode_rpmdir=$(get_vscode_rpmdir)
 	local vscode_appname=$(get_vscode_appname)
-	local install_dir="${EPREFIX%/}/$(get_install_dir)"
-	local electron_dir="${EPREFIX%/}/$(get_electron_dir)"
+	local install_dir="${EPREFIX}$(get_install_dir)"
+	local electron_dir="${EPREFIX}$(get_electron_dir)"
 	local electron_path="${electron_dir}/electron"
 	local node_path="${electron_dir}/node"
-	local node_includes="${EPREFIX%/}/$(get_node_includedir)"
+	local node_includes="${EPREFIX}$(get_node_includedir)"
 	local binmod
 	local pkgdir
 	local pyscript
@@ -167,11 +169,11 @@ src_prepare() {
 	sed -i -e "s|{{NPM_CONFIG_NODEDIR}}|${node_includes}|g" \
 			-e "s|{{ELECTRON_PATH}}|${electron_path}|g" \
 			-e "s|{{VSCODE_PATH}}|${install_dir}|g" \
-			-e "s|{{EPREFIX}}|${EPREFIX%/}|g" \
+			-e "s|{{EPREFIX}}|${EPREFIX}|g" \
 		code \
 		|| die
 
-	sed -i -e "s|/${vscode_rpmdir}/code|${EPREFIX%/}/usr/bin/code${suffix}|g" \
+	sed -i -e "s|/${vscode_rpmdir}/code|${EPREFIX}/usr/bin/code${suffix}|g" \
 		"${BIN_S}/usr/share/applications/$(get_vscode_appname).desktop" || die
 
 	for binmod in "${BINMODS[@]}"; do
@@ -291,15 +293,17 @@ src_install() {
 	doins "${BIN_S}/$(get_vscode_rpmdir)/resources/app/ThirdPartyNotices.txt"
 	dosym "../..${install_dir}/code" "/usr/bin/code${suffix}"
 
-	fix_executables "${install_dir}" "extensions/*/bin"
+	fix_executables "${install_dir}" "*/extensions/*/bin/*"
 }
 
 pkg_postinst() {
 	xdg_desktop_database_update
+	xdg_mimeinfo_database_update
 }
 
 pkg_postrm() {
 	xdg_desktop_database_update
+	xdg_mimeinfo_database_update
 }
 
 # Helpers
@@ -351,17 +355,17 @@ get_node_includedir() {
 
 # Run JavaScript using Electron's version of Node.
 enode_electron() {
-	"${EROOT%/}/$(get_electron_dir)"/node "${@}"
+	"${BROOT}/$(get_electron_dir)"/node "${@}"
 }
 
 # Run node-gyp using Electron's version of Node.
 enodegyp() {
-	local npmdir="${EROOT%/}/usr/$(get_libdir)/node_modules/npm"
+	local npmdir="${BROOT}/usr/$(get_libdir)/node_modules/npm"
 	local nodegyp="${npmdir}/node_modules/node-gyp/bin/node-gyp.js"
 
-	PATH="${EROOT%/}/$(get_electron_dir):${PATH}" \
+	PATH="${BROOT}/$(get_electron_dir):${PATH}" \
 		enode_electron "${nodegyp}" \
-			--nodedir="${EROOT%/}/$(get_node_includedir)" "${@}" || die
+			--nodedir="${BROOT}/$(get_node_includedir)" "${@}" || die
 }
 
 # asar wrapper.
@@ -433,7 +437,7 @@ fix_binmods() {
 fix_executables() {
 	local dir="${1}"
 	local pattern="${2}"
-	local node_sb="#!${EPREFIX%/}/$(get_electron_dir)"/node
+	local node_sb="#!${EPREFIX}$(get_electron_dir)"/node
 
 	while IFS= read -r -d '' f; do
 		IFS= read -r shebang < "${f}"
@@ -447,5 +451,5 @@ fix_executables() {
 					-e "1s:${shebang}$:${node_sb}:" "${f}" || die
 			fi
 		fi
-	done < <(find -L "${ED}/${dir}" -wholename "${pattern}" -maxdepth 1 -mindepth 1 -type f -print0 || die)
+	done < <(find -L "${ED}${dir}" -path "${pattern}" -type f -print0 || die)
 }
