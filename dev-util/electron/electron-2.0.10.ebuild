@@ -33,7 +33,7 @@ LIBCHROMIUMCONTENT_COMMIT="cbd04c0dccc7655cd42f02baee3a622d5170ac08"
 ASAR_VERSION="0.13.0"
 BROWSERIFY_VERSION="14.0.0"
 NINJA_VERSION="1.8.2"
-GENTOO_PATCHES_VERSION="982b6ad378681966e40e273a7918f5ae511d45a8"
+GENTOO_PATCHES_VERSION="f0fb7725cfe73704dce84ec51bdccc024dc7ceff"
 
 PATCHES_P="gentoo-electron-patches-${GENTOO_PATCHES_VERSION}"
 CHROMIUM_P="chromium-${CHROMIUM_VERSION}"
@@ -353,7 +353,6 @@ src_prepare() {
 
 	# Apply Gentoo patches for Electron itself.
 	cd "${S}" || die
-	cp -aL "${FILESDIR}/patches" "${WORKDIR}/${PATCHES_P}"
 	_unnest_patches "${WORKDIR}/${PATCHES_P}/${PV}/electron/"
 	eapply "${WORKDIR}/${PATCHES_P}/${PV}/electron/"
 
