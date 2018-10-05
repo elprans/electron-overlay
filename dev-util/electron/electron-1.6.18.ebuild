@@ -195,15 +195,15 @@ fi
 
 pre_build_checks() {
 	if [[ ${MERGE_TYPE} != binary ]]; then
-			local -x CPP="$(tc-getCXX) -E"
-			if tc-is-clang && ! ver_test "$(clang-fullversion)" -ge 3.9.1; then
-					# bugs: #601654
-					die "At least clang 3.9.1 is required"
-			fi
-			if tc-is-gcc && ! ver_test "$(gcc-version)" -ge 4.9; then
-					# bugs: #535730, #525374, #518668, #600288
-					die "At least gcc 4.9 is required"
-			fi
+		local -x CPP="$(tc-getCXX) -E"
+		if tc-is-clang && ! ver_test "$(clang-fullversion)" -ge 3.9.1; then
+			# bugs: #601654
+			die "At least clang 3.9.1 is required"
+		fi
+		if tc-is-gcc && ! ver_test "$(gcc-version)" -ge 4.9; then
+			# bugs: #535730, #525374, #518668, #600288
+			die "At least gcc 4.9 is required"
+		fi
 	fi
 
 	# LTO pass requires more file descriptors
