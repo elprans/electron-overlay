@@ -8,6 +8,7 @@
 import argparse
 import collections
 import concurrent.futures
+import datetime
 import json
 import operator
 import os
@@ -85,6 +86,9 @@ def main():
         requested_v, sha = target_stable_versions[0]
     elif target_version == 'beta':
         requested_v, sha = target_beta_versions[0]
+    elif target_version == 'live':
+        requested_v = 'master'
+        sha = rev_parse(repodir(args.repo_url), requested_v)
     else:
         requested_v = parse_version(target_version)
 
@@ -258,8 +262,15 @@ def generate_ebuild(target, target_version, deps, template_fn):
         pkgs.append(name)
         vers.append('{}_V={}'.format(varname, pkg.version))
 
+    if target_version == 'beta':
+        slot = target_version
+    elif target_version == 'live':
+        slot = 'insiders' if target == 'vscode' else 'live'
+    else:
+        slot = '0'
+
     return template.substitute({
-        'SLOT': 'beta' if target_version == 'beta' else '0',
+        'SLOT': slot,
         'KEYWORDS': '~amd64',
         'ELECTRON_V': electron_version,
         'ELECTRON_S': electron_slot,
@@ -324,14 +335,20 @@ Dependency = collections.namedtuple(
 
 
 def format_version(v, as_gentoo_atom=False):
-    version = '{}.{}.{}'.format(v.major, v.minor, v.patch)
-    if v.pre:
+    if v == 'master':
+        pre = ['p' + datetime.date.today().strftime(r'%Y%m%d')]
+        version = '9999'
+    else:
+        pre = v.pre
+        version = '{}.{}.{}'.format(v.major, v.minor, v.patch)
+
+    if pre:
         if as_gentoo_atom:
             version += '_'
         else:
             version += '-'
 
-        version += '.'.join(v.pre)
+        version += '.'.join(pre)
 
     return version
 
@@ -602,6 +619,11 @@ def update_repo(repo_url):
             shutil.rmtree(repo_dir)
 
         git('clone', repo_url, repo_dir)
+
+
+def rev_parse(reponame, ref):
+    repo_dir = os.path.join(CACHEDIR, reponame)
+    return git('rev-parse', ref, cwd=repo_dir).strip()
 
 
 def get_tags(reponame):
