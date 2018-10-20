@@ -175,7 +175,7 @@ src_prepare() {
 	else
 		eapply "${FILESDIR}/unbundle-electron.patch"
 	fi
-	eapply "${FILESDIR}/unbundle-ripgrep.patch"
+	eapply "${FILESDIR}/unbundle-ripgrep-r1.patch"
 
 	sed -i -e "s|{{NPM_CONFIG_NODEDIR}}|${node_includes}|g" \
 			-e "s|{{ELECTRON_PATH}}|${electron_path}|g" \
@@ -264,7 +264,6 @@ src_compile() {
 
 	# Remove bundled ripgrep
 	rm -r "${BUILD_DIR}/app/node_modules/vscode-ripgrep/bin" || die
-	rm -r "${BUILD_DIR}/app/extensions/search-rg/node_modules/vscode-ripgrep/bin" || die
 
 	# Re-pack node_modules.asar
 	unpacked_paths=(
