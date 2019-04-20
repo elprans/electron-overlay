@@ -8,11 +8,13 @@ import argparse
 import collections
 import os
 import os.path
+import pathlib
 import re
 import shutil
 import subprocess
 import sys
 import tarfile
+import tempfile
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -21,7 +23,7 @@ import urllib.request
 CHROMIUM_URL = \
     'https://commondatastorage.googleapis.com/chromium-browser-official/'
 
-LIBCC_REPO = 'https://github.com/electron/libchromiumcontent.git'
+LIBCC_REPO = 'https://github.com/elprans/libchromiumcontent.git'
 
 CACHEHOME = os.environ.get(
     'XDG_CACHE_HOME', os.path.expandvars('$HOME/.cache'))
@@ -34,47 +36,34 @@ def main():
     ebuild = args.ebuild
 
     info = parse_electron_ebuild(ebuild)
-    update_repo(LIBCC_REPO)
-    libcc_patches = [
-        f for f in list_files_in_repo(LIBCC_REPO, info.libcc_version,
-                                      'patches')
-        if f.endswith('.patch') and 'third_party/icu' not in f
-    ]
 
     if not os.path.exists(os.path.join(args.target, '.git')):
         git('init', cwd=args.target)
 
-    stuff = git('status', '--porcelain', cwd=args.target)
-    if stuff:
-        die('there are uncommitted or untracked files in {}'.format(
-            args.target))
+    if args.download:
+        stuff = git('status', '--porcelain', cwd=args.target)
+        if stuff:
+            die('there are uncommitted or untracked files in {}'.format(
+                args.target))
 
-    git('checkout', '--orphan', info.chromium_version, cwd=args.target)
-    git('rm', '-rf', '--ignore-unmatch', '.', cwd=args.target)
-    git('clean', '-fdx', cwd=args.target)
+        git('checkout', '--orphan', info.chromium_version, cwd=args.target)
+        git('rm', '-rf', '--ignore-unmatch', '.', cwd=args.target)
+        git('clean', '-fdx', cwd=args.target)
 
-    download_and_unpack_chromium_source(info.chromium_version, args.target)
+        download_and_unpack_chromium_source(info.chromium_version, args.target)
 
-    git('add', '--force', '.', cwd=args.target)
-    git('commit', '-m', 'Import chromium-{}'.format(info.chromium_version),
-        cwd=args.target)
+        git('add', '--force', '.', cwd=args.target)
+        git('commit', '-m', 'Import chromium-{}'.format(info.chromium_version),
+            cwd=args.target)
 
-    if not args.apply_patches:
-        return 0
+    if args.apply_patches:
+        apply_libcc_patches(info.libcc_version, args.target)
+        git('add', '--force', '.', cwd=args.target)
+        git('commit', '-m', 'libchromiumcontent patches', cwd=args.target)
 
-    patches = [
-        (patch.partition('/')[2],
-         get_file_in_repo(LIBCC_REPO, info.libcc_version, patch))
-        for patch in libcc_patches
-    ]
-
-    apply_patches(patches, args.target)
-    git('add', '--force', '.', cwd=args.target)
-    git('commit', '-m', 'libchromiumcontent patches', cwd=args.target)
-
-    unbundle_libs(info, args.target)
-    git('add', '--force', '.', cwd=args.target)
-    git('commit', '-m', 'unbundled libraries', cwd=args.target)
+    # unbundle_libs(info, args.target)
+    # git('add', '--force', '.', cwd=args.target)
+    # git('commit', '-m', 'unbundled libraries', cwd=args.target)
 
     return 0
 
@@ -83,6 +72,8 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--apply-patches', action='store_true', default=False,
                         help='Apply Electron and Gentoo patches.')
+    parser.add_argument('--download', action='store_true', default=False,
+                        help='Download and import Chromium source.')
     parser.add_argument('ebuild', help='Path to electron ebuild.')
     parser.add_argument('target', help='Path to target directory.')
     return parser.parse_args()
@@ -151,17 +142,14 @@ def parse_electron_ebuild(ebuild_fn):
     )
 
 
-def apply_patches(patches, target):
-    for patch_name, patch_text in patches:
-        dirname = os.path.dirname(patch_name)
-        if dirname:
-            cwd = os.path.join(target, dirname)
-        else:
-            cwd = target
-        p = subprocess.run(['patch', '-p1'], cwd=cwd, encoding='utf8',
-                           input=patch_text)
-        if p.returncode != 0:
-            die(f'Could not apply {patch_name}')
+def apply_libcc_patches(libcc_version, target):
+    repo_dir = os.path.join(CACHEDIR, repodir(LIBCC_REPO))
+    update_repo(LIBCC_REPO)
+
+    libcc_version = 'd6da7bc'
+    #git('reset', '--hard', libcc_version, cwd=repo_dir)
+    ap = pathlib.Path(repo_dir) / 'script' / 'apply-patches'
+    run('python2', str(ap), cwd=target, stdout=sys.stdout)
 
 
 def repodir(repo_url):
@@ -173,7 +161,10 @@ def repodir(repo_url):
 
 def git(*cmdline, **kwargs):
     cmd = ['git'] + list(cmdline)
+    return run(*cmd, **kwargs)
 
+
+def run(*cmdline, **kwargs):
     default_kwargs = {
         'stderr': sys.stderr,
         'stdout': subprocess.PIPE,
@@ -182,10 +173,11 @@ def git(*cmdline, **kwargs):
 
     default_kwargs.update(kwargs)
 
-    p = subprocess.run(cmd, **default_kwargs)
+    p = subprocess.run(cmdline, **default_kwargs)
 
     if p.returncode != 0:
-        die('{} failed with exit code {}'.format(' '.join(cmd), p.returncode))
+        die('{} failed with exit code {}'.format(
+            ' '.join(cmdline), p.returncode))
 
     return p.stdout
 
@@ -217,7 +209,7 @@ def update_repo(repo_url):
 
 
 def download_and_unpack_chromium_source(version, target_dir):
-    target_dir = target_dir.rstrip('/')
+    os.makedirs(target_dir, exist_ok=True)
     archive_name = 'chromium-{}.tar.xz'.format(version)
     distfile = '/usr/portage/distfiles/{}'.format(archive_name)
     if os.path.exists(distfile):
@@ -258,10 +250,10 @@ def download_and_unpack_chromium_source(version, target_dir):
 
 def download_chromium_source(version):
     archive_name = 'chromium-{}.tar.xz'.format(version)
-    url = '{}/{}'.format(CHROMIUM_URL, archive_name)
+    url = '{}{}'.format(CHROMIUM_URL, archive_name)
     archive = os.path.join(CACHEDIR, archive_name)
 
-    print('Downloading {}...'.format(archive_name), end='')
+    print('Downloading {}...'.format(url), end='')
 
     def progress(block_count, block_size, total_size):
         if total_size > 0:
