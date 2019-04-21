@@ -79,7 +79,8 @@ LICENSE="BSD"
 SLOT="$(ver_cut 1-2)"
 KEYWORDS="~amd64"
 IUSE="cups custom-cflags gconf gnome-keyring kerberos lto neon pic
-	+proprietary-codecs pulseaudio selinux +system-ffmpeg +system-ssl +tcmalloc"
+	+proprietary-codecs pulseaudio selinux +system-ffmpeg +system-libvpx
+	+system-ssl +tcmalloc"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
 
 # Native Client binaries are compiled with different set of flags, bug #452066.
@@ -111,7 +112,9 @@ COMMON_DEPEND="
 	media-libs/libexif:=
 	media-libs/libjpeg-turbo:=
 	media-libs/libpng:=
-	>=media-libs/libvpx-1.7.0:=[postproc,svc]
+	system-libvpx? (
+		=media-libs/libvpx-1.7*:=[postproc,svc]
+	)
 	>=media-libs/openh264-1.6.0:=
 	pulseaudio? ( media-sound/pulseaudio:= )
 	system-ffmpeg? (
@@ -497,6 +500,10 @@ src_prepare() {
 	if ! use system-ffmpeg; then
 		keeplibs+=( third_party/ffmpeg third_party/opus )
 	fi
+	if ! use system-libvpx; then
+		keeplibs+=( third_party/libvpx )
+		keeplibs+=( third_party/libvpx/source/libvpx/third_party/x86inc )
+	fi
 	if use tcmalloc; then
 		keeplibs+=( third_party/tcmalloc )
 	fi
@@ -554,6 +561,9 @@ src_configure() {
 		zlib)
 	if use system-ffmpeg; then
 		gn_system_libraries+=( libvpx ffmpeg opus )
+	fi
+	if use system-libvpx; then
+		gn_system_libraries+=( libvpx )
 	fi
 	build/linux/unbundle/replace_gn_files.py \
 		--system-libraries ${gn_system_libraries[@]} || die
