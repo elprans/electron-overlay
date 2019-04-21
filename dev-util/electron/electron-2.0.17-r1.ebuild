@@ -101,7 +101,7 @@ COMMON_DEPEND="
 	dev-libs/libxslt:=
 	dev-libs/nspr:=
 	>=dev-libs/nss-3.14.3:=
-	system-ssl? ( <dev-libs/openssl-1.1:0= )
+	system-ssl? ( <dev-libs/openssl-1.1:= )
 	>=dev-libs/re2-0.2016.05.01:=
 	gconf? ( >=gnome-base/gconf-2.24.0:= )
 	gnome-keyring? ( >=gnome-base/libgnome-keyring-3.12:= )
