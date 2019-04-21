@@ -85,6 +85,7 @@ BDEPEND="
 DEPEND="
 	>=app-crypt/libsecret-0.18.6:=
 	>=app-text/hunspell-1.3.3:=
+	>=dev-db/sqlite-3.24:=
 	>=dev-libs/glib-2.52.0:=
 	>=dev-libs/libgit2-0.23:=[ssh]
 	>=dev-libs/libpcre2-10.22:=[jit,pcre16]
