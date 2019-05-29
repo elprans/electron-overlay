@@ -31,7 +31,7 @@ LIBCHROMIUMCONTENT_COMMIT="bdb1c8e9d2f184ebeb75a25824aca0be27aa879b"
 ASAR_VERSION="0.13.0"
 BROWSERIFY_VERSION="14.0.0"
 NINJA_VERSION="1.8.2"
-GENTOO_PATCHES_VERSION="1254ca625ef840a7867df2ab6974b52d9c032c75"
+GENTOO_PATCHES_VERSION="0c5a90c55a224a4eb5fc890989385bacebbd33f6"
 
 PATCHES_P="gentoo-electron-patches-${GENTOO_PATCHES_VERSION}"
 CHROMIUM_P="chromium-${CHROMIUM_VERSION}"
@@ -176,7 +176,7 @@ DEPEND="${COMMON_DEPEND}
 		>=dev-python/beautifulsoup-4.3.2:4[${PYTHON_USEDEP}]
 		dev-python/jinja[${PYTHON_USEDEP}]
 		dev-python/html5lib[${PYTHON_USEDEP}]
-		dev-python/pyyaml[${PYTHON_USEDEP}]
+		>=dev-python/pyyaml-5.1[${PYTHON_USEDEP}]
 		dev-python/simplejson[${PYTHON_USEDEP}]
 	')
 "
