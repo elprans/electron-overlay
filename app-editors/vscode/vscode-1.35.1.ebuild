@@ -20,6 +20,7 @@ if [[ ${PV} == *9999* ]]; then
 else
 	UPSTREAM_PV="${PV}"
 	UPSTREAM_CHANNEL="stable"
+	KEYWORDS="~amd64"
 fi
 
 ELECTRON_V=3.1.8
@@ -72,7 +73,6 @@ BINMODS=(
 
 LICENSE="MIT"
 SLOT="0"
-KEYWORDS="~amd64"
 IUSE=""
 REQUIRED_USE="${PYTHON_REQUIRED_USE}"
 
