@@ -357,6 +357,10 @@ src_prepare() {
 	_unnest_patches "${WORKDIR}/${PATCHES_P}/${PV}/electron/"
 	eapply "${WORKDIR}/${PATCHES_P}/${PV}/electron/"
 
+	# Chromium Linux kernel 5.2+ patch.
+	# See https://bugs.gentoo.org/692352
+	eapply "${FILESDIR}/${P}-kernel-5.2-fix.patch"
+
 	# Apply Chromium patches from libchromiumcontent.
 	cd "${CHROMIUM_S}" || die
 	"${EPYTHON}" "${LIBCC_S}/script/apply-patches" || die
