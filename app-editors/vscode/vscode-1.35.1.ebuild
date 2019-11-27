@@ -79,7 +79,7 @@ REQUIRED_USE="${PYTHON_REQUIRED_USE}"
 BDEPEND="
 	${PYTHON_DEPS}
 	>=dev-util/electron-${ELECTRON_V}:${ELECTRON_SLOT}
-	>=net-libs/nodejs-6.11.0[${PYTHON_USEDEP}]
+	>=net-libs/nodejs-6.11.0
 "
 
 DEPEND="
