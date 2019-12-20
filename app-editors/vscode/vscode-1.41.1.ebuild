@@ -22,30 +22,54 @@ else
 	UPSTREAM_CHANNEL="stable"
 fi
 
-ELECTRON_V=@@{ELECTRON_V}
-ELECTRON_SLOT=@@{ELECTRON_S}
+ELECTRON_V=6.1.5
+ELECTRON_SLOT=6.1
 
 ASAR_V=0.14.3
 # All binary packages depend on this
 NAN_V=2.14.0
 
-@@{BINMOD_VERSIONS}
+KEYTAR_V=4.13.0
+NATIVE_IS_ELEVATED_V=0.4.1
+NATIVE_KEYMAP_V=2.1.0
+NATIVE_WATCHDOG_V=1.3.0
+NODE_PTY_V=0.10.0-beta3
+ONIGURUMA_V=7.2.1
+SPDLOG_V=0.11.1
+VSCODE_NSFW_V=1.2.8
+VSCODE_SQLITE3_V=4.0.9
 
 # The x86_64 arch below is irrelevant, as we will rebuild all binary packages.
 SRC_URI="
 	https://vscode-update.azurewebsites.net/${UPSTREAM_PV}/linux-rpm-x64/${UPSTREAM_CHANNEL} -> vscode-x64-${PV}.rpm
 	https://github.com/elprans/asar/releases/download/v${ASAR_V}-gentoo/asar-build.tar.gz -> asar-${ASAR_V}.tar.gz
 	https://github.com/nodejs/nan/archive/v${NAN_V}.tar.gz -> nodejs-nan-${NAN_V}.tar.gz
-@@{SRC_URI}
+	https://registry.npmjs.org/keytar/-/keytar-4.13.0.tgz -> vscodedep-keytar-${KEYTAR_V}.tar.gz
+	https://registry.npmjs.org/native-is-elevated/-/native-is-elevated-0.4.1.tgz -> vscodedep-native-is-elevated-${NATIVE_IS_ELEVATED_V}.tar.gz
+	https://registry.npmjs.org/native-keymap/-/native-keymap-2.1.0.tgz -> vscodedep-native-keymap-${NATIVE_KEYMAP_V}.tar.gz
+	https://registry.npmjs.org/native-watchdog/-/native-watchdog-1.3.0.tgz -> vscodedep-native-watchdog-${NATIVE_WATCHDOG_V}.tar.gz
+	https://registry.npmjs.org/node-pty/-/node-pty-0.10.0-beta3.tgz -> vscodedep-node-pty-${NODE_PTY_V}.tar.gz
+	https://registry.npmjs.org/oniguruma/-/oniguruma-7.2.1.tgz -> vscodedep-oniguruma-${ONIGURUMA_V}.tar.gz
+	https://registry.npmjs.org/spdlog/-/spdlog-0.11.1.tgz -> vscodedep-spdlog-${SPDLOG_V}.tar.gz
+	https://registry.npmjs.org/vscode-nsfw/-/vscode-nsfw-1.2.8.tgz -> vscodedep-vscode-nsfw-${VSCODE_NSFW_V}.tar.gz
+	https://registry.npmjs.org/vscode-sqlite3/-/vscode-sqlite3-4.0.9.tgz -> vscodedep-vscode-sqlite3-${VSCODE_SQLITE3_V}.tar.gz
 "
 
 BINMODS=(
-@@{BINMODS}
+	keytar
+	native-is-elevated
+	native-keymap
+	native-watchdog
+	node-pty
+	oniguruma
+	spdlog
+	vscode-nsfw
+	vscode-sqlite3
 )
 
 LICENSE="MIT"
-SLOT="@@{SLOT}"
-KEYWORDS="@@{KEYWORDS}"
+SLOT="0"
+KEYWORDS="~amd64"
 IUSE=""
 REQUIRED_USE="${PYTHON_REQUIRED_USE}"
 
