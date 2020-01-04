@@ -1,4 +1,4 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -17,7 +17,7 @@ CHROMIUM_VERSION="76.0.3809.132"
 # Keep this in sync with DEPS:node_version
 NODE_VERSION="12.4.0"
 
-GENTOO_PATCHES_VERSION="623de77863e57c036431cd2d8e095999a507bf62"
+GENTOO_PATCHES_VERSION="be0b73449f4db5f31167d3b9f722cbd968fd35e9"
 
 PATCHES_P="gentoo-electron-patches-${GENTOO_PATCHES_VERSION}"
 CHROMIUM_P="chromium-${CHROMIUM_VERSION}"
@@ -42,7 +42,7 @@ LICENSE="BSD"
 SLOT="$(ver_cut 1-2)"
 KEYWORDS="~amd64"
 IUSE="clang component-build cups custom-cflags cpu_flags_arm_neon gconf
-	  gnome-keyring jumbo-build kerberos pic +proprietary-codecs pulseaudio
+	  gnome-keyring jumbo-build kerberos lto pic +proprietary-codecs pulseaudio
 	  selinux +suid +system-ffmpeg +system-icu +system-libvpx +tcmalloc"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
 
@@ -66,7 +66,7 @@ COMMON_DEPEND="
 	>=media-libs/harfbuzz-2.2.0:0=[icu(-)]
 	media-libs/libjpeg-turbo:=
 	media-libs/libpng:=
-	system-libvpx? ( media-libs/libvpx:=[postproc,svc] )
+	system-libvpx? ( >=media-libs/libvpx-1.8.0:=[postproc,svc] )
 	>=media-libs/openh264-1.6.0:=
 	pulseaudio? ( media-sound/pulseaudio:= )
 	system-ffmpeg? (
@@ -613,6 +613,10 @@ src_configure() {
 
 	# Disable forced lld, bug 641556
 	myconf_gn+=" use_lld=false"
+
+	if use lto; then
+		myconf_gn+=" use_thin_lto=true"
+	fi
 
 	ffmpeg_branding="$(usex proprietary-codecs Chrome Chromium)"
 	myconf_gn+=" proprietary_codecs=$(usex proprietary-codecs true false)"
