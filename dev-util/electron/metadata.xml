@@ -11,9 +11,9 @@
 	</maintainer>
 	<longdescription>Electron is a cross platform application development framework based on web technologies based on Chromium</longdescription>
 	<use>
+		<flag name="closure-compile">Enable closure type-checking for Chrome's web technology-based UI. Requires Java.</flag>
 		<flag name="clang">Use Clang compiler instead of GCC</flag>
 		<flag name="component-build">Split build into more shared libraries to speed up linking. Mostly intended for debugging and development, NOT RECOMMENDED for general use.</flag>
-		<flag name="gconf">Use gnome-base/gconf</flag>
 		<flag name="jumbo-build">Combine source files to speed up build process.</flag>
 		<flag name="lto">Build with link time optimization enabled</flag>
 		<flag name="pic">Disable optimized assembly code that is not PIC friendly</flag>
@@ -24,9 +24,6 @@
 		<flag name="tcmalloc">Use bundled tcmalloc instead of system malloc</flag>
 	</use>
 	<upstream>
-		<remote-id type="github">elprans/asar</remote-id>
 		<remote-id type="github">elprans/gentoo-electron-patches</remote-id>
-		<remote-id type="github">elprans/grit</remote-id>
-		<remote-id type="github">elprans/node-browserify</remote-id>
 	</upstream>
 </pkgmetadata>

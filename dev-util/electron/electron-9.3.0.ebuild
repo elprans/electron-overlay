@@ -13,11 +13,11 @@ inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils \
 	xdg-utils
 
 # Keep this in sync with DEPS:chromium_version
-CHROMIUM_VERSION="76.0.3809.132"
+CHROMIUM_VERSION="83.0.4103.116"
 # Keep this in sync with DEPS:node_version
-NODE_VERSION="12.4.0"
+NODE_VERSION="12.14.1"
 
-GENTOO_PATCHES_VERSION="be0b73449f4db5f31167d3b9f722cbd968fd35e9"
+GENTOO_PATCHES_VERSION="0f1c65ec43ce03ac0470ee7a757e8854ccebdc4d"
 
 PATCHES_P="gentoo-electron-patches-${GENTOO_PATCHES_VERSION}"
 CHROMIUM_P="chromium-${CHROMIUM_VERSION}"
@@ -41,42 +41,43 @@ ROOT_S="${WORKDIR}/src"
 LICENSE="BSD"
 SLOT="$(ver_cut 1-2)"
 KEYWORDS="~amd64"
-IUSE="clang component-build cups custom-cflags cpu_flags_arm_neon gconf
-	  gnome-keyring jumbo-build kerberos lto pic +proprietary-codecs pulseaudio
-	  selinux +suid +system-ffmpeg +system-icu +system-libvpx +tcmalloc"
+IUSE="clang closure-compile component-build cups custom-cflags
+	cpu_flags_arm_neon kerberos lto pic +proprietary-codecs pulseaudio
+	selinux +suid +system-ffmpeg +system-icu +system-libvpx +tcmalloc"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
+REQUIRED_USE="component-build? ( !suid )"
 
 COMMON_DEPEND="
 	>=app-accessibility/at-spi2-atk-2.26:2
 	app-arch/bzip2:=
+	>=app-eselect/eselect-electron-2.0
 	cups? ( >=net-print/cups-1.3.11:= )
 	>=dev-libs/atk-2.26
 	dev-libs/expat:=
 	dev-libs/glib:2
-	system-icu? ( >=dev-libs/icu-64:= )
+	system-icu? ( >=dev-libs/icu-67.1:= )
 	>=dev-libs/libxml2-2.9.4-r3:=[icu]
 	dev-libs/libxslt:=
 	dev-libs/nspr:=
 	>=dev-libs/nss-3.26:=
-	>=dev-libs/re2-0.2016.11.01:=
-	gnome-keyring? ( >=gnome-base/libgnome-keyring-3.12:= )
+	>=dev-libs/re2-0.2019.08.01:=
 	>=media-libs/alsa-lib-1.0.19:=
 	media-libs/fontconfig:=
 	media-libs/freetype:=
-	>=media-libs/harfbuzz-2.2.0:0=[icu(-)]
+	>=media-libs/harfbuzz-2.4.0:0=[icu(-)]
 	media-libs/libjpeg-turbo:=
 	media-libs/libpng:=
-	system-libvpx? ( >=media-libs/libvpx-1.8.0:=[postproc,svc] )
+	system-libvpx? ( >=media-libs/libvpx-1.8.2:=[postproc,svc] )
 	>=media-libs/openh264-1.6.0:=
 	pulseaudio? ( media-sound/pulseaudio:= )
 	system-ffmpeg? (
-		>=media-video/ffmpeg-4:=
+		>=media-video/ffmpeg-4:0
+		<media-video/ffmpeg-4.3:0=
 		|| (
 			media-video/ffmpeg[-samba]
 			>=net-fs/samba-4.5.10-r1[-debug(-)]
 		)
-		!=net-fs/samba-4.5.12-r0
-		media-libs/opus:=
+		>=media-libs/opus-1.3.1:=
 	)
 	sys-apps/dbus:=
 	sys-apps/pciutils:=
@@ -117,11 +118,8 @@ DEPEND="${COMMON_DEPEND}
 BDEPEND="
 	${PYTHON_DEPS}
 	>=app-arch/gzip-1.7
-	!arm? (
-		dev-lang/yasm
-	)
 	dev-lang/perl
-	<dev-util/gn-0.1583
+	>=dev-util/gn-0.1726
 	dev-vcs/git
 	>=dev-util/gperf-3.0.3
 	>=dev-util/ninja-1.7.2
@@ -130,19 +128,20 @@ BDEPEND="
 	>=sys-devel/bison-2.4.3
 	sys-devel/flex
 	virtual/pkgconfig
+	closure-compile? ( virtual/jre )
+	!system-libvpx? (
+		amd64? ( dev-lang/yasm )
+		x86? ( dev-lang/yasm )
+	)
 	clang? (
 		|| (
 			(
+				sys-devel/clang:10
+				=sys-devel/lld-10*
+			)
+			(
 				sys-devel/clang:9
 				=sys-devel/lld-9*
-			)
-			(
-				sys-devel/clang:8
-				=sys-devel/lld-8*
-			)
-			(
-				sys-devel/clang:7
-				=sys-devel/lld-7*
 			)
 		)
 	)
@@ -157,6 +156,15 @@ pre_build_checks() {
 		local -x CPP="$(tc-getCXX) -E"
 		if tc-is-gcc && ! ver_test "$(gcc-version)" -ge 8.0; then
 			die "At least gcc 8.0 is required"
+		fi
+		# component build hangs with tcmalloc enabled due to sandbox issue, bug #695976.
+		if has usersandbox ${FEATURES} && use tcmalloc && use component-build; then
+			die "Component build with tcmalloc requires FEATURES=-usersandbox."
+		fi
+		if [[ ${CHROMIUM_FORCE_CLANG} == yes ]] || tc-is-clang; then
+			if use component-build; then
+				die "Component build with clang requires fuzzer headers."
+			fi
 		fi
 	fi
 
@@ -238,8 +246,6 @@ src_prepare() {
 	# Calling this here supports resumption via FEATURES=keepwork
 	python_setup
 
-	default
-
 	# Electron's scripts expect the top dir to be called src/"
 	ln -s "${CHROMIUM_S}" "${ROOT_S}"
 	mkdir -p "${NODE_S}/" || die
@@ -252,6 +258,11 @@ src_prepare() {
 	# Apply Gentoo patches for Electron itself.
 	cd "${CHROMIUM_S}/electron" || die
 
+	if [ -e "${FILESDIR}/patches" ]; then
+		rm -rf "${WORKDIR}/${PATCHES_P}" || die
+		rsync -a "${FILESDIR}/patches/" "${WORKDIR}/${PATCHES_P}" || die
+	fi
+
 	_unnest_patches "${WORKDIR}/${PATCHES_P}/${PV}/electron/"
 	eapply "${WORKDIR}/${PATCHES_P}/${PV}/electron/"
 
@@ -259,7 +270,7 @@ src_prepare() {
 	cd "${WORKDIR}" || die
 	local repopath
 	("${EPYTHON}" "${S}/script/list_patch_targets.py" \
-		"${S}/patches/common/config.json" || die) \
+		"${S}/patches/config.json" || die) \
 	| while read -r repopath; do
 		cd "${repopath}"
 		ebegin "Initializing git repo at ${repopath}"
@@ -276,7 +287,7 @@ src_prepare() {
 	done
 
 	"${EPYTHON}" "${S}/script/apply_all_patches.py" \
-		"${S}/patches/common/config.json" || die
+		"${S}/patches/config.json" || die
 
 	# Fix the NODE_MODULE_VERSION in supplied Node headers.
 	local node_module_version=$(grep \
@@ -297,8 +308,9 @@ src_prepare() {
 
 	local keeplibs=(
 		third_party/electron_node
+
 		base/third_party/cityhash
-		base/third_party/dmg_fp
+		base/third_party/double_conversion
 		base/third_party/dynamic_annotations
 		base/third_party/icu
 		base/third_party/nspr
@@ -323,6 +335,7 @@ src_prepare() {
 		third_party/angle/src/third_party/compiler
 		third_party/angle/src/third_party/libXNVCtrl
 		third_party/angle/src/third_party/trace_event
+		third_party/angle/src/third_party/volk
 		third_party/angle/third_party/glslang
 		third_party/angle/third_party/spirv-headers
 		third_party/angle/third_party/spirv-tools
@@ -335,9 +348,6 @@ src_prepare() {
 		third_party/blink
 		third_party/boringssl
 		third_party/boringssl/src/third_party/fiat
-		third_party/boringssl/src/third_party/sike
-		third_party/boringssl/linux-aarch64/crypto/third_party/sike
-		third_party/boringssl/linux-x86_64/crypto/third_party/sike
 		third_party/breakpad
 		third_party/breakpad/breakpad/src/third_party/curl
 		third_party/brotli
@@ -351,6 +361,7 @@ src_prepare() {
 		third_party/catapult/third_party/six
 		third_party/catapult/tracing/third_party/d3
 		third_party/catapult/tracing/third_party/gl-matrix
+		third_party/catapult/tracing/third_party/jpeg-js
 		third_party/catapult/tracing/third_party/jszip
 		third_party/catapult/tracing/third_party/mannwhitneyu
 		third_party/catapult/tracing/third_party/oboe
@@ -365,17 +376,24 @@ src_prepare() {
 		third_party/cros_system_api
 		third_party/dav1d
 		third_party/dawn
+		third_party/depot_tools
 		third_party/devscripts
+		third_party/devtools-frontend
+		third_party/devtools-frontend/src/front_end/third_party/fabricjs
+		third_party/devtools-frontend/src/front_end/third_party/lighthouse
+		third_party/devtools-frontend/src/front_end/third_party/wasmparser
+		third_party/devtools-frontend/src/third_party
 		third_party/dom_distiller_js
 		third_party/emoji-segmenter
 		third_party/flatbuffers
-		third_party/flot
 		third_party/freetype
+		third_party/libgifcodec
 		third_party/glslang
 		third_party/google_input_tools
 		third_party/google_input_tools/third_party/closure_library
 		third_party/google_input_tools/third_party/closure_library/third_party/closure
 		third_party/googletest
+		third_party/harfbuzz-ng/utils
 		third_party/hunspell
 		third_party/iccjpeg
 		third_party/inspector_protocol
@@ -401,6 +419,7 @@ src_prepare() {
 		third_party/llvm
 		third_party/lss
 		third_party/lzma_sdk
+		third_party/mako
 		third_party/markupsafe
 		third_party/mesa
 		third_party/metrics_proto
@@ -408,7 +427,9 @@ src_prepare() {
 		third_party/nasm
 		third_party/node
 		third_party/node/node_modules/polymer-bundler/lib/third_party/UglifyJS2
+		third_party/one_euro_filter
 		third_party/openscreen
+		third_party/openscreen/src/third_party/tinycbor/src/src
 		third_party/ots
 		third_party/pdfium
 		third_party/pdfium/third_party/agg23
@@ -424,18 +445,18 @@ src_prepare() {
 		third_party/pffft
 		third_party/ply
 		third_party/polymer
+		third_party/private-join-and-compute
 		third_party/protobuf
 		third_party/protobuf/third_party/six
 		third_party/pyjson5
 		third_party/qcms
 		third_party/rnnoise
 		third_party/s2cellid
-		third_party/sfntly
+		third_party/schema_org
 		third_party/simplejson
 		third_party/skia
 		third_party/skia/include/third_party/skcms
 		third_party/skia/include/third_party/vulkan
-		third_party/skia/third_party/gif
 		third_party/skia/third_party/skcms
 		third_party/skia/third_party/vulkan
 		third_party/smhasher
@@ -443,9 +464,12 @@ src_prepare() {
 		third_party/SPIRV-Tools
 		third_party/sqlite
 		third_party/swiftshader
+		third_party/swiftshader/third_party/astc-encoder
 		third_party/swiftshader/third_party/llvm-7.0
 		third_party/swiftshader/third_party/llvm-subzero
+		third_party/swiftshader/third_party/marl
 		third_party/swiftshader/third_party/subzero
+		third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1
 		third_party/unrar
 		third_party/usrsctp
 		third_party/vulkan
@@ -461,7 +485,9 @@ src_prepare() {
 		third_party/webrtc/rtc_base/third_party/sigslot
 		third_party/widevine
 		third_party/woff2
+		third_party/wuffs
 		third_party/zlib/google
+		tools/grit/third_party/six
 		url/third_party/mozilla
 		v8/src/third_party/siphash
 		v8/src/third_party/valgrind
@@ -486,6 +512,15 @@ src_prepare() {
 	if ! use system-libvpx; then
 		keeplibs+=( third_party/libvpx )
 		keeplibs+=( third_party/libvpx/source/libvpx/third_party/x86inc )
+
+		# we need to generate ppc64 stuff because upstream does not ship it yet
+		# it has to be done before unbundling.
+		if use ppc64; then
+			pushd third_party/libvpx >/dev/null || die
+			mkdir -p source/config/linux/ppc64 || die
+			./generate_gni.sh || die
+			popd >/dev/null || die
+		fi
 	fi
 	if use tcmalloc; then
 		keeplibs+=( third_party/tcmalloc )
@@ -494,7 +529,7 @@ src_prepare() {
 	# Remove most bundled libraries. Some are still needed.
 	build/linux/unbundle/remove_bundled_libraries.py "${keeplibs[@]}" --do-remove || die
 
-	eapply_user
+	default
 }
 
 src_configure() {
@@ -547,9 +582,6 @@ src_configure() {
 	# for development and debugging.
 	myconf_gn+=" is_component_build=$(usex component-build true false)"
 
-	# https://chromium.googlesource.com/chromium/src/+/lkcr/docs/jumbo.md
-	myconf_gn+=" use_jumbo_build=$(usex jumbo-build true false)"
-
 	myconf_gn+=" use_allocator=$(usex tcmalloc \"tcmalloc\" \"none\")"
 
 	# Disable nacl, we can't build without pnacl (http://crbug.com/269560).
@@ -596,9 +628,12 @@ src_configure() {
 	# See dependency logic in third_party/BUILD.gn
 	myconf_gn+=" use_system_harfbuzz=true"
 
+	# Disable deprecated libgnome-keyring dependency, bug #713012
+	myconf_gn+=" use_gnome_keyring=false"
+
 	# Optional dependencies.
+	myconf_gn+=" closure_compile=$(usex closure-compile true false)"
 	myconf_gn+=" use_cups=$(usex cups true false)"
-	myconf_gn+=" use_gnome_keyring=$(usex gnome-keyring true false)"
 	myconf_gn+=" use_kerberos=$(usex kerberos true false)"
 	myconf_gn+=" use_pulseaudio=$(usex pulseaudio true false)"
 
@@ -647,7 +682,8 @@ src_configure() {
 
 		# Prevent libvpx build failures. Bug 530248, 544702, 546984.
 		if [[ ${myarch} == amd64 || ${myarch} == x86 ]]; then
-			filter-flags -mno-mmx -mno-sse2 -mno-ssse3 -mno-sse4.1 -mno-avx -mno-avx2
+			filter-flags -mno-mmx -mno-sse2 -mno-ssse3 -mno-sse4.1 -mno-avx \
+				-mno-avx2 -mno-fma -mno-fma4
 		fi
 	fi
 
@@ -667,6 +703,9 @@ src_configure() {
 	elif [[ $myarch = arm ]] ; then
 		myconf_gn+=" target_cpu=\"arm\""
 		target_arch=$(usex cpu_flags_arm_neon arm-neon arm)
+	elif [[ $myarch = ppc64 ]] ; then
+		myconf_gn+=" target_cpu=\"ppc64\""
+		target_arch=ppc64
 	else
 		die "Failed to determine target arch, got '$myarch'."
 	fi
@@ -701,6 +740,14 @@ src_configure() {
 		chromium/scripts/copy_config.sh || die
 		chromium/scripts/generate_gn.py || die
 		popd > /dev/null || die
+	fi
+
+	# Chromium relies on this, but was disabled in >=clang-10, crbug.com/1042470
+	append-cxxflags $(test-flags-CXX -flax-vector-conversions=all)
+
+	# Explicitly disable ICU data file support for system-icu builds.
+	if use system-icu; then
+		myconf_gn+=" icu_use_data_file=false"
 	fi
 
 	einfo "Configuring bundled nodejs..."
@@ -770,17 +817,19 @@ src_install() {
 	popd > /dev/null || die
 
 	# Install Electron
+	into "${install_dir}"
 	insinto "${install_dir}"
 	exeinto "${install_dir}"
 	doexe out/Release/electron
 	doexe out/Release/chromedriver
 	doexe out/Release/mksnapshot
-	doins out/Release/natives_blob.bin
+	dolib.so out/Release/libvk_swiftshader.so
 	doins out/Release/snapshot_blob.bin
 	doins out/Release/v8_context_snapshot.bin
 	doins out/Release/chrome_100_percent.pak
 	doins out/Release/chrome_200_percent.pak
 	doins out/Release/resources.pak
+	doins out/Release/vk_swiftshader_icd.json
 	doins -r out/Release/resources
 	doins -r out/Release/locales
 	dosym "${install_dir}/electron" "/usr/bin/electron${install_suffix}"

@@ -41,8 +41,8 @@ ROOT_S="${WORKDIR}/src"
 LICENSE="BSD"
 SLOT="$(ver_cut 1-2)"
 KEYWORDS="~amd64"
-IUSE="clang component-build cups custom-cflags cpu_flags_arm_neon gconf
-	gnome-keyring jumbo-build kerberos lto pic +proprietary-codecs pulseaudio
+IUSE="clang component-build cups custom-cflags cpu_flags_arm_neon
+	jumbo-build kerberos lto pic +proprietary-codecs pulseaudio
 	selinux +suid +system-ffmpeg +system-icu +system-libvpx +tcmalloc"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
 
@@ -60,7 +60,6 @@ COMMON_DEPEND="
 	dev-libs/nspr:=
 	>=dev-libs/nss-3.26:=
 	>=dev-libs/re2-0.2016.11.01:=
-	gnome-keyring? ( >=gnome-base/libgnome-keyring-3.12:= )
 	>=media-libs/alsa-lib-1.0.19:=
 	media-libs/fontconfig:=
 	media-libs/freetype:=
@@ -134,16 +133,12 @@ BDEPEND="
 	clang? (
 		|| (
 			(
+				sys-devel/clang:10
+				=sys-devel/lld-10*
+			)
+			(
 				sys-devel/clang:9
 				=sys-devel/lld-9*
-			)
-			(
-				sys-devel/clang:8
-				=sys-devel/lld-8*
-			)
-			(
-				sys-devel/clang:7
-				=sys-devel/lld-7*
 			)
 		)
 	)
@@ -605,9 +600,11 @@ src_configure() {
 	# See dependency logic in third_party/BUILD.gn
 	myconf_gn+=" use_system_harfbuzz=true"
 
+	# libgnome-keyring is deprecated
+	myconf_gn+=" use_gnome_keyring=false"
+
 	# Optional dependencies.
 	myconf_gn+=" use_cups=$(usex cups true false)"
-	myconf_gn+=" use_gnome_keyring=$(usex gnome-keyring true false)"
 	myconf_gn+=" use_kerberos=$(usex kerberos true false)"
 	myconf_gn+=" use_pulseaudio=$(usex pulseaudio true false)"
 
