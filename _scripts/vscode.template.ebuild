@@ -43,7 +43,8 @@ BINMODS=(
 @@{BINMODS}
 )
 
-LICENSE="MIT"
+RESTRICT="mirror bindist"
+LICENSE="MS-vscode"
 SLOT="@@{SLOT}"
 KEYWORDS="@@{KEYWORDS}"
 IUSE=""
@@ -147,7 +148,7 @@ src_prepare() {
 	if [[ "${PV}" == *9999* ]]; then
 		eapply "${FILESDIR}/unbundle-electron-insiders.patch"
 	else
-		eapply "${FILESDIR}/unbundle-electron.patch"
+		eapply "${FILESDIR}/unbundle-electron-r1.patch"
 	fi
 	eapply "${FILESDIR}/unbundle-ripgrep-r1.patch"
 
