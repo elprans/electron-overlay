@@ -801,6 +801,7 @@ src_compile() {
 	# Even though ninja autodetects number of CPUs, we respect
 	# user's options, for debugging with -j 1 or any other reason.
 	eninja -C out/Release electron chromedriver
+	use suid && eninja -C out/Release chrome_sandbox
 
 	pax-mark m out/Release/electron
 }
@@ -823,7 +824,12 @@ src_install() {
 	doexe out/Release/electron
 	doexe out/Release/chromedriver
 	doexe out/Release/mksnapshot
-	dolib.so out/Release/libvk_swiftshader.so
+	if use suid; then
+		newexe out/Release/chrome_sandbox chrome-sandbox
+		fperms 4755 "${install_dir}/chrome-sandbox"
+	fi
+	doins out/Release/libvk_swiftshader.so
+	fperms +x "${install_dir}"/libvk_swiftshader.so
 	doins out/Release/snapshot_blob.bin
 	doins out/Release/v8_context_snapshot.bin
 	doins out/Release/chrome_100_percent.pak
