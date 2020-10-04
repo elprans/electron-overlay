@@ -17,7 +17,7 @@ CHROMIUM_VERSION="83.0.4103.116"
 # Keep this in sync with DEPS:node_version
 NODE_VERSION="12.14.1"
 
-GENTOO_PATCHES_VERSION="0f1c65ec43ce03ac0470ee7a757e8854ccebdc4d"
+GENTOO_PATCHES_VERSION="dca2e7579ac0de98cc0a581d031fadd489a1223e"
 
 PATCHES_P="gentoo-electron-patches-${GENTOO_PATCHES_VERSION}"
 CHROMIUM_P="chromium-${CHROMIUM_VERSION}"
@@ -69,6 +69,7 @@ COMMON_DEPEND="
 	media-libs/libpng:=
 	system-libvpx? ( >=media-libs/libvpx-1.8.2:=[postproc,svc] )
 	>=media-libs/openh264-1.6.0:=
+	media-libs/vulkan-loader
 	pulseaudio? ( media-sound/pulseaudio:= )
 	system-ffmpeg? (
 		>=media-video/ffmpeg-4:0
@@ -176,12 +177,23 @@ pre_build_checks() {
 		if ! use component-build; then
 			CHECKREQS_MEMORY="16G"
 		fi
+	elif use lto; then
+		CHECKREQS_DISK_BUILD="12G"
+		CHECKREQS_MEMORY="4G"
 	fi
 	check-reqs_pkg_setup
 }
 
 pkg_pretend() {
 	pre_build_checks
+
+	if use lto ; then
+		if ! use clang ; then
+			eerror "USE=lto when using GCC is currently known to be broken."
+			eerror "Either switch to USE=clang or set USE=-lto."
+			die "USE=lto without USE=clang is currently known to be broken."
+		fi
+	fi
 }
 
 pkg_setup() {
@@ -643,14 +655,24 @@ src_configure() {
 
 	# Never use bundled gold binary. Disable gold linker flags for now.
 	# Do not use bundled clang.
-	# Trying to use gold results in linker crash.
-	myconf_gn+=" use_gold=false use_sysroot=false linux_use_bundled_binutils=false use_custom_libcxx=false"
-
-	# Disable forced lld, bug 641556
-	myconf_gn+=" use_lld=false"
+	myconf_gn+=" use_sysroot=false linux_use_bundled_binutils=false use_custom_libcxx=false"
 
 	if use lto; then
+		filter-flags "-Wl,-O*"
 		myconf_gn+=" use_thin_lto=true"
+		if use clang ; then
+			myconf_gn+=" use_lld=true use_gold=false"
+		else
+			myconf_gn+=" use_lld=false use_gold=true"
+		fi
+	else
+		if use clang ; then
+			myconf_gn+=" use_lld=true use_gold=false"
+		elif tc-ld-is-gold ; then
+			myconf_gn+=" use_lld=false use_gold=true"
+		else
+			myconf_gn+=" use_lld=false use_gold=false"
+		fi
 	fi
 
 	ffmpeg_branding="$(usex proprietary-codecs Chrome Chromium)"
@@ -680,10 +702,12 @@ src_configure() {
 			filter-flags "-g*"
 		fi
 
-		# Prevent libvpx build failures. Bug 530248, 544702, 546984.
-		if [[ ${myarch} == amd64 || ${myarch} == x86 ]]; then
-			filter-flags -mno-mmx -mno-sse2 -mno-ssse3 -mno-sse4.1 -mno-avx \
-				-mno-avx2 -mno-fma -mno-fma4
+		if use system-libvpx; then
+			# Prevent libvpx build failures. Bug 530248, 544702, 546984.
+			if [[ ${myarch} == amd64 || ${myarch} == x86 ]]; then
+				filter-flags -mno-mmx -mno-sse2 -mno-ssse3 -mno-sse4.1 -mno-avx\
+					-mno-avx2 -mno-fma -mno-fma4
+			fi
 		fi
 	fi
 
@@ -830,6 +854,14 @@ src_install() {
 	fi
 	doins out/Release/libvk_swiftshader.so
 	fperms +x "${install_dir}"/libvk_swiftshader.so
+
+	insinto "${install_dir}/swiftshader"
+	doins out/Release/swiftshader/libEGL.so
+	fperms +x "${install_dir}"/swiftshader/libEGL.so
+	doins out/Release/swiftshader/libGLESv2.so
+	fperms +x "${install_dir}"/swiftshader/libGLESv2.so
+	insinto "${install_dir}"
+
 	doins out/Release/snapshot_blob.bin
 	doins out/Release/v8_context_snapshot.bin
 	doins out/Release/chrome_100_percent.pak
