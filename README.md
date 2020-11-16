@@ -1,7 +1,7 @@
-Gentoo Overlay for Atom-related ebuilds
-=======================================
+Gentoo Overlay for Electron and some Electron-based apps
+========================================================
 
 Installation
 ------------
 
-	layman -a atom
+	layman -a electron

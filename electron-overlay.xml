@@ -2,14 +2,14 @@
 <!DOCTYPE repositories SYSTEM "/dtd/repositories.dtd">
 <repositories xmlns="" version="1.0">
   <repo quality="experimental" status="unofficial">
-    <name><![CDATA[atom-overlay]]></name>
-    <description lang="en"><![CDATA[Atom Overlay]]></description>
-    <homepage>https://github.com/elprans/atom-overlay</homepage>
+    <name><![CDATA[electron]]></name>
+    <description lang="en"><![CDATA[Electron Overlay]]></description>
+    <homepage>https://github.com/elprans/electron-overlay</homepage>
     <owner type="person">
       <email>elvis@magic.io</email>
       <name><![CDATA[Elvis Pranskevichus]]></name>
     </owner>
-    <source type="git">git://github.com/elprans/atom-overlay.git</source>
-    <feed>https://github.com/elprans/atom-overlay/commits/master.atom</feed>
+    <source type="git">git://github.com/elprans/electron-overlay.git</source>
+    <feed>https://github.com/elprans/electron-overlay/commits/master.atom</feed>
   </repo>
 </repositories>
