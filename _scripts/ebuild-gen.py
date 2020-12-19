@@ -36,6 +36,7 @@ CACHEHOME = os.environ.get(
 
 CACHEDIR = os.path.join(CACHEHOME, 'atom-ebuild-gen')
 
+COMMON_DEPS = {'nan', 'node-addon-api'}
 
 urlopener = urllib.request.build_opener(urllib.request.HTTPRedirectHandler)
 
@@ -204,6 +205,9 @@ def find_vscode_deps(args, sha):
 
     npm_deps = package_json['dependencies']
     find_binary_deps(npm_deps, binary_deps, parents=['atom'])
+
+    import pprint
+    pprint.pprint(binary_deps)
 
     return (
         electron_version,
@@ -790,10 +794,10 @@ def is_binary(metadata):
     if metadata.get('gypfile'):
         return True
     deps = metadata.get('dependencies', {})
-    if deps.get('nan') or deps.get('node-pre-gyp'):
+    if deps.get('nan') or deps.get('node-pre-gyp') or deps.get('node-gyp'):
         return True
     devdeps = metadata.get('devDependencies', {})
-    if devdeps.get('node-pre-gyp'):
+    if devdeps.get('node-pre-gyp') or devdeps.get('node-gyp'):
         return True
     return False
 
@@ -827,6 +831,9 @@ def find_binary_deps(deps, result, *, memo=set(), parents,
             pkg_ver = parse_version(str_ver)
             pkg_os = metadata.get('os')
             if pkg_os and 'linux' not in pkg_os:
+                continue
+
+            if metadata['name'] in COMMON_DEPS:
                 continue
 
             dist = metadata.get('dist')
