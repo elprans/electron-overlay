@@ -17,7 +17,7 @@ CHROMIUM_VERSION="83.0.4103.116"
 # Keep this in sync with DEPS:node_version
 NODE_VERSION="12.14.1"
 
-GENTOO_PATCHES_VERSION="dca2e7579ac0de98cc0a581d031fadd489a1223e"
+GENTOO_PATCHES_VERSION="c594034c969368c43667c5283c65430c973103fb"
 
 PATCHES_P="gentoo-electron-patches-${GENTOO_PATCHES_VERSION}"
 CHROMIUM_P="chromium-${CHROMIUM_VERSION}"
@@ -136,6 +136,10 @@ BDEPEND="
 	)
 	clang? (
 		|| (
+			(
+				sys-devel/clang:11
+				=sys-devel/lld-11*
+			)
 			(
 				sys-devel/clang:10
 				=sys-devel/lld-10*
