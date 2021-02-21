@@ -9,7 +9,7 @@
 EAPI=7
 
 PYTHON_COMPAT=( python3_{7,8,9} )
-inherit multiprocessing python-single-r1 rpm xdg-utils
+inherit multiprocessing python-any-r1 rpm xdg-utils
 
 DESCRIPTION="Visual Studio Code"
 HOMEPAGE="https://code.visualstudio.com/"
@@ -28,7 +28,7 @@ ELECTRON_SLOT=9.3
 ASAR_V=0.14.3
 # All binary packages depend on this
 NAN_V=2.14.2
-NODE_ADDON_API_V=3.1.0
+NODE_ADDON_API_V=3.0.2
 
 KEYTAR_V=7.2.0
 NATIVE_IS_ELEVATED_V=0.4.1
@@ -71,9 +71,9 @@ LICENSE="MS-vscode"
 SLOT="0"
 KEYWORDS="~amd64"
 IUSE=""
-REQUIRED_USE="${PYTHON_REQUIRED_USE}"
 
 BDEPEND="
+	${PYTHON_DEPS}
 	>=dev-util/electron-${ELECTRON_V}:${ELECTRON_SLOT}
 "
 
@@ -99,10 +99,6 @@ RDEPEND="
 S="${WORKDIR}/${PN}-${PV}"
 BIN_S="${WORKDIR}/${PN}-bin-${PV}"
 BUILD_DIR="${S}/out"
-
-pkg_setup() {
-	python-single-r1_pkg_setup
-}
 
 src_unpack() {
 	local a
@@ -153,6 +149,9 @@ src_prepare() {
 	local wb_css_path="vs/workbench/workbench.desktop.main.css"
 	local wb_css_local_path="vs/workbench/workbench.desktop.local.css"
 	local wb_css_csum
+
+	# Calling this here supports resumption via FEATURES=keepwork
+	python_setup
 
 	mkdir "${BUILD_DIR}" || die
 	cp -a "${BIN_S}/${vscode_rpmdir}/resources/app" \
@@ -233,6 +232,9 @@ src_configure() {
 	local binmod
 	local config
 
+	# Calling this here supports resumption via FEATURES=keepwork
+	python_setup
+
 	for binmod in "${BINMODS[@]}"; do
 		einfo "Configuring ${binmod}..."
 		cd "${WORKDIR}/$(package_dir ${binmod})" || die
@@ -251,6 +253,9 @@ src_compile() {
 	local binmod
 	local jobs=$(makeopts_jobs)
 	local unpacked_paths
+
+	# Calling this here supports resumption via FEATURES=keepwork
+	python_setup
 
 	mkdir -p "${BUILD_DIR}/modules/" || die
 
