@@ -1,0 +1,18 @@
+From 3abe84558f1452e99f4eadbe77d0c3393387f5ff Mon Sep 17 00:00:00 2001
+From: Elvis Pranskevichus <elvis@edgedb.com>
+Date: Sun, 6 Jun 2021 22:34:56 -0700
+Subject: [PATCH] Patch fixes
+
+---
+ patches/icu/.patches | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/patches/icu/.patches b/patches/icu/.patches
+index 683e850cfd..e69de29bb2 100644
+--- a/patches/icu/.patches
++++ b/patches/icu/.patches
+@@ -1 +0,0 @@
+-fix_apply_tzdata2020f_to_icu.patch
+-- 
+2.31.1
+

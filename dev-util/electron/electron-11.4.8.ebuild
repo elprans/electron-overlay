@@ -17,10 +17,11 @@ inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils \
 CHROMIUM_VERSION="87.0.4280.141"
 CHROMIUM_PATCHSET="9"
 CHROMIUM_PATCHSET_NAME="chromium-$(ver_cut 1 ${CHROMIUM_VERSION})-patchset-${CHROMIUM_PATCHSET}"
+
 # Keep this in sync with DEPS:node_version
 NODE_VERSION="12.18.3"
 
-GENTOO_PATCHES_VERSION="c0221781718eadacd26bfba6907805de3ed316f6"
+GENTOO_PATCHES_VERSION="f7c7b04cc27d2288a3141d71b59c24213b916e21"
 
 PATCHES_P="gentoo-electron-patches-${GENTOO_PATCHES_VERSION}"
 CHROMIUM_P="chromium-${CHROMIUM_VERSION}"
@@ -35,6 +36,8 @@ SRC_URI="
 	https://github.com/nodejs/node/archive/v${NODE_VERSION}.tar.gz -> electron-${NODE_P}.tar.gz
 	https://github.com/elprans/electron/releases/download/v${PV}-gentoo/electron-node-modules-${PV}.tar.xz
 	https://github.com/elprans/gentoo-electron-patches/archive/${GENTOO_PATCHES_VERSION}.tar.gz -> electron-patches-${GENTOO_PATCHES_VERSION}.tar.gz
+	https://files.pythonhosted.org/packages/ed/7b/bbf89ca71e722b7f9464ebffe4b5ee20a9e5c9a555a56e2d3914bb9119a6/setuptools-44.1.0.zip
+	https://github.com/matiasb/python-unidiff/archive/refs/tags/v0.6.0.tar.gz -> electron-build-unidiff-0.6.0.tar.gz
 "
 
 S="${WORKDIR}/${P}"
@@ -155,6 +158,10 @@ BDEPEND="
 	clang? (
 		|| (
 			(
+				sys-devel/clang:12
+				=sys-devel/lld-12*
+			)
+			(
 				sys-devel/clang:11
 				=sys-devel/lld-11*
 			)
@@ -226,21 +233,6 @@ pkg_setup() {
 	fi
 }
 
-_unnest_patches() {
-	local _s="${1%/}/"
-	local path
-	local relpath
-	local out
-
-	(find "${_s}" -mindepth 2 -name '*.patch' -printf "%P\n" || die) \
-	| while read -r path; do
-		relpath="$(dirname ${path})"
-		out="${_s}/__${relpath////_}_$(basename ${path})"
-		sed -r -e "s|^([-+]{3}) ([ab])/(.*)$|\1 \2/${relpath}/\3|g" \
-			"${_s}/${path}" > "${out}" || die
-	done
-}
-
 _get_install_suffix() {
 	local c=(${SLOT//\// })
 	local slot=${c[0]}
@@ -299,31 +291,28 @@ src_prepare() {
 		rsync -a "${FILESDIR}/patches/" "${WORKDIR}/${PATCHES_P}" || die
 	fi
 
-	_unnest_patches "${WORKDIR}/${PATCHES_P}/${PV}/electron/"
-	eapply "${WORKDIR}/${PATCHES_P}/${PV}/electron/"
+	cd "${S}" || die
+	eapply "${FILESDIR}/electron-gn-config.patch"
+	eapply "${FILESDIR}/electron-11-patch-fixes.patch"
+
+	cd "${NODE_S}" || die
+	eapply "${FILESDIR}/node-openssl-fips-decl.patch"
+
+	cd "${WORKDIR}/python-unidiff-0.6.0" || die
+	eapply "${FILESDIR}/unidiff-py2.patch"
 
 	# Apply Chromium patches from Electron.
 	cd "${WORKDIR}" || die
 	local repopath
-	("${EPYTHON}" "${S}/script/list_patch_targets.py" \
+	local patchpath
+	(PYTHONPATH="${WORKDIR}/python-unidiff-0.6.0:${PYTHONPATH+:}${PYTHONPATH}" \
+		"${EPYTHON}" "${FILESDIR}/fix_patches.py" \
 		"${S}/patches/config.json" || die) \
-	| while read -r repopath; do
-		cd "${repopath}" || die
-		ebegin "Initializing git repo at ${repopath}"
-		git init -q || die
-		git config "gc.auto" "0"
-		if [ "${repopath}" != "src" ]; then
-			echo "/${repopath#src/}" >> "${CHROMIUM_S}/.gitignore"
-		fi
-		git add . || die
-		git -c 'user.name=Electron Ebuild' -c 'user.email=electron@ebuild' \
-			commit -q -m "." || die
-		cd "${WORKDIR}"
-		eend
+	| while IFS=: read -r patchpath repopath; do
+		echo cd "${WORKDIR}/${repopath}"
+		cd "${WORKDIR}/${repopath}" || die
+		eapply "${WORKDIR}/${patchpath}"
 	done
-
-	"${EPYTHON}" "${S}/script/apply_all_patches.py" \
-		"${S}/patches/config.json" || die
 
 	# Fix the NODE_MODULE_VERSION in supplied Node headers.
 	local node_module_version=$(grep \
@@ -584,6 +573,7 @@ src_prepare() {
 	fi
 
 	# Remove most bundled libraries. Some are still needed.
+	echo build/linux/unbundle/remove_bundled_libraries.py "${keeplibs[@]}" --do-remove
 	build/linux/unbundle/remove_bundled_libraries.py "${keeplibs[@]}" --do-remove || die
 
 	default
@@ -617,6 +607,7 @@ src_configure() {
 
 	if tc-is-clang; then
 		myconf_gn+=" is_clang=true clang_use_chrome_plugins=false"
+		append-flags "-Wno-unused-command-line-argument"
 	else
 		myconf_gn+=" is_clang=false"
 	fi
