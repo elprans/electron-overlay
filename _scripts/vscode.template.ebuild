@@ -34,7 +34,7 @@ NODE_ADDON_API_V=3.0.2
 
 # The x86_64 arch below is irrelevant, as we will rebuild all binary packages.
 SRC_URI="
-	https://vscode-update.azurewebsites.net/${UPSTREAM_PV}/linux-rpm-x64/${UPSTREAM_CHANNEL} -> vscode-x64-${PV}.rpm
+	https://update.code.visualstudio.com/${UPSTREAM_PV}/linux-rpm-x64/${UPSTREAM_CHANNEL} -> vscode-x64-${PV}.rpm
 	https://github.com/elprans/asar/releases/download/v${ASAR_V}-gentoo/asar-build.tar.gz -> asar-${ASAR_V}.tar.gz
 	https://github.com/nodejs/nan/archive/v${NAN_V}.tar.gz -> nodejs-nan-${NAN_V}.tar.gz
 	https://github.com/nodejs/node-addon-api/archive/${NODE_ADDON_API_V}.tar.gz -> nodejs-node-addon-api-${NODE_ADDON_API_V}.tar.gz
