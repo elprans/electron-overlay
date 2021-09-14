@@ -1,0 +1,25 @@
+From 97be4452fa05cad3af7fe21c265c06cbe6839107 Mon Sep 17 00:00:00 2001
+From: Elvis Pranskevichus <el@prans.net>
+Date: Mon, 7 Jun 2021 12:24:22 -0700
+Subject: [PATCH] Fix node openssl_fips declaration
+
+---
+ common.gypi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/common.gypi b/common.gypi
+index e610650a01..f4179a50f6 100644
+--- a/common.gypi
++++ b/common.gypi
+@@ -28,7 +28,7 @@
+     'clang%': 0,
+     'error_on_warn%': 'false',
+ 
+-    'openssl_fips%': '',
++    'openssl_fips': '',
+     'openssl_no_asm%': 0,
+ 
+     # Don't use ICU data file (icudtl.dat) from V8, we use our own.
+-- 
+2.32.0
+
