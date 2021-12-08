@@ -22,21 +22,22 @@ else
 	UPSTREAM_CHANNEL="stable"
 fi
 
-ELECTRON_V=11.4.0
-ELECTRON_SLOT=11.4
+ELECTRON_V=13.6.2
+ELECTRON_SLOT=13.6
 
 ASAR_V=0.14.3
 # All binary packages depend on this
 NAN_V=2.14.2
 NODE_ADDON_API_V=3.0.2
 
+VSCODE__SQLITE3_V=4.0.12
 KEYTAR_V=7.2.0
-NATIVE_IS_ELEVATED_V=0.4.1
-NATIVE_KEYMAP_V=2.2.1
+NATIVE_IS_ELEVATED_V=0.4.3
+NATIVE_KEYMAP_V=3.0.1
 NATIVE_WATCHDOG_V=1.3.0
-NODE_PTY_V=0.10.0-beta19
-SPDLOG_V=0.11.1
-VSCODE_SQLITE3_V=4.0.10
+NODE_PTY_V=0.11.0-beta7
+SPDLOG_V=0.13.6
+VSCODE_NSFW_V=2.1.8
 
 # The x86_64 arch below is irrelevant, as we will rebuild all binary packages.
 SRC_URI="
@@ -44,23 +45,25 @@ SRC_URI="
 	https://github.com/elprans/asar/releases/download/v${ASAR_V}-gentoo/asar-build.tar.gz -> asar-${ASAR_V}.tar.gz
 	https://github.com/nodejs/nan/archive/v${NAN_V}.tar.gz -> nodejs-nan-${NAN_V}.tar.gz
 	https://github.com/nodejs/node-addon-api/archive/${NODE_ADDON_API_V}.tar.gz -> nodejs-node-addon-api-${NODE_ADDON_API_V}.tar.gz
+	https://registry.npmjs.org/@vscode/sqlite3/-/sqlite3-4.0.12.tgz -> vscodedep-vscode--sqlite3-${VSCODE__SQLITE3_V}.tar.gz
 	https://registry.npmjs.org/keytar/-/keytar-7.2.0.tgz -> vscodedep-keytar-${KEYTAR_V}.tar.gz
-	https://registry.npmjs.org/native-is-elevated/-/native-is-elevated-0.4.1.tgz -> vscodedep-native-is-elevated-${NATIVE_IS_ELEVATED_V}.tar.gz
-	https://registry.npmjs.org/native-keymap/-/native-keymap-2.2.1.tgz -> vscodedep-native-keymap-${NATIVE_KEYMAP_V}.tar.gz
+	https://registry.npmjs.org/native-is-elevated/-/native-is-elevated-0.4.3.tgz -> vscodedep-native-is-elevated-${NATIVE_IS_ELEVATED_V}.tar.gz
+	https://registry.npmjs.org/native-keymap/-/native-keymap-3.0.1.tgz -> vscodedep-native-keymap-${NATIVE_KEYMAP_V}.tar.gz
 	https://registry.npmjs.org/native-watchdog/-/native-watchdog-1.3.0.tgz -> vscodedep-native-watchdog-${NATIVE_WATCHDOG_V}.tar.gz
-	https://registry.npmjs.org/node-pty/-/node-pty-0.10.0-beta19.tgz -> vscodedep-node-pty-${NODE_PTY_V}.tar.gz
-	https://registry.npmjs.org/spdlog/-/spdlog-0.11.1.tgz -> vscodedep-spdlog-${SPDLOG_V}.tar.gz
-	https://registry.npmjs.org/vscode-sqlite3/-/vscode-sqlite3-4.0.10.tgz -> vscodedep-vscode-sqlite3-${VSCODE_SQLITE3_V}.tar.gz
+	https://registry.npmjs.org/node-pty/-/node-pty-0.11.0-beta7.tgz -> vscodedep-node-pty-${NODE_PTY_V}.tar.gz
+	https://registry.npmjs.org/spdlog/-/spdlog-0.13.6.tgz -> vscodedep-spdlog-${SPDLOG_V}.tar.gz
+	https://registry.npmjs.org/vscode-nsfw/-/vscode-nsfw-2.1.8.tgz -> vscodedep-vscode-nsfw-${VSCODE_NSFW_V}.tar.gz
 "
 
 BINMODS=(
+	vscode--sqlite3
 	keytar
 	native-is-elevated
 	native-keymap
 	native-watchdog
 	node-pty
 	spdlog
-	vscode-sqlite3
+	vscode-nsfw
 )
 
 RESTRICT="mirror bindist"
@@ -167,7 +170,7 @@ src_prepare() {
 	if [[ "${PV}" == *9999* ]]; then
 		eapply "${FILESDIR}/unbundle-electron-insiders.patch"
 	else
-		eapply "${FILESDIR}/unbundle-electron-r1.patch"
+		eapply "${FILESDIR}/unbundle-electron-r2.patch"
 	fi
 	eapply "${FILESDIR}/unbundle-ripgrep-r1.patch"
 

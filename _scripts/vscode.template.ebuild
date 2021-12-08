@@ -149,7 +149,7 @@ src_prepare() {
 	if [[ "${PV}" == *9999* ]]; then
 		eapply "${FILESDIR}/unbundle-electron-insiders.patch"
 	else
-		eapply "${FILESDIR}/unbundle-electron-r1.patch"
+		eapply "${FILESDIR}/unbundle-electron-r2.patch"
 	fi
 	eapply "${FILESDIR}/unbundle-ripgrep-r1.patch"
 

@@ -1,0 +1,37 @@
+From 3d42ee626ee69418465d399c1ed40b8d1d2f9d53 Mon Sep 17 00:00:00 2001
+From: Elvis Pranskevichus <elvis@edgedb.com>
+Date: Wed, 8 Dec 2021 14:00:50 -0800
+Subject: [PATCH] Unbundle Electron
+
+---
+ code | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
+
+diff --git a/code b/code
+index 4e092de..affd571 100755
+--- a/code
++++ b/code
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env sh
++#!{{EPREFIX}}/usr/bin/env sh
+ #
+ # Copyright (c) Microsoft Corporation. All rights reserved.
+ # Licensed under the MIT License. See License.txt in the project root for license information.
+@@ -48,7 +48,10 @@ else
+ 	fi
+ fi
+ 
+-ELECTRON="$VSCODE_PATH/code"
+-CLI="$VSCODE_PATH/resources/app/out/cli.js"
+-ELECTRON_RUN_AS_NODE=1 "$ELECTRON" "$CLI" --ms-enable-electron-run-as-node "$@"
+-exit $?
++VSCODE_PATH="{{VSCODE_PATH}}"
++ELECTRON="{{ELECTRON_PATH}}"
++CLI="${VSCODE_PATH}/out/cli.js"
++exec {{EPREFIX}}/usr/bin/env \
++       ELECTRON_RUN_AS_NODE=1 \
++       NPM_CONFIG_NODEDIR="{{NPM_CONFIG_NODEDIR}}" \
++       "${ELECTRON}" "${CLI}" --app="${VSCODE_PATH}" "$@"
+-- 
+2.32.0
+
