@@ -21,9 +21,5 @@
 		<flag name="screencast">Enable support for remote desktop and screen cast using <pkg>media-video/pipewire</pkg></flag>
 		<flag name="system-ffmpeg">Use system ffmpeg instead of the bundled one</flag>
 		<flag name="system-icu">Use system icu instead of the bundled one</flag>
-		<flag name="tcmalloc">Use bundled tcmalloc instead of system malloc</flag>
 	</use>
-	<upstream>
-		<remote-id type="github">elprans/gentoo-electron-patches</remote-id>
-	</upstream>
 </pkgmetadata>

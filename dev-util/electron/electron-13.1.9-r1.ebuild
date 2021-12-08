@@ -1319,16 +1319,16 @@ BDEPEND="
 	clang? (
 		|| (
 			(
+				sys-devel/clang:13
+				=sys-devel/lld-13*
+			)
+			(
 				sys-devel/clang:12
 				=sys-devel/lld-12*
 			)
 			(
 				sys-devel/clang:11
 				=sys-devel/lld-11*
-			)
-			(
-				sys-devel/clang:10
-				=sys-devel/lld-10*
 			)
 		)
 	)
@@ -1503,6 +1503,7 @@ src_prepare() {
 		"${FILESDIR}/chromium-91-ThemeService-crash.patch"
 		"${FILESDIR}/chromium-91-system-icu.patch"
 		"${FILESDIR}/chromium-91-freetype-2.11.patch"
+		"${FILESDIR}/chromium-91-harfbuzz-3.patch"
 		"${FILESDIR}/chromium-shim_headers.patch"
 	)
 
