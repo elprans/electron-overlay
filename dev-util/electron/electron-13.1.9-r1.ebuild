@@ -1504,6 +1504,7 @@ src_prepare() {
 		"${FILESDIR}/chromium-91-system-icu.patch"
 		"${FILESDIR}/chromium-91-freetype-2.11.patch"
 		"${FILESDIR}/chromium-91-harfbuzz-3.patch"
+		"${FILESDIR}/chromium-glibc-2.34.patch"
 		"${FILESDIR}/chromium-shim_headers.patch"
 	)
 
