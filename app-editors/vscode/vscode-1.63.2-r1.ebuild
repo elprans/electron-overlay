@@ -239,7 +239,7 @@ src_configure() {
 		einfo "Configuring ${binmod}..."
 		cd "${WORKDIR}/$(package_dir ${binmod})" || die
 
-		if [[ "${binmod}" == "vscode-sqlite3" ]]; then
+		if [[ "${binmod}" == "vscode--sqlite3" ]]; then
 			config="--sqlite=/usr"
 		else
 			config=""
@@ -423,19 +423,28 @@ fix_binmods() {
 	local prefix="${1}"
 	local path
 	local pathdir
+	local nsdir
 	local relpath
 	local modpath
 	local mod
 	local cruft
 
 	while IFS= read -r -d '' path; do
-		pathdir=$(dirname ${path})
+		pathdir=$(dirname "${path}")
 		relpath=${path#${prefix}}
 		relpath=${relpath##/}
 		relpath=${relpath#W${dir}}
-		modpath=$(dirname ${relpath})
+		modpath=$(dirname "${relpath}")
 		modpath=${modpath%build/Release}
-		mod=$(basename ${modpath})
+		nsdir=$(basename "$(dirname "${modpath}")")
+		mod=$(basename "${modpath}")
+
+		if [ "${nsdir:0:1}" = "@" ]; then
+			# Namespaced package
+			mod="${nsdir:1}--${mod}"
+		fi
+
+		einfo "$mod $pathdir $nsdir ${nsdir:0:1}"
 
 		# Check if the binary node module is actually a valid dependency.
 		# Sometimes the upstream removes a dependency from package.json but
