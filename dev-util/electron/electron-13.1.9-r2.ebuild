@@ -1,4 +1,4 @@
-# Copyright 1999-2021 Gentoo Authors
+# Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -1218,7 +1218,7 @@ REQUIRED_USE="
 "
 
 COMMON_X_DEPEND="
-	media-libs/mesa:=[gbm(+)]
+	media-libs/mesa:=[gbm]
 	x11-libs/libX11:=
 	x11-libs/libXcomposite:=
 	x11-libs/libXcursor:=
@@ -1310,7 +1310,6 @@ BDEPEND="
 	>=dev-util/gperf-3.0.3
 	>=dev-util/ninja-1.7.2
 	>=net-libs/nodejs-7.6.0[inspector]
-	sys-apps/hwids[usb(+)]
 	sys-apps/yarn
 	>=sys-devel/bison-2.4.3
 	sys-devel/flex
