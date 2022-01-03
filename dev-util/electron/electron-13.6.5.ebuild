@@ -1452,19 +1452,20 @@ src_prepare() {
 	# Calling this here supports resumption via FEATURES=keepwork
 	python_setup
 
-	# Electron's scripts expect the top dir to be called src/"
-	ln -s "${CHROMIUM_S}" "${ROOT_S}"
-	ln -s "${S}/" "${CHROMIUM_S}/electron" || die
-	mkdir -p "${NODE_S}/" || die
-	rsync -a "${WORKDIR}/${NODE_P}/" "${NODE_S}/" || die
-
 	# Install Electron's JavaScript dependencies.
 	echo "yarn-offline-mirror \"${WORKDIR}/yarn-cache\"" >> "${S}/.yarnrc" || die
 	yarn install --ignore-optional --frozen-lockfile --offline \
 		--ignore-scripts --no-progress || die
 
-	cd "${S}" || die
+	# Electron's scripts expect the top dir to be called src/"
+	ln -s "${CHROMIUM_S}" "${ROOT_S}"
+	rsync -a "${S}/" "${CHROMIUM_S}/electron/" || die
+	mkdir -p "${NODE_S}/" || die
+	rsync -a "${WORKDIR}/${NODE_P}/" "${NODE_S}/" || die
+
+	cd "${CHROMIUM_S}/electron" || die
 	eapply "${FILESDIR}/electron-gn-config.patch"
+	eapply "${FILESDIR}/electron-node-config.patch"
 
 	cd "${NODE_S}" || die
 	eapply "${FILESDIR}/node-openssl-fips-decl-r1.patch"
@@ -1502,8 +1503,8 @@ src_prepare() {
 		"${FILESDIR}/chromium-91-ThemeService-crash.patch"
 		"${FILESDIR}/chromium-91-system-icu.patch"
 		"${FILESDIR}/chromium-91-freetype-2.11.patch"
+		"${FILESDIR}/chromium-91-gn-0.1943.patch"
 		"${FILESDIR}/chromium-91-harfbuzz-3.patch"
-		"${FILESDIR}/chromium-96-freetype-unbundle.patch"
 		"${FILESDIR}/chromium-glibc-2.34.patch"
 		"${FILESDIR}/chromium-shim_headers.patch"
 	)
@@ -2048,25 +2049,6 @@ src_configure() {
 			myconf_gn+=" ozone_platform=\"wayland\""
 		fi
 	fi
-
-	einfo "Configuring bundled nodejs..."
-	pushd "${NODE_S}" > /dev/null || die
-	# --shared-libuv cannot be used as electron's node fork
-	# patches uv_loop structure.
-	./configure \
-		--shared \
-		--without-bundled-v8 \
-		--shared-openssl \
-		--shared-http-parser \
-		--shared-zlib \
-		--shared-nghttp2 \
-		--shared-cares \
-		--without-npm \
-		--with-intl=system-icu \
-		--without-dtrace \
-		--dest-cpu=${target_arch} \
-		--prefix="" || die
-	popd > /dev/null || die
 
 	myconf_gn+=" import(\"//electron/build/args/release.gn\")"
 

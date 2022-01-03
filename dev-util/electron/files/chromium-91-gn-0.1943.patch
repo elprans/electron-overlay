@@ -1,0 +1,52 @@
+From 635a65710bad4f9e2dab9251cf3dcb16f866ee8e Mon Sep 17 00:00:00 2001
+From: Elvis Pranskevichus <elvis@magic.io>
+Date: Mon, 3 Jan 2022 13:48:17 -0800
+Subject: [PATCH] Fix for gn 0.1943
+
+---
+ build/linux/BUILD.gn                | 1 +
+ third_party/blink/renderer/BUILD.gn | 2 +-
+ third_party/googletest/BUILD.gn     | 2 +-
+ 3 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/build/linux/BUILD.gn b/build/linux/BUILD.gn
+index 54314c7687..cd49e3d524 100644
+--- a/build/linux/BUILD.gn
++++ b/build/linux/BUILD.gn
+@@ -23,6 +23,7 @@ if (use_system_freetype) {
+   # the system, use with caution,for details see build/config/freetype/BUILD.gn.
+   pkg_config("freetype_from_pkgconfig") {
+     visibility = [
++      "//build/config/freetype:freetype",
+       "//third_party:freetype_harfbuzz",
+       "//third_party/harfbuzz-ng:harfbuzz_source",
+     ]
+diff --git a/third_party/blink/renderer/BUILD.gn b/third_party/blink/renderer/BUILD.gn
+index b06bf2b8e1..249ef8beb6 100644
+--- a/third_party/blink/renderer/BUILD.gn
++++ b/third_party/blink/renderer/BUILD.gn
+@@ -8,7 +8,7 @@ if (is_clang) {
+   import("//build/config/clang/clang.gni")
+ }
+ 
+-visibility = [ "//third_party/blink/*" ]
++visibility = [ "//third_party/blink/*", "//mojo/public/cpp/bindings:*" ]
+ 
+ # arguments --------------------------------------------------------------------
+ 
+diff --git a/third_party/googletest/BUILD.gn b/third_party/googletest/BUILD.gn
+index fe240ebe95..ee05bcfcbb 100644
+--- a/third_party/googletest/BUILD.gn
++++ b/third_party/googletest/BUILD.gn
+@@ -5,7 +5,7 @@
+ import("//build_overrides/build.gni")
+ 
+ config("gtest_config") {
+-  visibility = [ ":*" ]  # gmock also shares this config.
++  visibility = [ ":*", "//testing/gmock:*", "//third_party/webrtc/test:*" ]  # gmock also shares this config.
+ 
+   defines = [
+     # Chromium always links googletest statically, so no API qualifier is
+-- 
+2.34.1
+

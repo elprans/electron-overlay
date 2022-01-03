@@ -1,0 +1,44 @@
+From 845775cf02ac380329e0ce7dd63e2f4e9254fe07 Mon Sep 17 00:00:00 2001
+From: Elvis Pranskevichus <el@prans.net>
+Date: Tue, 4 Jan 2022 11:19:58 -0800
+Subject: [PATCH] Node config
+
+---
+ script/generate-config-gypi.py | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/script/generate-config-gypi.py b/script/generate-config-gypi.py
+index c4e3d98159..ea4b8ea72b 100755
+--- a/script/generate-config-gypi.py
++++ b/script/generate-config-gypi.py
+@@ -21,6 +21,16 @@ def run_node_configure(target_cpu):
+   # machines, it breaks nothing since Electron does not use OpenSSL.
+   if sys.platform == 'win32':
+     args += ['--openssl-no-asm']
++  args.extend([
++    '--shared-openssl',
++    '--shared-http-parser',
++    '--shared-zlib',
++    '--shared-nghttp2',
++    '--shared-cares',
++    '--without-npm',
++    '--with-intl=system-icu',
++    '--without-dtrace',
++  ])
+   subprocess.check_call([sys.executable, configure] + args)
+ 
+ def read_node_config_gypi():
+@@ -47,10 +57,6 @@ def main(target_file, target_cpu):
+   config = read_node_config_gypi()
+   args = read_electron_args()
+ 
+-  # Remove the generated config.gypi to make the parallel/test-process-config
+-  # test pass.
+-  os.remove(os.path.join(NODE_DIR, 'config.gypi'))
+-
+   v = config['variables']
+   # Electron specific variables:
+   v['built_with_electron'] = 1
+-- 
+2.34.1
+
