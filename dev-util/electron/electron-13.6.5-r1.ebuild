@@ -2,7 +2,7 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
-PYTHON_COMPAT=( python2_7 )
+PYTHON_COMPAT=( python3_{8..10} )
 PYTHON_REQ_USE="xml"
 
 CHROMIUM_LANGS="am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
@@ -19,7 +19,7 @@ CHROMIUM_PATCHSET="6"
 CHROMIUM_PATCHSET_NAME="chromium-$(ver_cut 1 ${CHROMIUM_VERSION})-patchset-${CHROMIUM_PATCHSET}"
 
 # Keep this in sync with DEPS:node_version
-NODE_VERSION="14.16.0"
+NODE_VERSION="16.13.1"
 
 CHROMIUM_P="chromium-${CHROMIUM_VERSION}"
 NODE_P="node-${NODE_VERSION}"
@@ -1207,7 +1207,7 @@ NODE_S="${CHROMIUM_S}/third_party/electron_node"
 ROOT_S="${WORKDIR}/src"
 
 LICENSE="BSD"
-SLOT="$(ver_cut 1-2)"
+SLOT="13.6"
 KEYWORDS="~amd64"
 IUSE="clang component-build cups custom-cflags cpu_flags_arm_neon
 	headless +js-type-check kerberos lto pic +proprietary-codecs
