@@ -1,0 +1,76 @@
+From 27624fe900baab4a184457c0cdec4da4d19a328a Mon Sep 17 00:00:00 2001
+From: Elvis Pranskevichus <el@prans.net>
+Date: Wed, 13 Apr 2022 21:28:59 -0700
+Subject: [PATCH] node: unbundle deps
+
+---
+ patches/node/build_add_gn_build_files.patch | 29 ++++++++++++++++++---
+ 1 file changed, 26 insertions(+), 3 deletions(-)
+
+diff --git a/patches/node/build_add_gn_build_files.patch b/patches/node/build_add_gn_build_files.patch
+index 27e8c3e5a0..ef42f7cffb 100644
+--- a/patches/node/build_add_gn_build_files.patch
++++ b/patches/node/build_add_gn_build_files.patch
+@@ -10,7 +10,7 @@ new file mode 100644
+ index 0000000000000000000000000000000000000000..bd5788caa61305fd9af8f9d7f8f1937a224fda83
+ --- /dev/null
+ +++ b/BUILD.gn
+-@@ -0,0 +1,394 @@
++@@ -0,0 +1,417 @@
+ +import("//electron/build/asar.gni")
+ +import("//v8/gni/v8.gni")
+ +
+@@ -55,6 +55,18 @@ index 0000000000000000000000000000000000000000..bd5788caa61305fd9af8f9d7f8f1937a
+ +  node_module_version = ""
+ +}
+ +
+++if (is_linux) {
+++  import("//build/config/linux/pkg_config.gni")
+++
+++  pkg_config("cares") {
+++    packages = [ "libcares" ]
+++  }
+++
+++  pkg_config("nghttp2") {
+++    packages = [ "libnghttp2" ]
+++  }
+++}
+++
+ +assert(!node_use_dtrace, "node_use_dtrace not supported in GN")
+ +assert(!node_use_etw, "node_use_etw not supported in GN")
+ +
+@@ -195,11 +207,9 @@ index 0000000000000000000000000000000000000000..bd5788caa61305fd9af8f9d7f8f1937a
+ +component("node_lib") {
+ +  deps = [
+ +    ":node_js2c",
+-+    "deps/cares",
+ +    "deps/histogram",
+ +    "deps/googletest:gtest",
+ +    "deps/llhttp",
+-+    "deps/nghttp2",
+ +    "deps/uvwasi",
+ +    "//third_party/zlib",
+ +    "//third_party/brotli:dec",
+@@ -215,6 +225,19 @@ index 0000000000000000000000000000000000000000..bd5788caa61305fd9af8f9d7f8f1937a
+ +  public_configs = [ ":node_lib_config" ]
+ +  include_dirs = [ "src" ]
+ +  libs = []
+++  if (is_linux) {
+++    configs += [
+++      ":cares",
+++      ":nghttp2",
+++    ]
+++    libs += [ "http_parser" ]
+++  } else {
+++    deps += [
+++      "deps/cares",
+++      "deps/http_parser",
+++      "deps/nghttp2",
+++    ]
+++  }
+ +  frameworks = []
+ +  cflags_cc = [
+ +    "-Wno-deprecated-declarations",
+-- 
+2.35.1
+
