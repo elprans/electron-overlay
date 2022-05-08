@@ -36,6 +36,15 @@ SRC_URI="
 "
 # sed -r -n -e 's/^[ ]*resolved \"(.*)\#.*\"$/\1/g; s/^https:\/\/registry.yarnpkg.com\/(@([^@/]+))?\/?([^@/]+)\/\-\/([^/]+).tgz$/\t\0 -> electron-dep-\1-\4.tgz/p' yarn.lock | sort | uniq | xclip -sel c
 SRC_URI+="
+	https://registry.yarnpkg.com/@azure/abort-controller/-/abort-controller-1.0.4.tgz -> electron-dep-@azure-abort-controller-1.0.4.tgz
+	https://registry.yarnpkg.com/@azure/core-asynciterator-polyfill/-/core-asynciterator-polyfill-1.0.2.tgz -> electron-dep-@azure-core-asynciterator-polyfill-1.0.2.tgz
+	https://registry.yarnpkg.com/@azure/core-auth/-/core-auth-1.3.2.tgz -> electron-dep-@azure-core-auth-1.3.2.tgz
+	https://registry.yarnpkg.com/@azure/core-http/-/core-http-2.2.4.tgz -> electron-dep-@azure-core-http-2.2.4.tgz
+	https://registry.yarnpkg.com/@azure/core-lro/-/core-lro-2.2.4.tgz -> electron-dep-@azure-core-lro-2.2.4.tgz
+	https://registry.yarnpkg.com/@azure/core-paging/-/core-paging-1.2.1.tgz -> electron-dep-@azure-core-paging-1.2.1.tgz
+	https://registry.yarnpkg.com/@azure/core-tracing/-/core-tracing-1.0.0-preview.13.tgz -> electron-dep-@azure-core-tracing-1.0.0-preview.13.tgz
+	https://registry.yarnpkg.com/@azure/logger/-/logger-1.0.3.tgz -> electron-dep-@azure-logger-1.0.3.tgz
+	https://registry.yarnpkg.com/@azure/storage-blob/-/storage-blob-12.9.0.tgz -> electron-dep-@azure-storage-blob-12.9.0.tgz
 	https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.5.5.tgz -> electron-dep-@babel-code-frame-7.5.5.tgz
 	https://registry.yarnpkg.com/@babel/highlight/-/highlight-7.5.0.tgz -> electron-dep-@babel-highlight-7.5.0.tgz
 	https://registry.yarnpkg.com/@electron/docs-parser/-/docs-parser-0.12.3.tgz -> electron-dep-@electron-docs-parser-0.12.3.tgz
@@ -55,6 +64,7 @@ SRC_URI+="
 	https://registry.yarnpkg.com/@octokit/request/-/request-5.4.7.tgz -> electron-dep-@octokit-request-5.4.7.tgz
 	https://registry.yarnpkg.com/@octokit/rest/-/rest-18.0.3.tgz -> electron-dep-@octokit-rest-18.0.3.tgz
 	https://registry.yarnpkg.com/@octokit/types/-/types-5.2.0.tgz -> electron-dep-@octokit-types-5.2.0.tgz
+	https://registry.yarnpkg.com/@opentelemetry/api/-/api-1.0.4.tgz -> electron-dep-@opentelemetry-api-1.0.4.tgz
 	https://registry.yarnpkg.com/@primer/octicons/-/octicons-10.0.0.tgz -> electron-dep-@primer-octicons-10.0.0.tgz
 	https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz -> electron-dep-@sindresorhus-is-0.14.0.tgz
 	https://registry.yarnpkg.com/@szmarczak/http-timer/-/http-timer-1.1.2.tgz -> electron-dep-@szmarczak-http-timer-1.1.2.tgz
@@ -94,6 +104,7 @@ SRC_URI+="
 	https://registry.yarnpkg.com/@types/minimist/-/minimist-1.2.0.tgz -> electron-dep-@types-minimist-1.2.0.tgz
 	https://registry.yarnpkg.com/@types/mocha/-/mocha-7.0.2.tgz -> electron-dep-@types-mocha-7.0.2.tgz
 	https://registry.yarnpkg.com/@types/ms/-/ms-0.7.31.tgz -> electron-dep-@types-ms-0.7.31.tgz
+	https://registry.yarnpkg.com/@types/node-fetch/-/node-fetch-2.6.1.tgz -> electron-dep-@types-node-fetch-2.6.1.tgz
 	https://registry.yarnpkg.com/@types/node/-/node-11.13.22.tgz -> electron-dep-@types-node-11.13.22.tgz
 	https://registry.yarnpkg.com/@types/node/-/node-12.6.1.tgz -> electron-dep-@types-node-12.6.1.tgz
 	https://registry.yarnpkg.com/@types/node/-/node-14.0.27.tgz -> electron-dep-@types-node-14.0.27.tgz
@@ -115,6 +126,7 @@ SRC_URI+="
 	https://registry.yarnpkg.com/@types/temp/-/temp-0.8.34.tgz -> electron-dep-@types-temp-0.8.34.tgz
 	https://registry.yarnpkg.com/@types/text-table/-/text-table-0.2.2.tgz -> electron-dep-@types-text-table-0.2.2.tgz
 	https://registry.yarnpkg.com/@types/through/-/through-0.0.29.tgz -> electron-dep-@types-through-0.0.29.tgz
+	https://registry.yarnpkg.com/@types/tunnel/-/tunnel-0.0.3.tgz -> electron-dep-@types-tunnel-0.0.3.tgz
 	https://registry.yarnpkg.com/@types/uglify-js/-/uglify-js-3.0.4.tgz -> electron-dep-@types-uglify-js-3.0.4.tgz
 	https://registry.yarnpkg.com/@types/unist/-/unist-2.0.3.tgz -> electron-dep-@types-unist-2.0.3.tgz
 	https://registry.yarnpkg.com/@types/unist/-/unist-2.0.6.tgz -> electron-dep-@types-unist-2.0.6.tgz
@@ -196,6 +208,7 @@ SRC_URI+="
 	https://registry.yarnpkg.com/astral-regex/-/astral-regex-1.0.0.tgz -> electron-dep--astral-regex-1.0.0.tgz
 	https://registry.yarnpkg.com/astral-regex/-/astral-regex-2.0.0.tgz -> electron-dep--astral-regex-2.0.0.tgz
 	https://registry.yarnpkg.com/async-each/-/async-each-1.0.3.tgz -> electron-dep--async-each-1.0.3.tgz
+	https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz -> electron-dep--asynckit-0.4.0.tgz
 	https://registry.yarnpkg.com/at-least-node/-/at-least-node-1.0.0.tgz -> electron-dep--at-least-node-1.0.0.tgz
 	https://registry.yarnpkg.com/atob/-/atob-2.1.2.tgz -> electron-dep--atob-2.1.2.tgz
 	https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.727.1.tgz -> electron-dep--aws-sdk-2.727.1.tgz
@@ -272,6 +285,7 @@ SRC_URI+="
 	https://registry.yarnpkg.com/color-name/-/color-name-1.1.4.tgz -> electron-dep--color-name-1.1.4.tgz
 	https://registry.yarnpkg.com/colors/-/colors-1.3.3.tgz -> electron-dep--colors-1.3.3.tgz
 	https://registry.yarnpkg.com/colors/-/colors-1.4.0.tgz -> electron-dep--colors-1.4.0.tgz
+	https://registry.yarnpkg.com/combined-stream/-/combined-stream-1.0.8.tgz -> electron-dep--combined-stream-1.0.8.tgz
 	https://registry.yarnpkg.com/commander/-/commander-2.20.0.tgz -> electron-dep--commander-2.20.0.tgz
 	https://registry.yarnpkg.com/commander/-/commander-4.1.1.tgz -> electron-dep--commander-4.1.1.tgz
 	https://registry.yarnpkg.com/commander/-/commander-5.1.0.tgz -> electron-dep--commander-5.1.0.tgz
@@ -321,6 +335,7 @@ SRC_URI+="
 	https://registry.yarnpkg.com/define-property/-/define-property-1.0.0.tgz -> electron-dep--define-property-1.0.0.tgz
 	https://registry.yarnpkg.com/define-property/-/define-property-2.0.2.tgz -> electron-dep--define-property-2.0.2.tgz
 	https://registry.yarnpkg.com/deglob/-/deglob-4.0.1.tgz -> electron-dep--deglob-4.0.1.tgz
+	https://registry.yarnpkg.com/delayed-stream/-/delayed-stream-1.0.0.tgz -> electron-dep--delayed-stream-1.0.0.tgz
 	https://registry.yarnpkg.com/delegates/-/delegates-1.0.0.tgz -> electron-dep--delegates-1.0.0.tgz
 	https://registry.yarnpkg.com/depd/-/depd-1.1.2.tgz -> electron-dep--depd-1.1.2.tgz
 	https://registry.yarnpkg.com/deprecation/-/deprecation-2.3.1.tgz -> electron-dep--deprecation-2.3.1.tgz
@@ -437,6 +452,8 @@ SRC_URI+="
 	https://registry.yarnpkg.com/flush-write-stream/-/flush-write-stream-1.1.1.tgz -> electron-dep--flush-write-stream-1.1.1.tgz
 	https://registry.yarnpkg.com/folder-hash/-/folder-hash-2.1.2.tgz -> electron-dep--folder-hash-2.1.2.tgz
 	https://registry.yarnpkg.com/for-in/-/for-in-1.0.2.tgz -> electron-dep--for-in-1.0.2.tgz
+	https://registry.yarnpkg.com/form-data/-/form-data-3.0.1.tgz -> electron-dep--form-data-3.0.1.tgz
+	https://registry.yarnpkg.com/form-data/-/form-data-4.0.0.tgz -> electron-dep--form-data-4.0.0.tgz
 	https://registry.yarnpkg.com/format/-/format-0.2.2.tgz -> electron-dep--format-0.2.2.tgz
 	https://registry.yarnpkg.com/forwarded/-/forwarded-0.1.2.tgz -> electron-dep--forwarded-0.1.2.tgz
 	https://registry.yarnpkg.com/fragment-cache/-/fragment-cache-0.2.1.tgz -> electron-dep--fragment-cache-0.2.1.tgz
@@ -690,7 +707,9 @@ SRC_URI+="
 	https://registry.yarnpkg.com/micromatch/-/micromatch-4.0.2.tgz -> electron-dep--micromatch-4.0.2.tgz
 	https://registry.yarnpkg.com/miller-rabin/-/miller-rabin-4.0.1.tgz -> electron-dep--miller-rabin-4.0.1.tgz
 	https://registry.yarnpkg.com/mime-db/-/mime-db-1.40.0.tgz -> electron-dep--mime-db-1.40.0.tgz
+	https://registry.yarnpkg.com/mime-db/-/mime-db-1.52.0.tgz -> electron-dep--mime-db-1.52.0.tgz
 	https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.24.tgz -> electron-dep--mime-types-2.1.24.tgz
+	https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.35.tgz -> electron-dep--mime-types-2.1.35.tgz
 	https://registry.yarnpkg.com/mime/-/mime-1.6.0.tgz -> electron-dep--mime-1.6.0.tgz
 	https://registry.yarnpkg.com/mimic-fn/-/mimic-fn-1.2.0.tgz -> electron-dep--mimic-fn-1.2.0.tgz
 	https://registry.yarnpkg.com/mimic-fn/-/mimic-fn-2.1.0.tgz -> electron-dep--mimic-fn-2.1.0.tgz
@@ -812,6 +831,7 @@ SRC_URI+="
 	https://registry.yarnpkg.com/prop-types/-/prop-types-15.7.2.tgz -> electron-dep--prop-types-15.7.2.tgz
 	https://registry.yarnpkg.com/proxy-addr/-/proxy-addr-2.0.5.tgz -> electron-dep--proxy-addr-2.0.5.tgz
 	https://registry.yarnpkg.com/prr/-/prr-1.0.1.tgz -> electron-dep--prr-1.0.1.tgz
+	https://registry.yarnpkg.com/psl/-/psl-1.8.0.tgz -> electron-dep--psl-1.8.0.tgz
 	https://registry.yarnpkg.com/public-encrypt/-/public-encrypt-4.0.3.tgz -> electron-dep--public-encrypt-4.0.3.tgz
 	https://registry.yarnpkg.com/pump/-/pump-2.0.1.tgz -> electron-dep--pump-2.0.1.tgz
 	https://registry.yarnpkg.com/pump/-/pump-3.0.0.tgz -> electron-dep--pump-3.0.0.tgz
@@ -1029,14 +1049,17 @@ SRC_URI+="
 	https://registry.yarnpkg.com/to-regex/-/to-regex-3.0.2.tgz -> electron-dep--to-regex-3.0.2.tgz
 	https://registry.yarnpkg.com/to-vfile/-/to-vfile-7.2.1.tgz -> electron-dep--to-vfile-7.2.1.tgz
 	https://registry.yarnpkg.com/toidentifier/-/toidentifier-1.0.0.tgz -> electron-dep--toidentifier-1.0.0.tgz
+	https://registry.yarnpkg.com/tough-cookie/-/tough-cookie-4.0.0.tgz -> electron-dep--tough-cookie-4.0.0.tgz
 	https://registry.yarnpkg.com/tr46/-/tr46-0.0.3.tgz -> electron-dep--tr46-0.0.3.tgz
 	https://registry.yarnpkg.com/trough/-/trough-2.0.2.tgz -> electron-dep--trough-2.0.2.tgz
 	https://registry.yarnpkg.com/ts-loader/-/ts-loader-8.0.2.tgz -> electron-dep--ts-loader-8.0.2.tgz
 	https://registry.yarnpkg.com/ts-node/-/ts-node-6.2.0.tgz -> electron-dep--ts-node-6.2.0.tgz
 	https://registry.yarnpkg.com/tsconfig-paths/-/tsconfig-paths-3.9.0.tgz -> electron-dep--tsconfig-paths-3.9.0.tgz
 	https://registry.yarnpkg.com/tslib/-/tslib-1.10.0.tgz -> electron-dep--tslib-1.10.0.tgz
+	https://registry.yarnpkg.com/tslib/-/tslib-2.3.1.tgz -> electron-dep--tslib-2.3.1.tgz
 	https://registry.yarnpkg.com/tsutils/-/tsutils-3.17.1.tgz -> electron-dep--tsutils-3.17.1.tgz
 	https://registry.yarnpkg.com/tty-browserify/-/tty-browserify-0.0.0.tgz -> electron-dep--tty-browserify-0.0.0.tgz
+	https://registry.yarnpkg.com/tunnel/-/tunnel-0.0.6.tgz -> electron-dep--tunnel-0.0.6.tgz
 	https://registry.yarnpkg.com/type-check/-/type-check-0.3.2.tgz -> electron-dep--type-check-0.3.2.tgz
 	https://registry.yarnpkg.com/type-check/-/type-check-0.4.0.tgz -> electron-dep--type-check-0.4.0.tgz
 	https://registry.yarnpkg.com/type-detect/-/type-detect-4.0.8.tgz -> electron-dep--type-detect-4.0.8.tgz
@@ -1085,6 +1108,7 @@ SRC_URI+="
 	https://registry.yarnpkg.com/util/-/util-0.11.1.tgz -> electron-dep--util-0.11.1.tgz
 	https://registry.yarnpkg.com/utils-merge/-/utils-merge-1.0.1.tgz -> electron-dep--utils-merge-1.0.1.tgz
 	https://registry.yarnpkg.com/uuid/-/uuid-3.3.2.tgz -> electron-dep--uuid-3.3.2.tgz
+	https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz -> electron-dep--uuid-8.3.2.tgz
 	https://registry.yarnpkg.com/v8-compile-cache/-/v8-compile-cache-2.1.1.tgz -> electron-dep--v8-compile-cache-2.1.1.tgz
 	https://registry.yarnpkg.com/validate-npm-package-license/-/validate-npm-package-license-3.0.4.tgz -> electron-dep--validate-npm-package-license-3.0.4.tgz
 	https://registry.yarnpkg.com/vary/-/vary-1.1.2.tgz -> electron-dep--vary-1.1.2.tgz
@@ -1118,6 +1142,8 @@ SRC_URI+="
 	https://registry.yarnpkg.com/wrappy/-/wrappy-1.0.2.tgz -> electron-dep--wrappy-1.0.2.tgz
 	https://registry.yarnpkg.com/write/-/write-1.0.3.tgz -> electron-dep--write-1.0.3.tgz
 	https://registry.yarnpkg.com/xml2js/-/xml2js-0.4.19.tgz -> electron-dep--xml2js-0.4.19.tgz
+	https://registry.yarnpkg.com/xml2js/-/xml2js-0.4.23.tgz -> electron-dep--xml2js-0.4.23.tgz
+	https://registry.yarnpkg.com/xmlbuilder/-/xmlbuilder-11.0.1.tgz -> electron-dep--xmlbuilder-11.0.1.tgz
 	https://registry.yarnpkg.com/xmlbuilder/-/xmlbuilder-4.2.1.tgz -> electron-dep--xmlbuilder-4.2.1.tgz
 	https://registry.yarnpkg.com/xmlbuilder/-/xmlbuilder-9.0.7.tgz -> electron-dep--xmlbuilder-9.0.7.tgz
 	https://registry.yarnpkg.com/xtend/-/xtend-4.0.2.tgz -> electron-dep--xtend-4.0.2.tgz
@@ -1406,6 +1432,13 @@ src_prepare() {
 
 	cd "${WORKDIR}/python-unidiff-0.6.0" || die
 	eapply "${FILESDIR}/unidiff-py2.patch"
+
+	# Apply early patches for Chromium.
+	cd "${CHROMIUM_S}" || die
+	local early_chromium_patches=(
+		"${FILESDIR}/chromium-98-angle-xfb-buf.patch"
+	)
+	eapply "${early_chromium_patches[@]}"
 
 	# Apply Chromium patches from Electron.
 	cd "${WORKDIR}" || die
