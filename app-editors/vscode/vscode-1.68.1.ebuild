@@ -22,15 +22,22 @@ else
 	UPSTREAM_CHANNEL="stable"
 fi
 
-ELECTRON_V=@@{ELECTRON_V}
-ELECTRON_SLOT=@@{ELECTRON_S}
+ELECTRON_V=17.4.3
+ELECTRON_SLOT=17.4
 
 ASAR_V=0.14.3
 # All binary packages depend on this
 NAN_V=2.16.0
 NODE_ADDON_API_V=5.0.0
 
-@@{BINMOD_VERSIONS}
+VSCODE__SQLITE3_V=5.0.8
+KEYTAR_V=7.9.0
+NATIVE_IS_ELEVATED_V=0.4.3
+NATIVE_KEYMAP_V=3.3.0
+NATIVE_WATCHDOG_V=1.4.0
+NODE_PTY_V=0.11.0-beta11
+SPDLOG_V=0.13.6
+VSCODE_POLICY_WATCHER_V=1.1.1
 
 # The x86_64 arch below is irrelevant, as we will rebuild all binary packages.
 SRC_URI="
@@ -38,17 +45,31 @@ SRC_URI="
 	https://github.com/elprans/asar/releases/download/v${ASAR_V}-gentoo/asar-build.tar.gz -> asar-${ASAR_V}.tar.gz
 	https://github.com/nodejs/nan/archive/v${NAN_V}.tar.gz -> nodejs-nan-${NAN_V}.tar.gz
 	https://github.com/nodejs/node-addon-api/archive/v${NODE_ADDON_API_V}.tar.gz -> nodejs-node-addon-api-${NODE_ADDON_API_V}.tar.gz
-@@{SRC_URI}
+	https://registry.npmjs.org/@vscode/sqlite3/-/sqlite3-5.0.8.tgz -> vscodedep-vscode--sqlite3-${VSCODE__SQLITE3_V}.tar.gz
+	https://registry.npmjs.org/keytar/-/keytar-7.9.0.tgz -> vscodedep-keytar-${KEYTAR_V}.tar.gz
+	https://registry.npmjs.org/native-is-elevated/-/native-is-elevated-0.4.3.tgz -> vscodedep-native-is-elevated-${NATIVE_IS_ELEVATED_V}.tar.gz
+	https://registry.npmjs.org/native-keymap/-/native-keymap-3.3.0.tgz -> vscodedep-native-keymap-${NATIVE_KEYMAP_V}.tar.gz
+	https://registry.npmjs.org/native-watchdog/-/native-watchdog-1.4.0.tgz -> vscodedep-native-watchdog-${NATIVE_WATCHDOG_V}.tar.gz
+	https://registry.npmjs.org/node-pty/-/node-pty-0.11.0-beta11.tgz -> vscodedep-node-pty-${NODE_PTY_V}.tar.gz
+	https://registry.npmjs.org/spdlog/-/spdlog-0.13.6.tgz -> vscodedep-spdlog-${SPDLOG_V}.tar.gz
+	https://registry.npmjs.org/vscode-policy-watcher/-/vscode-policy-watcher-1.1.1.tgz -> vscodedep-vscode-policy-watcher-${VSCODE_POLICY_WATCHER_V}.tar.gz
 "
 
 BINMODS=(
-@@{BINMODS}
+	vscode--sqlite3
+	keytar
+	native-is-elevated
+	native-keymap
+	native-watchdog
+	node-pty
+	spdlog
+	vscode-policy-watcher
 )
 
 RESTRICT="mirror bindist"
 LICENSE="MS-vscode"
-SLOT="@@{SLOT}"
-KEYWORDS="@@{KEYWORDS}"
+SLOT="0"
+KEYWORDS="~amd64"
 IUSE=""
 
 BDEPEND="
