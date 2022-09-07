@@ -34,18 +34,13 @@ def die(msg):
 
 
 def note(msg):
-    print("    {}".format(msg), file=sys.stderr)
+    print("    >>> {}".format(msg), file=sys.stderr)
 
 
 def main():
     configs = parse_args().config
     for config_json in configs:
-        print(
-            ">>> Cleaning up Electron patches declared in {}".format(
-                config_json.name,
-            ),
-            file=sys.stderr,
-        )
+        note(f"Cleaning up Electron patches declared in {config_json.name}...")
         for patch_dir, repo in json.load(config_json).items():
             index = os.path.join(patch_dir, ".patches")
             if not os.path.isfile(index):

@@ -2,7 +2,7 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
-PYTHON_COMPAT=( python3_{8..10} )
+PYTHON_COMPAT=( python3_{8..11} )
 PYTHON_REQ_USE="xml"
 
 CHROMIUM_LANGS="am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
@@ -1213,6 +1213,7 @@ COMMON_DEPEND="
 	pulseaudio? ( media-sound/pulseaudio:= )
 	system-ffmpeg? (
 		>=media-video/ffmpeg-4.3:0=
+		<media-video/ffmpeg-5.0:=
 		|| (
 			media-video/ffmpeg[-samba]
 			>=net-fs/samba-4.5.10-r1[-debug(-)]
@@ -1283,10 +1284,6 @@ BDEPEND="
 			(
 				sys-devel/clang:13
 				=sys-devel/lld-13*
-			)
-			(
-				sys-devel/clang:12
-				=sys-devel/lld-12*
 			)
 		)
 	)
@@ -1467,7 +1464,6 @@ src_prepare() {
 	local chromium_patches=(
 		"${FILESDIR}/chromium-87-sql-make-VirtualCursor-standard-layout-type.patch"
 		"${FILESDIR}/chromium-93-InkDropHost-crash.patch"
-		"${FILESDIR}/chromium-93-ffmpeg-4.4.patch"
 		"${FILESDIR}/chromium-97-arm-tflite-cast.patch"
 		"${FILESDIR}/chromium-98-EnumTable-crash.patch"
 		"${FILESDIR}/chromium-98-system-libdrm.patch"
@@ -1476,6 +1472,10 @@ src_prepare() {
 		"${FILESDIR}/chromium-use-oauth2-client-switches-as-default.patch"
 		"${FILESDIR}/chromium-shim_headers.patch"
 	)
+
+	if use system-ffmpeg; then
+		chromium_patches+=( "${FILESDIR}/chromium-93-ffmpeg-4.4.patch" )
+	fi
 
 	eapply "${chromium_patches[@]}"
 
@@ -1752,7 +1752,7 @@ src_prepare() {
 	# Remove most bundled libraries. Some are still needed.
 	ebegin "Unbundling bundled libraries"
 	build/linux/unbundle/remove_bundled_libraries.py "${keeplibs[@]}" --do-remove || die
-	eend
+	eend "OK"
 
 	if use js-type-check; then
 		ln -s "${EPREFIX}"/usr/bin/java third_party/jdk/current/bin/java || die
