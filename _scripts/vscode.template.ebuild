@@ -8,7 +8,7 @@
 
 EAPI=7
 
-PYTHON_COMPAT=( python3_{8..10} )
+PYTHON_COMPAT=( python3_{8..11} )
 inherit multiprocessing python-any-r1 rpm xdg-utils
 
 DESCRIPTION="Visual Studio Code"
