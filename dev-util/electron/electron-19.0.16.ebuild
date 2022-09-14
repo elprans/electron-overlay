@@ -1,17 +1,17 @@
 # Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 PYTHON_COMPAT=( python3_{8..11} )
 PYTHON_REQ_USE="xml(+)"
+LLVM_MAX_SLOT=14
 
 CHROMIUM_LANGS="am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt-BR pt-PT ro ru sk sl sr
 	sv sw ta te th tr uk vi zh-CN zh-TW"
 
-inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils \
-	pax-utils portability python-any-r1 readme.gentoo-r1 toolchain-funcs \
-	xdg-utils
+inherit check-reqs chromium-2 flag-o-matic llvm ninja-utils \
+	pax-utils python-any-r1 toolchain-funcs
 
 # Keep this in sync with DEPS:chromium_version
 CHROMIUM_VERSION="102.0.5005.115"
@@ -1260,6 +1260,28 @@ DEPEND="${COMMON_DEPEND}
 		!gtk4? ( x11-libs/gtk+:3[X,wayland?] )
 	)
 "
+
+depend_clang_llvm_version() {
+	echo "sys-devel/clang:$1"
+	echo "sys-devel/llvm:$1"
+	echo "=sys-devel/lld-$1*"
+}
+
+depend_clang_llvm_versions() {
+	local _v
+	if [[ $# -gt 1 ]]; then
+		echo "|| ("
+		for _v in "$@"; do
+			echo "("
+			depend_clang_llvm_version "${_v}"
+			echo ")"
+		done
+		echo ")"
+	elif [[ $# -eq 1 ]]; then
+		depend_clang_llvm_version "$1"
+	fi
+}
+
 BDEPEND="
 	${COMMON_SNAPSHOT_DEPEND}
 	${PYTHON_DEPS}
@@ -1279,26 +1301,32 @@ BDEPEND="
 	virtual/pkgconfig
 	js-type-check? ( virtual/jre )
 	clang? (
-		|| (
-			(
-				sys-devel/clang:15
-				=sys-devel/lld-15*
-			)
-			(
-				sys-devel/clang:14
-				=sys-devel/lld-14*
-			)
-			(
-				sys-devel/clang:13
-				=sys-devel/lld-13*
-			)
-		)
+		$(depend_clang_llvm_versions 13 14)
 	)
 "
 
 if ! has chromium_pkg_die ${EBUILD_DEATH_HOOKS}; then
 	EBUILD_DEATH_HOOKS+=" chromium_pkg_die";
 fi
+
+python_check_deps() {
+	python_has_version "dev-python/setuptools[${PYTHON_USEDEP}]"
+	python_has_version "dev-python/unidiff[${PYTHON_USEDEP}]"
+}
+
+llvm_check_deps() {
+	if ! has_version -b "sys-devel/clang:${LLVM_SLOT}" ; then
+		einfo "sys-devel/clang:${LLVM_SLOT} is missing! Cannot use LLVM slot ${LLVM_SLOT} ..." >&2
+		return 1
+	fi
+
+	if use clang && ! has_version -b "=sys-devel/lld-${LLVM_SLOT}*" ; then
+		einfo "=sys-devel/lld-${LLVM_SLOT}* is missing! Cannot use LLVM slot ${LLVM_SLOT} ..." >&2
+		return 1
+	fi
+
+	einfo "Using LLVM slot ${LLVM_SLOT} to build" >&2
+}
 
 pre_build_checks() {
 	if [[ ${MERGE_TYPE} != binary ]]; then
@@ -1325,7 +1353,7 @@ pre_build_checks() {
 		CHECKREQS_DISK_BUILD="15G"
 		CHECKREQS_MEMORY="5G"
 	fi
-	check-reqs_pkg_setup
+	check-reqs_${EBUILD_PHASE_FUNC}
 }
 
 pkg_pretend() {
@@ -1348,6 +1376,8 @@ pkg_pretend() {
 }
 
 pkg_setup() {
+	python-any-r1_pkg_setup
+	llvm_pkg_setup
 	pre_build_checks
 
 	chromium_suid_sandbox_check_kernel_config

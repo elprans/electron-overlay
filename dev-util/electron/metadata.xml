@@ -9,7 +9,6 @@
 		<email>proxy-maint@gentoo.org</email>
 		<name>Proxy Maintainers</name>
 	</maintainer>
-	<longdescription>Electron is a cross platform application development framework based on web technologies based on Chromium</longdescription>
 	<use>
 		<flag name="clang">Use Clang compiler instead of GCC</flag>
 		<flag name="component-build">Split build into more shared libraries to speed up linking. Mostly intended for debugging and development, NOT RECOMMENDED for general use.</flag>
