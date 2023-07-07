@@ -1,0 +1,28 @@
+From 9880bb8eea7d7ddc867ba1410dd5b5e85fe210be Mon Sep 17 00:00:00 2001
+From: Elvis Pranskevichus <el@prans.net>
+Date: Wed, 26 Apr 2023 12:10:43 -0700
+Subject: [PATCH] build: Enable legacy OpenSSL provider
+
+---
+ build/npm-run.py | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/build/npm-run.py b/build/npm-run.py
+index 49a6abac65..cd9c810734 100644
+--- a/build/npm-run.py
++++ b/build/npm-run.py
+@@ -12,8 +12,10 @@ args = [cmd, "run",
+     "--prefix",
+     SOURCE_ROOT
+     ] + sys.argv[1:]
++env = os.environ.copy()
++env["NODE_OPTIONS"] = "--openssl-legacy-provider"
+ try:
+-    subprocess.check_output(args, stderr=subprocess.STDOUT)
++    subprocess.check_output(args, stderr=subprocess.STDOUT, env=env)
+ except subprocess.CalledProcessError as e:
+     error_msg = "NPM script '{}' failed with code '{}':\n".format(sys.argv[2], e.returncode)
+     print(error_msg + e.output.decode('utf8'))
+-- 
+2.39.2
+

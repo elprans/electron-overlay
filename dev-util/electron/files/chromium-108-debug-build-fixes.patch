@@ -1,0 +1,24 @@
+From 8d44c1a5096081ae86be0c5c690d5d15b8d2584d Mon Sep 17 00:00:00 2001
+From: "System user; portage" <portage@vulcan.edgedb.net>
+Date: Tue, 30 May 2023 14:26:07 -0700
+Subject: [PATCH] Debug build fixes
+
+---
+ base/allocator/partition_allocator/partition_alloc_forward.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/base/allocator/partition_allocator/partition_alloc_forward.h b/base/allocator/partition_allocator/partition_alloc_forward.h
+index fd62e11..5d6e614 100644
+--- a/base/allocator/partition_allocator/partition_alloc_forward.h
++++ b/base/allocator/partition_allocator/partition_alloc_forward.h
+@@ -7,6 +7,7 @@
+ 
+ #include <algorithm>
+ #include <cstddef>
++#include <cstdint>
+ 
+ #include "base/allocator/partition_allocator/partition_alloc_base/compiler_specific.h"
+ #include "base/allocator/partition_allocator/partition_alloc_base/component_export.h"
+-- 
+2.39.3
+

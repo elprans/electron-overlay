@@ -1,0 +1,246 @@
+From 70008bd964c337059d75bebe8bee2c3cc3a1a60d Mon Sep 17 00:00:00 2001
+From: Elvis Pranskevichus <el@prans.net>
+Date: Tue, 16 May 2023 12:06:00 -0700
+Subject: [PATCH] Patch fixup
+
+---
+ patches/chromium/.patches                     |   2 +
+ .../chromium/cherry-pick-02ef9983710d.patch   | 121 ++++++++++++++++++
+ .../chromium/cherry-pick-ffe482466bb9.patch   |  78 +++++++++++
+ 3 files changed, 201 insertions(+)
+ create mode 100644 patches/chromium/cherry-pick-02ef9983710d.patch
+ create mode 100644 patches/chromium/cherry-pick-ffe482466bb9.patch
+
+diff --git a/patches/chromium/.patches b/patches/chromium/.patches
+index b00df9d4d0..83ca958971 100644
+--- a/patches/chromium/.patches
++++ b/patches/chromium/.patches
+@@ -136,6 +136,7 @@ cherry-pick-aeec1ba5893d.patch
+ cherry-pick-0407102d19b9.patch
+ fix_crash_in_annotationagentimpl.patch
+ cherry-pick-bfd926be8178.patch
++cherry-pick-02ef9983710d.patch
+ cherry-pick-9aa4c45f21b1.patch
+ m108-lts_do_not_register_browser_watcher_activity_report_with.patch
+ prevent_potential_integer_overflow_in_persistentmemoryallocator_1_2.patch
+@@ -155,5 +156,6 @@ merge_m112_check_spdyproxyclientsocket_is_alive_after_write.patch
+ check_callback_availability_in.patch
+ cherry-pick-63686953dc22.patch
+ cherry-pick-f098ff0d1230.patch
++cherry-pick-ffe482466bb9.patch
+ cherry-pick-f58218891f8c.patch
+ wayland_ensure_dnd_buffer_size_is_a_multiple_of_scale.patch
+diff --git a/patches/chromium/cherry-pick-02ef9983710d.patch b/patches/chromium/cherry-pick-02ef9983710d.patch
+new file mode 100644
+index 0000000000..7097732f02
+--- /dev/null
++++ b/patches/chromium/cherry-pick-02ef9983710d.patch
+@@ -0,0 +1,121 @@
++From 02ef9983710df374107967ba0685e190d53f990c Mon Sep 17 00:00:00 2001
++From: Harald Alvestrand <hta@chromium.org>
++Date: Wed, 18 Jan 2023 08:03:04 +0000
++Subject: [PATCH] [Merge M108] Delete PeerConnectionHandler in PeerConnection
++ finalizer
++
++Also guard against removal of PC during PeerConnectionHandler
++call that may cause garbage collection.
++
++(cherry picked from commit 5066dd66309d884762e5fb9be04b59582893d09a)
++
++Bug: chromium:1405256
++Change-Id: I9adf7b219e2026e07ccc0868c1a85f3b35cd9d26
++Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/4154578
++Commit-Queue: Harald Alvestrand <hta@chromium.org>
++Reviewed-by: Guido Urdaneta <guidou@chromium.org>
++Commit-Queue: Guido Urdaneta <guidou@chromium.org>
++Cr-Original-Commit-Position: refs/heads/main@{#1091801}
++Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/4176412
++Auto-Submit: Harald Alvestrand <hta@chromium.org>
++Cr-Commit-Position: refs/branch-heads/5359@{#1347}
++Cr-Branched-From: 27d3765d341b09369006d030f83f582a29eb57ae-refs/heads/main@{#1058933}
++---
++ .../peerconnection/rtc_peer_connection.cc     |  5 +++--
++ .../rtc_peer_connection_handler.cc            | 19 ++++++++++++++-----
++ 2 files changed, 17 insertions(+), 7 deletions(-)
++
++diff --git a/third_party/blink/renderer/modules/peerconnection/rtc_peer_connection.cc b/third_party/blink/renderer/modules/peerconnection/rtc_peer_connection.cc
++index b7f66c8b22ab9..e951bf3faa35a 100644
++--- a/third_party/blink/renderer/modules/peerconnection/rtc_peer_connection.cc
+++++ b/third_party/blink/renderer/modules/peerconnection/rtc_peer_connection.cc
++@@ -643,10 +643,11 @@ RTCPeerConnection::~RTCPeerConnection() {
++ }
++ 
++ void RTCPeerConnection::Dispose() {
++-  // Promptly clears the handler's pointer to |this|
+++  // Promptly clears the handler
++   // so that content/ doesn't access it in a lazy sweeping phase.
+++  // Other references to the handler use a weak pointer, preventing access.
++   if (peer_handler_) {
++-    peer_handler_->CloseAndUnregister();
+++    peer_handler_.reset();
++   }
++ }
++ 
++diff --git a/third_party/blink/renderer/modules/peerconnection/rtc_peer_connection_handler.cc b/third_party/blink/renderer/modules/peerconnection/rtc_peer_connection_handler.cc
++index 58168b98601c5..9f52fca8f3035 100644
++--- a/third_party/blink/renderer/modules/peerconnection/rtc_peer_connection_handler.cc
+++++ b/third_party/blink/renderer/modules/peerconnection/rtc_peer_connection_handler.cc
++@@ -713,6 +713,8 @@ class RTCPeerConnectionHandler::WebRtcSetDescriptionObserverImpl
++     if (handler_) {
++       handler_->OnModifySctpTransport(std::move(states.sctp_transport_state));
++     }
+++    // Since OnSessionDescriptionsUpdated can fire events, it may cause
+++    // garbage collection. Ensure that handler_ is still valid.
++     if (handler_) {
++       handler_->OnModifyTransceivers(
++           states.signaling_state, std::move(states.transceiver_states),
++@@ -1066,6 +1068,8 @@ bool RTCPeerConnectionHandler::Initialize(
++   CHECK(!initialize_called_);
++   initialize_called_ = true;
++ 
+++  // Prevent garbage collection of client_ during processing.
+++  auto* client_on_stack = client_;
++   peer_connection_tracker_ = PeerConnectionTracker::From(*frame);
++ 
++   configuration_ = server_configuration;
++@@ -1104,8 +1108,8 @@ bool RTCPeerConnectionHandler::Initialize(
++     peer_connection_tracker_->RegisterPeerConnection(this, configuration_,
++                                                      frame_);
++   }
++-
++-  return true;
+++  // Gratuitous usage of client_on_stack to prevent compiler errors.
+++  return !!client_on_stack;
++ }
++ 
++ bool RTCPeerConnectionHandler::InitializeForTest(
++@@ -2066,9 +2070,11 @@ void RTCPeerConnectionHandler::OnSessionDescriptionsUpdated(
++         pending_remote_description,
++     std::unique_ptr<webrtc::SessionDescriptionInterface>
++         current_remote_description) {
+++  // Prevent garbage collection of client_ during processing.
+++  auto* client_on_stack = client_;
++   if (!client_ || is_closed_)
++     return;
++-  client_->DidChangeSessionDescriptions(
+++  client_on_stack->DidChangeSessionDescriptions(
++       pending_local_description
++           ? CreateWebKitSessionDescription(pending_local_description.get())
++           : nullptr,
++@@ -2294,8 +2300,12 @@ void RTCPeerConnectionHandler::OnIceCandidate(const String& sdp,
++                                               int sdp_mline_index,
++                                               int component,
++                                               int address_family) {
+++  // In order to ensure that the RTCPeerConnection is not garbage collected
+++  // from under the function, we keep a pointer to it on the stack.
+++  auto* client_on_stack = client_;
++   DCHECK(task_runner_->RunsTasksInCurrentSequence());
++   TRACE_EVENT0("webrtc", "RTCPeerConnectionHandler::OnIceCandidateImpl");
+++  // This line can cause garbage collection.
++   auto* platform_candidate = MakeGarbageCollected<RTCIceCandidatePlatform>(
++       sdp, sdp_mid, sdp_mline_index);
++   if (peer_connection_tracker_) {
++@@ -2315,7 +2325,7 @@ void RTCPeerConnectionHandler::OnIceCandidate(const String& sdp,
++     }
++   }
++   if (!is_closed_)
++-    client_->DidGenerateICECandidate(platform_candidate);
+++    client_on_stack->DidGenerateICECandidate(platform_candidate);
++ }
++ 
++ void RTCPeerConnectionHandler::OnIceCandidateError(
++@@ -2327,7 +2337,6 @@ void RTCPeerConnectionHandler::OnIceCandidateError(
++     const String& error_text) {
++   DCHECK(task_runner_->RunsTasksInCurrentSequence());
++   TRACE_EVENT0("webrtc", "RTCPeerConnectionHandler::OnIceCandidateError");
++-
++   if (peer_connection_tracker_) {
++     peer_connection_tracker_->TrackIceCandidateError(
++         this, address, port, host_candidate, url, error_code, error_text);
+diff --git a/patches/chromium/cherry-pick-ffe482466bb9.patch b/patches/chromium/cherry-pick-ffe482466bb9.patch
+new file mode 100644
+index 0000000000..3f4f8f3a7e
+--- /dev/null
++++ b/patches/chromium/cherry-pick-ffe482466bb9.patch
+@@ -0,0 +1,78 @@
++From ffe482466bb96b94b7fe9c2a5b35dff55f41e6c2 Mon Sep 17 00:00:00 2001
++From: Yoshisato Yanagisawa <yyanagisawa@chromium.org>
++Date: Fri, 13 Jan 2023 00:14:55 +0000
++Subject: [PATCH] Ensure v8::Value type is v8::Function in FetchHandlerType().
++
++In the previous code, we did not confirm the returned v8::Value is
++v8::Function or not in ServiceWorkerGlobalScope::FetchHandlerType().
++If non function type is set as an fetch event listener, it causes
++misbehavior.
++
++(cherry picked from commit f68e9991d68d7ee36eb679cf5ffec06ab89569ac)
++
++Bug: 1404639
++Change-Id: I7bc32f91108b2ffd3c5e8dc0464f2fa4adc41e8a
++Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/4137870
++Reviewed-by: Kouhei Ueno <kouhei@chromium.org>
++Commit-Queue: Yoshisato Yanagisawa <yyanagisawa@chromium.org>
++Reviewed-by: Hiroshige Hayashizaki <hiroshige@chromium.org>
++Cr-Original-Commit-Position: refs/heads/main@{#1089635}
++Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/4159531
++Reviewed-by: Minoru Chikamune <chikamune@chromium.org>
++Reviewed-by: Shunya Shishido <sisidovski@chromium.org>
++Cr-Commit-Position: refs/branch-heads/5359@{#1328}
++Cr-Branched-From: 27d3765d341b09369006d030f83f582a29eb57ae-refs/heads/main@{#1058933}
++---
++ .../service_worker_version_browsertest.cc             | 11 +++++++++++
++ .../data/service_worker/non_function_fetch_event.js   |  5 +++++
++ .../service_worker/service_worker_global_scope.cc     |  3 ++-
++ 3 files changed, 18 insertions(+), 1 deletion(-)
++ create mode 100644 content/test/data/service_worker/non_function_fetch_event.js
++
++diff --git a/content/browser/service_worker/service_worker_version_browsertest.cc b/content/browser/service_worker/service_worker_version_browsertest.cc
++index ffb2447e340f3..5e1aeaa11cc99 100644
++--- a/content/browser/service_worker/service_worker_version_browsertest.cc
+++++ b/content/browser/service_worker/service_worker_version_browsertest.cc
++@@ -965,6 +965,17 @@ IN_PROC_BROWSER_TEST_F(ServiceWorkerVersionBrowserTest,
++             version_->fetch_handler_type());
++ }
++ 
+++IN_PROC_BROWSER_TEST_F(ServiceWorkerVersionBrowserTest,
+++                       NonFunctionFetchHandler) {
+++  StartServerAndNavigateToSetup();
+++  ASSERT_EQ(Install("/service_worker/non_function_fetch_event.js"),
+++            blink::ServiceWorkerStatusCode::kOk);
+++  EXPECT_EQ(ServiceWorkerVersion::FetchHandlerExistence::EXISTS,
+++            version_->fetch_handler_existence());
+++  EXPECT_EQ(ServiceWorkerVersion::FetchHandlerType::kNotSkippable,
+++            version_->fetch_handler_type());
+++}
+++
++ // Check that fetch event handler added in the install event should result in a
++ // service worker that doesn't count as having a fetch event handler.
++ IN_PROC_BROWSER_TEST_F(ServiceWorkerVersionBrowserTest,
++diff --git a/content/test/data/service_worker/non_function_fetch_event.js b/content/test/data/service_worker/non_function_fetch_event.js
++new file mode 100644
++index 0000000000000..7e2bb2b540a84
++--- /dev/null
+++++ b/content/test/data/service_worker/non_function_fetch_event.js
++@@ -0,0 +1,5 @@
+++// Copyright 2023 The Chromium Authors
+++// Use of this source code is governed by a BSD-style license that can be
+++// found in the LICENSE file.
+++
+++self.addEventListener('fetch', {});
++diff --git a/third_party/blink/renderer/modules/service_worker/service_worker_global_scope.cc b/third_party/blink/renderer/modules/service_worker/service_worker_global_scope.cc
++index 72f98ac40a6e5..c66d232a65535 100644
++--- a/third_party/blink/renderer/modules/service_worker/service_worker_global_scope.cc
+++++ b/third_party/blink/renderer/modules/service_worker/service_worker_global_scope.cc
++@@ -2610,7 +2610,8 @@ ServiceWorkerGlobalScope::FetchHandlerType() {
++     EventTarget* et = EventTarget::Create(ScriptController()->GetScriptState());
++     v8::Local<v8::Value> v =
++         To<JSBasedEventListener>(e.Callback())->GetEffectiveFunction(*et);
++-    if (!v.As<v8::Function>()->Experimental_IsNopFunction()) {
+++    if (!v->IsFunction() ||
+++        !v.As<v8::Function>()->Experimental_IsNopFunction()) {
++       return mojom::blink::ServiceWorkerFetchHandlerType::kNotSkippable;
++     }
++   }
+-- 
+2.39.3
+

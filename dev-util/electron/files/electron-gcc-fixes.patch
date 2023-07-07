@@ -1,0 +1,85 @@
+From 78ada45c2a8d3836c293b0cc7f217e8730e195d3 Mon Sep 17 00:00:00 2001
+From: Elvis Pranskevichus <el@prans.net>
+Date: Fri, 16 Jun 2023 22:20:04 -0700
+Subject: [PATCH] Fix compilation under GCC
+
+---
+ ...latform_pageallocator_for_usage_outside_of_the_gin.patch | 6 +++---
+ ...aming-protocol_registry_to_multibuffer_data_source.patch | 4 ++--
+ shell/browser/javascript_environment.cc                     | 2 +-
+ shell/browser/serial/electron_serial_delegate.h             | 4 ++--
+ 4 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/patches/chromium/export_gin_v8platform_pageallocator_for_usage_outside_of_the_gin.patch b/patches/chromium/export_gin_v8platform_pageallocator_for_usage_outside_of_the_gin.patch
+index e04b0ddecc..72ee3d102d 100644
+--- a/patches/chromium/export_gin_v8platform_pageallocator_for_usage_outside_of_the_gin.patch
++++ b/patches/chromium/export_gin_v8platform_pageallocator_for_usage_outside_of_the_gin.patch
+@@ -16,7 +16,7 @@ index 334e702cae9ea874cc9f08f47b88af7fa60dd13b..87076ea0f7a16f1db57e574d7e4d51b1
+    // enabling Arm's Branch Target Instructions for executable pages. This is
+    // verified in the tests for gin::PageAllocator.
+    PageAllocator* GetPageAllocator() override;
+-+  static PageAllocator* PageAllocator();
+++  static PageAllocator* GetGinPageAllocator();
+    void OnCriticalMemoryPressure() override;
+    v8::ZoneBackingAllocator* GetZoneBackingAllocator() override;
+  #endif
+@@ -27,8 +27,8 @@ index 0e03069bfd06a418caef6e26d074b3fbe5aed4e7..46264c21239b5ed10e10bb23ec081713
+ @@ -367,6 +367,10 @@ PageAllocator* V8Platform::GetPageAllocator() {
+    return g_page_allocator.Pointer();
+  }
+- 
+-+PageAllocator* V8Platform::PageAllocator() {
++
+++PageAllocator* V8Platform::GetGinPageAllocator() {
+ +  return g_page_allocator.Pointer();
+ +}
+ +
+diff --git a/patches/chromium/feat_add_streaming-protocol_registry_to_multibuffer_data_source.patch b/patches/chromium/feat_add_streaming-protocol_registry_to_multibuffer_data_source.patch
+index 96441eaf1d..33d9b59c88 100644
+--- a/patches/chromium/feat_add_streaming-protocol_registry_to_multibuffer_data_source.patch
++++ b/patches/chromium/feat_add_streaming-protocol_registry_to_multibuffer_data_source.patch
+@@ -32,10 +32,10 @@ index 35e37b00ca87f1975c11ab98858b7849487304e5..82248fc99bbd0484f15de6ed7a7451cd
+  constexpr base::TimeDelta kSeekDelay = base::Milliseconds(20);
+  
+ +std::vector<std::string>* GetStreamingSchemes() {
+-+  static base::NoDestructor<std::vector<std::string>> streaming_schemes({
+++  static base::NoDestructor<std::vector<std::string>> streaming_schemes(std::initializer_list<std::string>({
+ +    url::kHttpsScheme,
+ +    url::kHttpScheme
+-+  });
+++  }));
+ +  return streaming_schemes.get();
+ +}
+ +
+diff --git a/shell/browser/javascript_environment.cc b/shell/browser/javascript_environment.cc
+index c1fab43482..5c4e8304a2 100644
+--- a/shell/browser/javascript_environment.cc
++++ b/shell/browser/javascript_environment.cc
+@@ -264,7 +264,7 @@ v8::Isolate* JavascriptEnvironment::Initialize(uv_loop_t* event_loop) {
+   node::tracing::TraceEventHelper::SetAgent(tracing_agent);
+   platform_ = node::CreatePlatform(
+       base::RecommendedMaxNumberOfThreadsInThreadGroup(3, 8, 0.1, 0),
+-      tracing_controller, gin::V8Platform::PageAllocator());
++      tracing_controller, gin::V8Platform::GetGinPageAllocator());
+ 
+   v8::V8::InitializePlatform(platform_);
+   gin::IsolateHolder::Initialize(gin::IsolateHolder::kNonStrictMode,
+diff --git a/shell/browser/serial/electron_serial_delegate.h b/shell/browser/serial/electron_serial_delegate.h
+index 9ddbaa3aec..20d7c462c4 100644
+--- a/shell/browser/serial/electron_serial_delegate.h
++++ b/shell/browser/serial/electron_serial_delegate.h
+@@ -45,9 +45,9 @@ class ElectronSerialDelegate : public content::SerialDelegate,
+   device::mojom::SerialPortManager* GetPortManager(
+       content::RenderFrameHost* frame) override;
+   void AddObserver(content::RenderFrameHost* frame,
+-                   Observer* observer) override;
++                   content::SerialDelegate::Observer* observer) override;
+   void RemoveObserver(content::RenderFrameHost* frame,
+-                      Observer* observer) override;
++                      content::SerialDelegate::Observer* observer) override;
+ 
+   void DeleteControllerForFrame(content::RenderFrameHost* render_frame_host);
+ 
+-- 
+2.39.3
+
