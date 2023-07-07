@@ -1,0 +1,2 @@
+# Qt support isn't quite there yet
+=dev-util/electron-22.3* qt5
