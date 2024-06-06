@@ -1,0 +1,26 @@
+From 1876cfa318d1548635e7cc79f02d7820edc27c98 Mon Sep 17 00:00:00 2001
+From: Elvis Pranskevichus <el@prans.net>
+Date: Wed, 29 May 2024 16:17:57 -0700
+Subject: [PATCH] Enable QT support
+
+---
+ build/args/all.gn | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/build/args/all.gn b/build/args/all.gn
+index 56589e30b2..58a2f720cf 100644
+--- a/build/args/all.gn
++++ b/build/args/all.gn
+@@ -47,9 +47,6 @@ enable_cet_shadow_stack = false
+ # Ref: https://source.chromium.org/chromium/chromium/src/+/45fba672185aae233e75d6ddc81ea1e0b30db050:v8/BUILD.gn;l=281
+ is_cfi = false
+ 
+-# TODO: fix this once sysroots have been updated.
+-use_qt = false
+-
+ # https://chromium-review.googlesource.com/c/chromium/src/+/4365718
+ # TODO(codebytere): fix perfetto incompatibility with Node.js.
+ use_perfetto_client_library = false
+-- 
+2.44.1
+

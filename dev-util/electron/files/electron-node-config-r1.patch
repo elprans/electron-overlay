@@ -1,0 +1,49 @@
+From 58dcabbfccee1ffcd24af58c17ff71d67bba0bd9 Mon Sep 17 00:00:00 2001
+From: Elvis Pranskevichus <el@prans.net>
+Date: Wed, 29 May 2024 12:42:36 -0700
+Subject: [PATCH] Node config
+
+---
+ script/generate-config-gypi.py | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
+
+diff --git a/script/generate-config-gypi.py b/script/generate-config-gypi.py
+index e55e2474db..a038a018aa 100755
+--- a/script/generate-config-gypi.py
++++ b/script/generate-config-gypi.py
+@@ -8,7 +8,7 @@ import subprocess
+ import sys
+ 
+ ELECTRON_DIR = os.path.abspath(os.path.join(__file__, '..', '..'))
+-NODE_DIR = os.path.join(ELECTRON_DIR, '..', 'third_party', 'electron_node')
++NODE_DIR = os.path.abspath(os.path.join(ELECTRON_DIR, '..', 'third_party', 'electron_node'))
+ 
+ def run_node_configure(target_cpu):
+   configure = os.path.join(NODE_DIR, 'configure.py')
+@@ -17,9 +17,9 @@ def run_node_configure(target_cpu):
+   # common.gypi rules
+   args += ['--experimental-enable-pointer-compression']
+ 
+-  # Work around "No acceptable ASM compiler found" error on some System,
+-  # it breaks nothing since Electron does not use OpenSSL.
+-  args += ['--openssl-no-asm']
++  args += [
++    %NODE_CONFIG_ARGS%
++  ]
+ 
+   # Enable whole-program optimization for electron native modules.
+   if sys.platform == "win32":
+@@ -50,10 +50,6 @@ def main(target_file, target_cpu):
+   config = read_node_config_gypi()
+   args = read_electron_args()
+ 
+-  # Remove the generated config.gypi to make the parallel/test-process-config
+-  # test pass.
+-  os.remove(os.path.join(NODE_DIR, 'config.gypi'))
+-
+   v = config['variables']
+   # Electron specific variables:
+   v['built_with_electron'] = 1
+-- 
+2.44.1
+

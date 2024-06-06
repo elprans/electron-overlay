@@ -1,0 +1,24 @@
+From 008068cbaf78ab03ee8cfbedad7c678c9cbe1277 Mon Sep 17 00:00:00 2001
+From: Elvis Pranskevichus <elvis@magic.io>
+Date: Thu, 18 Apr 2024 16:07:50 -0700
+Subject: [PATCH] GLSLANG fix
+
+---
+ third_party/angle/include/GLSLANG/ShaderVars.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/third_party/angle/include/GLSLANG/ShaderVars.h b/third_party/angle/include/GLSLANG/ShaderVars.h
+index 4b76d33..4db1902 100644
+--- a/third_party/angle/include/GLSLANG/ShaderVars.h
++++ b/third_party/angle/include/GLSLANG/ShaderVars.h
+@@ -12,6 +12,7 @@
+ 
+ #include <algorithm>
+ #include <array>
++#include <cstdint>
+ #include <string>
+ #include <vector>
+ 
+-- 
+2.43.2
+
