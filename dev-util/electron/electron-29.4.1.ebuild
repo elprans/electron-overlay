@@ -1265,7 +1265,7 @@ BDEPEND="
 	dev-vcs/git
 	>=net-libs/nodejs-7.6.0[inspector]
 	|| (
-		>=net-libs/nodejs-7.6.0[corepack]
+		>=net-libs/nodejs-20.14.0[corepack]
 		sys-apps/yarn
 	)
 	>=sys-devel/bison-2.4.3
@@ -2493,9 +2493,10 @@ src_install() {
 	# Node headers
 	insinto "${node_headers}"
 	doins -r out/Release/gen/node_headers/include/node
-	# set up a symlink structure that npm expects.
+	# set up a symlink structure that npm and gyp expect.
 	dodir "${node_headers}"/node/deps/{v8,uv}
 	dosym . "${node_headers}"/node/src
+	dosym .. "${node_headers}"/node/include
 	for var in deps/{uv,v8}/include; do
 		dosym ../.. "${node_headers}"/node/${var}
 	done
