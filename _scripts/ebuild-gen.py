@@ -254,7 +254,7 @@ def generate_ebuild(target, target_version, deps, template_fn):
     electron_version, packages = deps
 
     electron_v = parse_version(electron_version)
-    electron_slot = '{}.{}'.format(electron_v.major, electron_v.minor)
+    electron_slot = str(electron_v.major)
 
     for pkg in packages:
         name = pkg.package.strip('@').replace('/', '--')

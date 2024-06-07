@@ -27,8 +27,8 @@ ELECTRON_SLOT=@@{ELECTRON_S}
 
 ASAR_V=0.14.3
 # All binary packages depend on this
-NAN_V=2.17.0
-NODE_ADDON_API_V=5.0.0
+NAN_V=2.19.0
+NODE_ADDON_API_V=7.1.0
 
 @@{BINMOD_VERSIONS}
 
@@ -149,7 +149,7 @@ src_prepare() {
 	if [[ "${PV}" == *9999* ]]; then
 		eapply "${FILESDIR}/unbundle-electron-insiders.patch"
 	else
-		eapply "${FILESDIR}/unbundle-electron-r2.patch"
+		eapply "${FILESDIR}/unbundle-electron-r3.patch"
 	fi
 	eapply "${FILESDIR}/unbundle-ripgrep-r2.patch"
 
@@ -193,7 +193,7 @@ src_prepare() {
 
 		IFS= read -r -d '' pyscript <<EOF
 import base64, hashlib;
-m = hashlib.md5();
+m = hashlib.sha256();
 with open('out/${wb_css_path}', 'rb') as f:
 	m.update(f.read())
 print(base64.b64encode(m.digest()).decode().strip("="))
