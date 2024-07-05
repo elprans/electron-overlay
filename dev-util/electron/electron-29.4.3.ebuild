@@ -94,7 +94,7 @@ SRC_URI+="
 	https://registry.yarnpkg.com/@electron/get/-/get-2.0.2.tgz -> electron-dep-@electron-get-2.0.2.tgz
 	https://registry.yarnpkg.com/@electron/github-app-auth/-/github-app-auth-2.0.0.tgz -> electron-dep-@electron-github-app-auth-2.0.0.tgz
 	https://registry.yarnpkg.com/@electron/lint-roller/-/lint-roller-1.12.1.tgz -> electron-dep-@electron-lint-roller-1.12.1.tgz
-	https://registry.yarnpkg.com/@electron/typescript-definitions/-/typescript-definitions-8.15.2.tgz -> electron-dep-@electron-typescript-definitions-8.15.2.tgz
+	https://registry.yarnpkg.com/@electron/typescript-definitions/-/typescript-definitions-8.15.6.tgz -> electron-dep-@electron-typescript-definitions-8.15.6.tgz
 	https://registry.yarnpkg.com/@eslint-community/eslint-utils/-/eslint-utils-4.4.0.tgz -> electron-dep-@eslint-community-eslint-utils-4.4.0.tgz
 	https://registry.yarnpkg.com/@eslint-community/regexpp/-/regexpp-4.5.1.tgz -> electron-dep-@eslint-community-regexpp-4.5.1.tgz
 	https://registry.yarnpkg.com/@eslint/eslintrc/-/eslintrc-2.0.3.tgz -> electron-dep-@eslint-eslintrc-2.0.3.tgz
@@ -719,6 +719,7 @@ SRC_URI+="
 	https://registry.yarnpkg.com/ms/-/ms-2.1.2.tgz -> electron-dep--ms-2.1.2.tgz
 	https://registry.yarnpkg.com/ms/-/ms-2.1.3.tgz -> electron-dep--ms-2.1.3.tgz
 	https://registry.yarnpkg.com/mute-stream/-/mute-stream-0.0.8.tgz -> electron-dep--mute-stream-0.0.8.tgz
+	https://registry.yarnpkg.com/nan/-/nan-2.19.0.tgz -> electron-dep--nan-2.19.0.tgz
 	https://registry.yarnpkg.com/natural-compare-lite/-/natural-compare-lite-1.4.0.tgz -> electron-dep--natural-compare-lite-1.4.0.tgz
 	https://registry.yarnpkg.com/natural-compare/-/natural-compare-1.4.0.tgz -> electron-dep--natural-compare-1.4.0.tgz
 	https://registry.yarnpkg.com/negotiator/-/negotiator-0.6.3.tgz -> electron-dep--negotiator-0.6.3.tgz
