@@ -192,14 +192,14 @@ def find_atom_deps(args, sha):
 
 def find_vscode_deps(args, sha):
     package_json = get_repo_package_json(repodir(args.repo_url), sha=sha)
-    yarnrc = get_repo_file(repodir(args.repo_url), path='.yarnrc', sha=sha)
-    for line in yarnrc.split('\n'):
-        k, v, *_ = re.split('\s+', line)
-        if k == 'target':
-            electron_version = v.strip('"')
+    npmrc = get_repo_file(repodir(args.repo_url), path='.npmrc', sha=sha)
+    for line in npmrc.split('\n'):
+        k, _, v = line.partition("=")
+        if k.strip() == 'target':
+            electron_version = v.strip(' "')
             break
     else:
-        die('could not determine Electron version from vscode/.yarnrc')
+        die('could not determine Electron version from vscode/.npmrc')
 
     binary_deps = {}
 

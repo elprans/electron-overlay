@@ -22,15 +22,25 @@ else
 	UPSTREAM_CHANNEL="stable"
 fi
 
-ELECTRON_V=@@{ELECTRON_V}
-ELECTRON_SLOT=@@{ELECTRON_S}
+ELECTRON_V=30.5.1
+ELECTRON_SLOT=30
 
 ASAR_V=0.14.3
 # All binary packages depend on this
 NAN_V=2.19.0
 NODE_ADDON_API_V=7.1.0
 
-@@{BINMOD_VERSIONS}
+VSCODE__POLICY_WATCHER_V=1.1.8
+VSCODE__SPDLOG_V=0.15.0
+VSCODE__SQLITE3_V=5.1.6-vscode
+VSCODE__WINDOWS_MUTEX_V=0.5.0
+VSCODE__WINDOWS_PROCESS_TREE_V=0.6.0
+VSCODE__WINDOWS_REGISTRY_V=1.1.0
+KERBEROS_V=2.1.1
+NATIVE_IS_ELEVATED_V=0.7.0
+NATIVE_KEYMAP_V=3.3.5
+NATIVE_WATCHDOG_V=1.4.2
+NODE_PTY_V=1.1.0-beta21
 
 # The x86_64 arch below is irrelevant, as we will rebuild all binary packages.
 SRC_URI="
@@ -38,11 +48,31 @@ SRC_URI="
 	https://github.com/elprans/asar/releases/download/v${ASAR_V}-gentoo/asar-build.tar.gz -> asar-${ASAR_V}.tar.gz
 	https://github.com/nodejs/nan/archive/v${NAN_V}.tar.gz -> nodejs-nan-${NAN_V}.tar.gz
 	https://github.com/nodejs/node-addon-api/archive/v${NODE_ADDON_API_V}.tar.gz -> nodejs-node-addon-api-${NODE_ADDON_API_V}.tar.gz
-@@{SRC_URI}
+	https://registry.npmjs.org/@vscode/policy-watcher/-/policy-watcher-1.1.8.tgz -> vscodedep-vscode--policy-watcher-${VSCODE__POLICY_WATCHER_V}.tar.gz
+	https://registry.npmjs.org/@vscode/spdlog/-/spdlog-0.15.0.tgz -> vscodedep-vscode--spdlog-${VSCODE__SPDLOG_V}.tar.gz
+	https://registry.npmjs.org/@vscode/sqlite3/-/sqlite3-5.1.6-vscode.tgz -> vscodedep-vscode--sqlite3-${VSCODE__SQLITE3_V}.tar.gz
+	https://registry.npmjs.org/@vscode/windows-mutex/-/windows-mutex-0.5.0.tgz -> vscodedep-vscode--windows-mutex-${VSCODE__WINDOWS_MUTEX_V}.tar.gz
+	https://registry.npmjs.org/@vscode/windows-process-tree/-/windows-process-tree-0.6.0.tgz -> vscodedep-vscode--windows-process-tree-${VSCODE__WINDOWS_PROCESS_TREE_V}.tar.gz
+	https://registry.npmjs.org/@vscode/windows-registry/-/windows-registry-1.1.0.tgz -> vscodedep-vscode--windows-registry-${VSCODE__WINDOWS_REGISTRY_V}.tar.gz
+	https://registry.npmjs.org/kerberos/-/kerberos-2.1.1.tgz -> vscodedep-kerberos-${KERBEROS_V}.tar.gz
+	https://registry.npmjs.org/native-is-elevated/-/native-is-elevated-0.7.0.tgz -> vscodedep-native-is-elevated-${NATIVE_IS_ELEVATED_V}.tar.gz
+	https://registry.npmjs.org/native-keymap/-/native-keymap-3.3.5.tgz -> vscodedep-native-keymap-${NATIVE_KEYMAP_V}.tar.gz
+	https://registry.npmjs.org/native-watchdog/-/native-watchdog-1.4.2.tgz -> vscodedep-native-watchdog-${NATIVE_WATCHDOG_V}.tar.gz
+	https://registry.npmjs.org/node-pty/-/node-pty-1.1.0-beta21.tgz -> vscodedep-node-pty-${NODE_PTY_V}.tar.gz
 "
 
 BINMODS=(
-@@{BINMODS}
+	vscode--policy-watcher
+	vscode--spdlog
+	vscode--sqlite3
+	vscode--windows-mutex
+	vscode--windows-process-tree
+	vscode--windows-registry
+	kerberos
+	native-is-elevated
+	native-keymap
+	native-watchdog
+	node-pty
 )
 
 RESTRICT="mirror bindist"
@@ -65,8 +95,8 @@ LICENSE="
 	UoI-NCSA
 	W3C
 "
-SLOT="@@{SLOT}"
-KEYWORDS="@@{KEYWORDS}"
+SLOT="0"
+KEYWORDS="~amd64"
 IUSE=""
 
 BDEPEND="
