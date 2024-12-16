@@ -1306,7 +1306,6 @@ depend_clang_llvm_version() {
 	echo "llvm-core/clang:$1"
 	echo "llvm-core/llvm:$1"
 	echo "=llvm-core/lld-$1*"
-	echo "virtual/rust:0/llvm-${1}[profiler(-)]"
 	echo "pgo? ( sys-libs/compiler-rt-sanitizers:${1}[profile] )"
 }
 
